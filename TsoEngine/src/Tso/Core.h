@@ -10,3 +10,5 @@
 	#error TSO only support Windows now !
 #endif // TSO_PLATFORM_WINDOWS
 
+
+#define BIT(x) (1 << (x))
