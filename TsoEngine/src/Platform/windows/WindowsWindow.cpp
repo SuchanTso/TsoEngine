@@ -1,6 +1,11 @@
 #include "TPch.h"
 #include "WindowsWindow.h"
 
+#include "Tso/Event/ApplicationEvent.h"
+#include "Tso/Event/KeyEvent.h"
+#include "Tso/Event/MouseEvent.h"
+
+
 namespace Tso {
 	static bool s_GLFWInitialized = false;
 
@@ -39,6 +44,16 @@ namespace Tso {
 		glfwMakeContextCurrent(m_Window);
 		glfwSetWindowUserPointer(m_Window, &m_Data);
 		SetVSync(true);
+
+		//set GLFW callbacks
+		glfwSetWindowSizeCallback(m_Window, [](GLFWwindow* window, int width, int height) {
+			WindowData& data = *(WindowData*)glfwGetWindowUserPointer(window);
+			data.Width = width;
+			data.Height = height;
+
+			WindowResizeEvent event(width, height);
+			data.EventCallback(event);
+			});
 	}
 
 

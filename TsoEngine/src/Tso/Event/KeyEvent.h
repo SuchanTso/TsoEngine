@@ -23,7 +23,7 @@ protected:
     
     
     
-private:
+protected:
     int m_Keycode;
 };
 
@@ -38,7 +38,7 @@ public:
     std::string ToString() const override
     {
         std::stringstream ss;
-        ss << "KeyPressedEvent: " << m_KeyCode << " (repeat = " << m_IsRepeat << ")";
+        ss << "KeyPressedEvent: " << m_Keycode << " (repeat = " << m_IsRepeat << ")";
         return ss.str();
     }
 
@@ -56,7 +56,7 @@ class TSO_API KeyReleasedEvent : public KeyEvent
         std::string ToString() const override
         {
             std::stringstream ss;
-            ss << "KeyReleasedEvent: " << m_KeyCode;
+            ss << "KeyReleasedEvent: " << m_Keycode;
             return ss.str();
         }
 
@@ -72,7 +72,7 @@ class TSO_API KeyTypedEvent : public KeyEvent
         std::string ToString() const override
         {
             std::stringstream ss;
-            ss << "KeyTypedEvent: " << m_KeyCode;
+            ss << "KeyTypedEvent: " << m_Keycode;
             return ss.str();
         }
 

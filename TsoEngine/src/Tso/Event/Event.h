@@ -25,7 +25,7 @@ namespace Tso {
 		MouseButtonPressed,
 		MouseButtonReleased,
 		MouseMoved,
-		MouseScrooled
+		MouseScrolled
 	};
 
 	enum EventCategory {

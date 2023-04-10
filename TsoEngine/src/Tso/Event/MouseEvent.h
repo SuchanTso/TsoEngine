@@ -25,29 +25,29 @@ private:
     float m_MouseY;
 };
 
-class TSO_API MouseScrolledEvent :public Event{
+class TSO_API MouseScrolledEvent :public Event {
 public:
     MouseScrolledEvent(const float XOffset, const float YOffset)
-    :m_XOffset(XOffset),m_YOffset(YOffset){}
-    
-    float GetXOffset(){return m_XOffset;}
-    float GetYOffset(){return m_YOffset;}
+        :m_XOffset(XOffset), m_YOffset(YOffset) {}
 
-    
-    
+    float GetXOffset() { return m_XOffset; }
+    float GetYOffset() { return m_YOffset; }
+
+
+
     std::string ToString()const override {
         std::stringstream ss;
         ss << "MouseScrolledEvent: " << m_XOffset << " , " << m_YOffset;
         return ss.str();
     }
-    
+
     EVENT_CLASS_TYPE(MouseScrolled)
-    EVENT_CLASS_CATEGORY(EventCategoryMouse | EventCategoryInput)
-    
+        EVENT_CLASS_CATEGORY(EventCategoryMouse | EventCategoryInput)
+
 private:
     float m_XOffset;
     float m_YOffset;
-}
+};
 
 class TSO_API MouseButtonEvent :public Event{
 public:
@@ -60,7 +60,7 @@ public:
     EVENT_CLASS_CATEGORY(EventCategoryMouse | EventCategoryInput)
     
     
-private:
+protected:
     int m_Button;
 };
 
@@ -76,7 +76,7 @@ public:
     }
     
     
-    EVENT_CLASS_TYPE(MousePressed)
+    EVENT_CLASS_TYPE(MouseButtonPressed)
     
 };
 
@@ -92,7 +92,7 @@ public:
     }
     
     
-    EVENT_CLASS_TYPE(MouseReleased)
+    EVENT_CLASS_TYPE(MouseButtonReleased)
     
 };
 
