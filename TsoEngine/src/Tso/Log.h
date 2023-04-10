@@ -1,8 +1,9 @@
 #pragma once
-#include <spdlog\spdlog.h>
+#define SPDLOG_DISABLE_TID_CACHING
+#include "spdlog/spdlog.h"
 #include "Core.h"
 #include <memory>
-#include <spdlog/sinks/stdout_color_sinks.h>
+#include "spdlog/sinks/stdout_color_sinks.h"
 
 namespace Tso {
 	class TSO_API Log

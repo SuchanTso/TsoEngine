@@ -1,5 +1,5 @@
 #pragma once
-#include <Tso/Core.h>
+#include "Tso/Core.h"
 #include <string>
 #include <functional>
 #include <sstream>
@@ -48,7 +48,7 @@ namespace Tso {
 	class TSO_API Event
 	{
 	public:
-		Event();
+//		Event();
 		virtual ~Event() = default;
 
 		bool m_Handled = false;
