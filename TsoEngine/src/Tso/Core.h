@@ -17,4 +17,13 @@
 #endif // TSO_PLATFORM_WINDOWS
 
 
+#ifdef TSO_ENABLE_ASSERTS
+#define TSO_ASSERT(x, ...) {if(!){TSO_ERROR("Assertion Failed: {0}",__VA_ARGS__); __debugbreak();}
+#define TSO_CORE_ASSERT(x, ...){if(!){TSO_CORE_ERROR("Assertion Failed: {0}",__VA_ARGS__); __debugbreak();}
+#else
+#define TSO_ASSERT(x, ...) 
+#define TSO_CORE_ASSERT(x, ...) 
+#endif // TSO_ENABLE_ASSERTS
+
+
 #define BIT(x) (1 << (x))

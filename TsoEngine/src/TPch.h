@@ -11,14 +11,16 @@
 #include <utility>
 #include <algorithm>
 #include <functional>
-#include <stdio.h>
 
 #include <string>
 #include <sstream>
+#include <array>
 #include <vector>
 #include <unordered_map>
 #include <unordered_set>
 
+#include "Tso/Log.h"
+
 #ifdef TSO_PLATFORM_WINDOWS
-    #include <Windows.h>
+  //  #include <Windows.h>
 #endif

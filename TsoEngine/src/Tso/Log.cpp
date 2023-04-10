@@ -1,3 +1,4 @@
+#include "TPch.h"
 #include "Log.h"
 namespace Tso {
 	std::shared_ptr<spdlog::logger> Log::s_CoreLogger;

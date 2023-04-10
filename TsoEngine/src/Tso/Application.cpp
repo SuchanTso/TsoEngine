@@ -1,9 +1,10 @@
+#include "TPch.h"
 #include "Application.h"
-#include <stdio.h>
-#include "Event/ApplicationEvent.h"
+#include <GLFW/glfw3.h>
+//#include "Event/ApplicationEvent.h"
 namespace Tso {
 	Application::Application() {
-
+		m_Window = std::unique_ptr<Window>(Window::Create());
 	}
 
 	Application::~Application() {
@@ -11,11 +12,11 @@ namespace Tso {
 	}
 
 	void Application::Run() {
-        WindowResizeEvent e(1280,720);
         
-        printf("e :[%s]\n",e.ToString().c_str());
-		while (true) {
-			//printf("welcome end less loop in suchantso engine\n");
+		while (m_Running) {
+			glClearColor(1, 0, 1, 1);
+			glClear(GL_COLOR_BUFFER_BIT);
+			m_Window->OnUpdate();
 		}
 	}
 }

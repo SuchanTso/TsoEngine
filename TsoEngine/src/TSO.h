@@ -7,7 +7,7 @@
 //i didn't find a way to import spdlog in macos temporarily
 #endif
 
-#include "Tso/Event/Event.h"
+//#include "Tso/Event/Event.h"
 
 //entry point --------------------------------
 #include "Tso/EntryPoint.h"
