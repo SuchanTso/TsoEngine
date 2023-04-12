@@ -7,7 +7,7 @@ public:
     
     void OnUpdate()override{
         TSO_INFO("testLayer OnUpdate");
-        printf("testLayer OnUpdate\n");
+//        printf("testLayer OnUpdate\n");
     }
     
     void OnEvent(Tso::Event& event)override{
@@ -20,6 +20,7 @@ class SandBox :public Tso::Application {
 public:
 	SandBox() {
         PushLayer(new TestLayer());
+        PushOverlay(new Tso::ImGuiLayer());
 	}
 	~SandBox() {
 

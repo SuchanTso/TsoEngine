@@ -1,12 +1,16 @@
 #include "TPch.h"
 #include "Application.h"
+#include "glad/glad.h"
 #include "GLFW/glfw3.h"
 //#include "Event/ApplicationEvent.h"
 namespace Tso {
 #define BIND_EVENT_FN(x) std::bind(&Application::x,this , std::placeholders::_1)
 
+    Application* Application::s_Instance = nullptr;
+
 	Application::Application() {
-		m_Window = std::unique_ptr<Window>(Window::Create());
+        s_Instance = this;
+        m_Window = std::unique_ptr<Window>(Window::Create({"test",1280,720}));
 		m_Window->SetEventCallback(BIND_EVENT_FN(OnEvent));
 	}
 
@@ -20,8 +24,8 @@ namespace Tso {
         
         dispatcher.Dispatch<WindowCloseEvent>(BIND_EVENT_FN(OnWindowClosed));
         
-        for(auto it = m_LayerStack.end();it != m_LayerStack.begin();){
-            (*--it)->OnEvent(e);
+        for(auto it = m_LayerStack.end() - 1;it != m_LayerStack.begin();it--){
+            (*it)->OnEvent(e);
             if(e.m_Handled){
                 break;
             }

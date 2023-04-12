@@ -3,6 +3,7 @@
 
 #include "Tso/Application.h"
 #include "Tso/Log.h"
+#include "Tso/imgui/ImGuiLayer.h"
 //i didn't find a way to import spdlog in macos temporarily
 
 //#include "Tso/Event/Event.h"

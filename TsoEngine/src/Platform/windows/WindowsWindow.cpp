@@ -1,4 +1,5 @@
 #include "TPch.h"
+#include "glad/glad.h"
 #include "WindowsWindow.h"
 
 #include "Tso/Event/ApplicationEvent.h"
@@ -45,9 +46,17 @@ static void GLFWErrorCallback(int error,const char* description){
             glfwSetErrorCallback(GLFWErrorCallback);
 			s_GLFWInitialized = true;
 		}
-
+#ifdef TSO_PLATFORM_MACOSX
+    const char* glsl_version = "#version 410";
+        glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+        glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2);
+        glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);  // 3.2+ only
+        glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);            // Required on Mac
+#endif
 		m_Window = glfwCreateWindow((int)props.Width, (int)props.Height, m_Data.Title.c_str(), nullptr, nullptr);
 		glfwMakeContextCurrent(m_Window);
+        int status = gladLoadGLLoader((GLADloadproc)glfwGetProcAddress);
+        
 		glfwSetWindowUserPointer(m_Window, &m_Data);
 		SetVSync(true);
 

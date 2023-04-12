@@ -1,5 +1,5 @@
 workspace "TsoEngine"
-	architecture "x64"
+	-- architecture "x64"
 
 	configurations{
 		"Debug",
@@ -8,6 +8,16 @@ workspace "TsoEngine"
 	}
 
 outputdir = "%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}"
+
+IncludeDir = {}
+IncludeDir["GLFW"] = "TsoEngine/third_party/GLFW/include"
+IncludeDir["Glad"] = "TsoEngine/third_party/Glad/include"
+IncludeDir["imgui"] = "TsoEngine/third_party/imgui"
+
+include "TsoEngine/third_party/GLFW"
+include "TsoEngine/third_party/Glad"
+include "TsoEngine/third_party/imgui"
+
 project "TsoEngine"
 	location "TsoEngine"
 	kind "SharedLib"
@@ -22,34 +32,64 @@ project "TsoEngine"
 
 	includedirs{
 		"%{prj.name}/third_party/spdlog/include",
-		"%{prj.name}/src"
+		"%{prj.name}/src",
+		"%{prj.name}/third_party/GLFW/include",
+		"%{prj.name}/third_party/Glad/include",
+		"%{prj.name}/third_party/imgui"
 	}
+
+	links{
+		"GLFW",
+		"Glad",
+		"imgui"
+		--"opengl32.lib"
+	}
+
 
 	filter "system:windows"
 		cppdialect "C++17"
 		staticruntime "On"
 		systemversion "latest"
 
+		pchheader "TPch.h"
+		pchsource "%{prj.name}/src/TPch.cpp"
+
 		defines{
 			"TSO_PLATFORM_WINDOWS",
 			"TSO_BUILD_DLL"
 		}
 
+		
+
 		postbuildcommands{
 			("{COPY} %{cfg.buildtarget.relpath} ../bin/" .. outputdir .. "/sandbox")
 		}
 
-		filter "configurations:Debug"
-			defines "TSO_DEBUG"
-			symbols "On"
+	filter "system:macosx"
+		cppdialect "C++17"
+		staticruntime "On"
+		systemversion "latest"
 
-		filter "configurations:Release"
-			defines "TSO_RELEASE"
-			optimize "On"
+		defines{
+			"TSO_PLATFORM_MACOSX",
+			"TSO_BUILD_DYLIB"
+		}
+		
 
-		filter "configurations:Dist"
-			defines "TSO_DIST"
-			optimize "On"
+	filter "configurations:Debug"
+		defines "TSO_DEBUG"
+		-- buildoptions "/MDd"
+		symbols "On"
+
+	filter "configurations:Release"
+		defines "TSO_RELEASE"
+		-- buildoptions "/MD"
+		optimize "On"
+
+	filter "configurations:Dist"
+		defines "TSO_DIST"
+		-- buildoptions "/MD"
+		optimize "On"
 
 
 project "Sandbox"
@@ -73,18 +113,27 @@ project "Sandbox"
 		"TsoEngine"
 	}
 
-	defines{
-			"TSO_PLATFORM_WINDOWS"
-	}
+	filter "system:windows"
+		defines{
+				"TSO_PLATFORM_WINDOWS"
+		}
+	
+	filter "system:macosx"
+		defines{
+				"TSO_PLATFORM_MACOSX"
+		}
 
-		filter "configurations:Debug"
-			defines "TSO_DEBUG"
-			symbols "On"
+	filter "configurations:Debug"
+		defines "TSO_DEBUG"
+		--buildoptions "/MDd"
+		symbols "On"
 
-		filter "configurations:Release"
-			defines "TSO_RELEASE"
-			optimize "On"
+	filter "configurations:Release"
+		defines "TSO_RELEASE"
+		-- buildoptions "/MD"
+		optimize "On"
 
-		filter "configurations:Dist"
-			defines "TSO_DIST"
-			optimize "On"
+	filter "configurations:Dist"
+		defines "TSO_DIST"
+		-- buildoptions "/MD"
+		optimize "On"

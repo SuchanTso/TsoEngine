@@ -1,4 +1,5 @@
 #pragma once
+#ifdef TSO_PLATFORM_WINDOWS
 #define SPDLOG_DISABLE_TID_CACHING
 #include <spdlog/spdlog.h>
 #include "Core.h"
@@ -39,3 +40,20 @@ namespace Tso {
 #define TSO_WARN(...)   ::Tso::Log::GetClientLogger()->warn(__VA_ARGS__)
 #define TSO_ERROR(...)  ::Tso::Log::GetClientLogger()->error(__VA_ARGS__)
 #define TSO_FATAL(...)  ::Tso::Log::GetClientLogger()->fatal(__VA_ARGS__)
+
+
+#else
+#define TSO_CORE_TRACE(...)
+#define TSO_CORE_INFO(...) 
+#define TSO_CORE_WARN(...)
+#define TSO_CORE_ERROR(...)
+#define TSO_CORE_FATAL(...)
+
+// core client macros
+#define TSO_TRACE(...)
+#define TSO_INFO(...)
+#define TSO_WARN(...)
+#define TSO_ERROR(...)
+#define TSO_FATAL(...)
+
+#endif
