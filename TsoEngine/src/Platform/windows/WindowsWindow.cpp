@@ -5,6 +5,7 @@
 #include "Tso/Event/ApplicationEvent.h"
 #include "Tso/Event/KeyEvent.h"
 #include "Tso/Event/MouseEvent.h"
+#include "Platform/OpenGL/OpenGLContext.h"
 
 
 namespace Tso {
@@ -54,8 +55,11 @@ static void GLFWErrorCallback(int error,const char* description){
         glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);            // Required on Mac
 #endif
 		m_Window = glfwCreateWindow((int)props.Width, (int)props.Height, m_Data.Title.c_str(), nullptr, nullptr);
-		glfwMakeContextCurrent(m_Window);
-        int status = gladLoadGLLoader((GLADloadproc)glfwGetProcAddress);
+        m_Context = new OpenGLContext(m_Window);
+
+        m_Context->Init();
+  //	glfwMakeContextCurrent(m_Window);
+  //    int status = gladLoadGLLoader((GLADloadproc)glfwGetProcAddress);
         
 		glfwSetWindowUserPointer(m_Window, &m_Data);
 		SetVSync(true);
@@ -154,7 +158,7 @@ static void GLFWErrorCallback(int error,const char* description){
 
 	void WindowsWindow::OnUpdate()const {
 		glfwPollEvents();
-		glfwSwapBuffers(m_Window);
+        m_Context->SwapBuffers();
 	}
 
 	void WindowsWindow::SetVSync(bool enabled) {
@@ -166,6 +170,7 @@ static void GLFWErrorCallback(int error,const char* description){
 
 	bool WindowsWindow::IsVSync()const {
 		return m_Data.VSync;
-	}
+	} 
+
 
 }

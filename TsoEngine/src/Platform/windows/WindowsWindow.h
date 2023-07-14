@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Tso/Window.h"
+#include "Tso/Renderer/GraphicsContext.h"
 
 #include "GLFW/glfw3.h"
 
@@ -25,6 +26,8 @@ namespace Tso {
 		
 		bool IsVSync()const override;
 
+		inline virtual void* GetNativeWindow() const { return m_Window; }
+
 	private:
 		virtual void Init(const WindowProps& props);
 		virtual void ShutDown();
@@ -43,6 +46,8 @@ namespace Tso {
 
 
 		WindowData m_Data;
+		GraphicsContext* m_Context = nullptr;
+		
 	};
 
 }

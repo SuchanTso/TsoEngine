@@ -1,5 +1,6 @@
-#ifdef TSO_PLATFORM_WINDOWS
 #include "TPch.h"
+#ifdef TSO_PLATFORM_WINDOWS
+
 #include "Log.h"
 namespace Tso {
 	std::shared_ptr<spdlog::logger> Log::s_CoreLogger;

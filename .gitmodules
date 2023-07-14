@@ -4,3 +4,9 @@
 [submodule "TsoEngine/third_party/GLFW"]
 	path = TsoEngine/third_party/GLFW
 	url = git@github.com:TheCherno/glfw.git
+[submodule "TsoEngine/third_party/imgui"]
+	path = TsoEngine/third_party/imgui
+	url = git@github.com:TheCherno/imgui.git
+[submodule "TsoEngine/third_party/glm"]
+	path = TsoEngine/third_party/glm
+	url = git@github.com:g-truc/glm.git

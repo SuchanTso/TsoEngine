@@ -1,11 +1,15 @@
 #pragma once
 
 #ifdef TSO_PLATFORM_WINDOWS
+#if TSO_DYLIB
 	#ifdef TSO_BUILD_DLL
 		#define TSO_API __declspec(dllexport)
 	#else 
 		#define TSO_API __declspec(dllimport)
 	#endif
+#else
+	#define TSO_API
+#endif
 #elif defined TSO_PLATFORM_MACOSX
     #ifdef TSO_BUILD_DYLIB
         #define TSO_API __attribute__((visibility ("default")))

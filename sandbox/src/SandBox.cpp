@@ -3,16 +3,20 @@
 class TestLayer : public Tso::Layer{
 public:
   TestLayer():
-    Layer("testLayer"){}
+    Layer("testLayer"){
+  
+  }
     
     void OnUpdate()override{
-        TSO_INFO("testLayer OnUpdate");
+        //TSO_INFO("testLayer OnUpdate");
 //        printf("testLayer OnUpdate\n");
+        if (Tso::Input::IsKeyPressed(TSO_KEY_TAB)) {
+            TSO_INFO("tab pressed");
+        }
     }
     
     void OnEvent(Tso::Event& event)override{
         TSO_INFO("testLayer Event:{0}",event.ToString());
-        printf("testLayer [%s]\n",event.ToString().c_str());
     }
 };
 
@@ -20,7 +24,7 @@ class SandBox :public Tso::Application {
 public:
 	SandBox() {
         PushLayer(new TestLayer());
-        PushOverlay(new Tso::ImGuiLayer());
+        //PushOverlay(new Tso::ImGuiLayer());
 	}
 	~SandBox() {
 

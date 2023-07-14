@@ -3,6 +3,11 @@
 #include "Window.h"
 #include "Event/ApplicationEvent.h"
 #include "LayerStack.h"
+#include "Tso/imgui/ImguiLayer.h"
+#include "Tso/Renderer/Shader.h"
+#include "Tso/Renderer/Buffer.h"
+#include "Tso/Renderer/VertexArray.h"
+
 namespace Tso {
 	class TSO_API Application
 	{
@@ -28,11 +33,16 @@ namespace Tso {
 
 	private :
 		std::unique_ptr<Window> m_Window;
+        ImGuiLayer* m_ImGuiLayer;
 		bool m_Running = true;
         LayerStack m_LayerStack;
         
     private:
         static Application * s_Instance;
+
+        std::shared_ptr<Shader> m_Shader;
+        std::shared_ptr<VertexArray> m_VertexArray;
+
         
 	};
 

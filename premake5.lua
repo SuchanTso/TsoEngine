@@ -1,5 +1,5 @@
 workspace "TsoEngine"
-	-- architecture "x64"
+	architecture "x64"
 
 	configurations{
 		"Debug",
@@ -13,21 +13,28 @@ IncludeDir = {}
 IncludeDir["GLFW"] = "TsoEngine/third_party/GLFW/include"
 IncludeDir["Glad"] = "TsoEngine/third_party/Glad/include"
 IncludeDir["imgui"] = "TsoEngine/third_party/imgui"
+IncludeDir["glm"] = "TsoEngine/third_party/glm"
 
 include "TsoEngine/third_party/GLFW"
 include "TsoEngine/third_party/Glad"
 include "TsoEngine/third_party/imgui"
 
+--startproject "Sandbox"
+
 project "TsoEngine"
 	location "TsoEngine"
-	kind "SharedLib"
+	kind "StaticLib"
 	language "C++"
 	targetdir ("bin/" .. outputdir .."/%{prj.name}")
 	objdir ("bin-int/" .. outputdir .."/%{prj.name}")
+	staticruntime "on"
 
 	files{
 		"%{prj.name}/src/**.h",
-		"%{prj.name}/src/**.cpp"
+		"%{prj.name}/src/**.cpp",
+		"%{prj.name}/third_party/glm/glm/**.hpp",
+		"%{prj.name}/third_party/glm/glm/**.inl"
+
 	}
 
 	includedirs{
@@ -35,14 +42,16 @@ project "TsoEngine"
 		"%{prj.name}/src",
 		"%{prj.name}/third_party/GLFW/include",
 		"%{prj.name}/third_party/Glad/include",
-		"%{prj.name}/third_party/imgui"
+		"%{prj.name}/third_party/imgui",
+		"%{prj.name}/third_party/glm"
+
 	}
 
 	links{
 		"GLFW",
 		"Glad",
-		"imgui"
-		--"opengl32.lib"
+		"ImGui",
+		"opengl32.lib"
 	}
 
 
@@ -59,11 +68,6 @@ project "TsoEngine"
 			"TSO_BUILD_DLL"
 		}
 
-		
-
-		postbuildcommands{
-			("{COPY} %{cfg.buildtarget.relpath} ../bin/" .. outputdir .. "/sandbox")
-		}
 
 	filter "system:macosx"
 		cppdialect "C++17"
@@ -78,17 +82,17 @@ project "TsoEngine"
 
 	filter "configurations:Debug"
 		defines "TSO_DEBUG"
-		-- buildoptions "/MDd"
+		buildoptions "/MDd"
 		symbols "On"
 
 	filter "configurations:Release"
 		defines "TSO_RELEASE"
-		-- buildoptions "/MD"
+		buildoptions "/MD"
 		optimize "On"
 
 	filter "configurations:Dist"
 		defines "TSO_DIST"
-		-- buildoptions "/MD"
+		buildoptions "/MD"
 		optimize "On"
 
 
@@ -96,6 +100,9 @@ project "Sandbox"
 	location "sandbox"
 	kind "ConsoleApp"
 	language "C++"
+	cppdialect "C++17"
+	staticruntime "on"
+
 	targetdir ("bin/" .. outputdir .."/%{prj.name}")
 	objdir ("bin-int/" .. outputdir .."/%{prj.name}")
 
@@ -106,7 +113,8 @@ project "Sandbox"
 
 	includedirs{
 		"TsoEngine/third_party/spdlog/include",
-		"TsoEngine/src"
+		"TsoEngine/src",
+		"%{IncludeDir.glm}"
 	}
 
 	links{
@@ -125,15 +133,15 @@ project "Sandbox"
 
 	filter "configurations:Debug"
 		defines "TSO_DEBUG"
-		--buildoptions "/MDd"
+		buildoptions "/MDd"
 		symbols "On"
 
 	filter "configurations:Release"
 		defines "TSO_RELEASE"
-		-- buildoptions "/MD"
+		buildoptions "/MD"
 		optimize "On"
 
 	filter "configurations:Dist"
 		defines "TSO_DIST"
-		-- buildoptions "/MD"
+		buildoptions "/MD"
 		optimize "On"

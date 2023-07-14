@@ -1,0 +1,4 @@
+﻿cl : 命令行  warning D9002: 忽略未知选项“-std=c11”
+cl : 命令行  warning D9002: 忽略未知选项“-lgdi32”
+  glad.c
+  Glad.vcxproj -> C:\my\Code\projects\graph_c++inVs\TsoEngine\TsoEngine\third_party\Glad\bin\Debug-windows-x86_64\Glad\Glad.lib
