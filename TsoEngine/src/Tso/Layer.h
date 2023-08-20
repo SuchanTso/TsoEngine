@@ -18,7 +18,7 @@ public:
     
     virtual void OnAttach(){}
     virtual void OnDetach(){}
-    virtual void OnUpdate(){}
+    virtual void OnUpdate(TimeStep ts){}
     virtual void OnEvent(Event& e){}
     virtual void OnImGuiRender() {}
     

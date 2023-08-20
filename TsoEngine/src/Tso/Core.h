@@ -1,5 +1,7 @@
 #pragma once
 
+#include <memory>
+
 #ifdef TSO_PLATFORM_WINDOWS
 #if TSO_DYLIB
 	#ifdef TSO_BUILD_DLL
@@ -31,3 +33,13 @@
 
 
 #define BIT(x) (1 << (x))
+
+
+namespace Tso {
+
+	template<typename T>
+	using Scope = std::unique_ptr<T>;
+
+	template<typename T>
+	using Ref = std::shared_ptr<T>;
+}

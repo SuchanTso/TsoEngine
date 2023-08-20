@@ -14,10 +14,13 @@ IncludeDir["GLFW"] = "TsoEngine/third_party/GLFW/include"
 IncludeDir["Glad"] = "TsoEngine/third_party/Glad/include"
 IncludeDir["imgui"] = "TsoEngine/third_party/imgui"
 IncludeDir["glm"] = "TsoEngine/third_party/glm"
+IncludeDir["stb_image"] = "TsoEngine/third_party/stb_image"
+
 
 include "TsoEngine/third_party/GLFW"
 include "TsoEngine/third_party/Glad"
 include "TsoEngine/third_party/imgui"
+
 
 --startproject "Sandbox"
 
@@ -33,7 +36,10 @@ project "TsoEngine"
 		"%{prj.name}/src/**.h",
 		"%{prj.name}/src/**.cpp",
 		"%{prj.name}/third_party/glm/glm/**.hpp",
-		"%{prj.name}/third_party/glm/glm/**.inl"
+		"%{prj.name}/third_party/glm/glm/**.inl",
+		"%{prj.name}/third_party/stb_image/**.h",
+		"%{prj.name}/third_party/stb_image/**.cpp",
+
 
 	}
 
@@ -43,7 +49,9 @@ project "TsoEngine"
 		"%{prj.name}/third_party/GLFW/include",
 		"%{prj.name}/third_party/Glad/include",
 		"%{prj.name}/third_party/imgui",
-		"%{prj.name}/third_party/glm"
+		"%{prj.name}/third_party/glm",
+		"%{prj.name}/third_party/stb_image"
+
 
 	}
 
@@ -114,7 +122,8 @@ project "Sandbox"
 	includedirs{
 		"TsoEngine/third_party/spdlog/include",
 		"TsoEngine/src",
-		"%{IncludeDir.glm}"
+		"%{IncludeDir.glm}",
+		"TsoEngine/third_party/imgui"
 	}
 
 	links{

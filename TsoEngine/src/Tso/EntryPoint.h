@@ -7,8 +7,6 @@ int main(int argc,char** argv) {
 	//because every time u execute the client app, it should include this file
 	Tso::Log::Init();
 	TSO_CORE_ERROR("initialized Log!");
-	int a = 2;
-	TSO_INFO(" hello ! a = {0}",a);
 
 
 	auto app = Tso::CreateApplication();

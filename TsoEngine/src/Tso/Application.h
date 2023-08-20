@@ -8,6 +8,9 @@
 #include "Tso/Renderer/Buffer.h"
 #include "Tso/Renderer/VertexArray.h"
 
+#include "Tso/Renderer/OrthographicCamera.h"
+#include "Tso/Core/TimeStep.h"
+
 namespace Tso {
 	class TSO_API Application
 	{
@@ -20,6 +23,7 @@ namespace Tso {
 		void OnEvent(Event& e);
         
         bool OnWindowClosed(const WindowCloseEvent& e);
+        bool OnKeyEvent(const KeyEvent& e);
         
         void PushLayer(Layer* layer);
         void PushOverlay(Layer* overlay);
@@ -36,12 +40,15 @@ namespace Tso {
         ImGuiLayer* m_ImGuiLayer;
 		bool m_Running = true;
         LayerStack m_LayerStack;
+        float m_LastTime;
         
     private:
         static Application * s_Instance;
 
-        std::shared_ptr<Shader> m_Shader;
-        std::shared_ptr<VertexArray> m_VertexArray;
+        Ref<Shader> m_Shader;
+        Ref<VertexArray> m_VertexArray;
+
+        OrthographicCamera m_Camera;
 
         
 	};

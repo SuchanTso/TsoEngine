@@ -77,7 +77,7 @@
       <PrecompiledHeaderFile>TPch.h</PrecompiledHeaderFile>
       <WarningLevel>Level3</WarningLevel>
       <PreprocessorDefinitions>TSO_PLATFORM_WINDOWS;TSO_BUILD_DLL;TSO_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>third_party\spdlog\include;src;third_party\GLFW\include;third_party\Glad\include;third_party\imgui;third_party\glm;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>third_party\spdlog\include;src;third_party\GLFW\include;third_party\Glad\include;third_party\imgui;third_party\glm;third_party\stb_image;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
       <Optimization>Disabled</Optimization>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
@@ -99,7 +99,7 @@
       <PrecompiledHeaderFile>TPch.h</PrecompiledHeaderFile>
       <WarningLevel>Level3</WarningLevel>
       <PreprocessorDefinitions>TSO_PLATFORM_WINDOWS;TSO_BUILD_DLL;TSO_RELEASE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>third_party\spdlog\include;src;third_party\GLFW\include;third_party\Glad\include;third_party\imgui;third_party\glm;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>third_party\spdlog\include;src;third_party\GLFW\include;third_party\Glad\include;third_party\imgui;third_party\glm;third_party\stb_image;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <Optimization>Full</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
@@ -125,7 +125,7 @@
       <PrecompiledHeaderFile>TPch.h</PrecompiledHeaderFile>
       <WarningLevel>Level3</WarningLevel>
       <PreprocessorDefinitions>TSO_PLATFORM_WINDOWS;TSO_BUILD_DLL;TSO_DIST;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>third_party\spdlog\include;src;third_party\GLFW\include;third_party\Glad\include;third_party\imgui;third_party\glm;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>third_party\spdlog\include;src;third_party\GLFW\include;third_party\Glad\include;third_party\imgui;third_party\glm;third_party\stb_image;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <Optimization>Full</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
@@ -150,6 +150,7 @@
     <ClInclude Include="src\Platform\OpenGL\OpenGLContext.h" />
     <ClInclude Include="src\Platform\OpenGL\OpenGLRendererAPI.h" />
     <ClInclude Include="src\Platform\OpenGL\OpenGLShader.h" />
+    <ClInclude Include="src\Platform\OpenGL\OpenGLTexture2D.h" />
     <ClInclude Include="src\Platform\OpenGL\OpenGLVertexArray.h" />
     <ClInclude Include="src\Platform\windows\WindowsInput.h" />
     <ClInclude Include="src\Platform\windows\WindowsWindow.h" />
@@ -157,6 +158,7 @@
     <ClInclude Include="src\TSO.h" />
     <ClInclude Include="src\Tso\Application.h" />
     <ClInclude Include="src\Tso\Core.h" />
+    <ClInclude Include="src\Tso\Core\TimeStep.h" />
     <ClInclude Include="src\Tso\EntryPoint.h" />
     <ClInclude Include="src\Tso\Event\ApplicationEvent.h" />
     <ClInclude Include="src\Tso\Event\Event.h" />
@@ -170,10 +172,12 @@
     <ClInclude Include="src\Tso\MouseButtonCode.h" />
     <ClInclude Include="src\Tso\Renderer\Buffer.h" />
     <ClInclude Include="src\Tso\Renderer\GraphicsContext.h" />
+    <ClInclude Include="src\Tso\Renderer\OrthographicCamera.h" />
     <ClInclude Include="src\Tso\Renderer\RenderCommand.h" />
     <ClInclude Include="src\Tso\Renderer\Renderer.h" />
     <ClInclude Include="src\Tso\Renderer\RendererAPI.h" />
     <ClInclude Include="src\Tso\Renderer\Shader.h" />
+    <ClInclude Include="src\Tso\Renderer\Texture.h" />
     <ClInclude Include="src\Tso\Renderer\VertexArray.h" />
     <ClInclude Include="src\Tso\Window.h" />
     <ClInclude Include="src\Tso\imgui\ImguiLayer.h" />
@@ -593,12 +597,14 @@
     <ClInclude Include="third_party\glm\glm\vec3.hpp" />
     <ClInclude Include="third_party\glm\glm\vec4.hpp" />
     <ClInclude Include="third_party\glm\glm\vector_relational.hpp" />
+    <ClInclude Include="third_party\stb_image\stb_image.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Platform\OpenGL\OpenGLBuffer.cpp" />
     <ClCompile Include="src\Platform\OpenGL\OpenGLContext.cpp" />
     <ClCompile Include="src\Platform\OpenGL\OpenGLRendererAPI.cpp" />
     <ClCompile Include="src\Platform\OpenGL\OpenGLShader.cpp" />
+    <ClCompile Include="src\Platform\OpenGL\OpenGLTexture2D.cpp" />
     <ClCompile Include="src\Platform\OpenGL\OpenGLVertexArray.cpp" />
     <ClCompile Include="src\Platform\windows\WindowsInput.cpp" />
     <ClCompile Include="src\Platform\windows\WindowsWindow.cpp" />
@@ -610,13 +616,16 @@
     <ClCompile Include="src\Tso\LayerStack.cpp" />
     <ClCompile Include="src\Tso\Log.cpp" />
     <ClCompile Include="src\Tso\Renderer\Buffer.cpp" />
+    <ClCompile Include="src\Tso\Renderer\OrthographicCamera.cpp" />
     <ClCompile Include="src\Tso\Renderer\RenderCommand.cpp" />
     <ClCompile Include="src\Tso\Renderer\Renderer.cpp" />
     <ClCompile Include="src\Tso\Renderer\RendererAPI.cpp" />
     <ClCompile Include="src\Tso\Renderer\Shader.cpp" />
+    <ClCompile Include="src\Tso\Renderer\Texture.cpp" />
+    <ClCompile Include="src\Tso\Renderer\VertexArray.cpp" />
     <ClCompile Include="src\Tso\imgui\ImguiBuild.cpp" />
     <ClCompile Include="src\Tso\imgui\ImguiLayer.cpp" />
-    <ClCompile Include="src\Tso\Renderer\VertexArray.cpp" />
+    <ClCompile Include="third_party\stb_image\stb_image.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="third_party\GLFW\GLFW.vcxproj">

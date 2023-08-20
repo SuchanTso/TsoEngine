@@ -13,15 +13,15 @@ namespace Tso {
 
 		virtual void UnBind()const override;
 
-		virtual void AddVertexBuffer(const std::shared_ptr<VertexBuffer>& vertexBuffer) override;
-		virtual void SetIndexBuffer(const std::shared_ptr<IndexBuffer>& indexBuffer) override;
+		virtual void AddVertexBuffer(const Ref<VertexBuffer>& vertexBuffer) override;
+		virtual void SetIndexBuffer(const Ref<IndexBuffer>& indexBuffer) override;
 
-		virtual std::vector<std::shared_ptr<VertexBuffer>> GetVertexBuffers()const override { return m_VertexBuffers; }
-		virtual std::shared_ptr<IndexBuffer> GetIndexBuffer()const override { return m_IndexBuffer; }
+		virtual std::vector<Ref<VertexBuffer>> GetVertexBuffers()const override { return m_VertexBuffers; }
+		virtual Ref<IndexBuffer> GetIndexBuffer()const override { return m_IndexBuffer; }
 
 	private:
-		std::vector<std::shared_ptr<VertexBuffer>> m_VertexBuffers;
-		std::shared_ptr<IndexBuffer> m_IndexBuffer;
+		std::vector<Ref<VertexBuffer>> m_VertexBuffers;
+		Ref<IndexBuffer> m_IndexBuffer;
 
 		uint32_t m_RendererId;
 
