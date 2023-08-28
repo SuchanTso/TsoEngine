@@ -28,6 +28,7 @@ namespace Tso {
 		void Compile(const std::unordered_map<GLenum, std::string>& shaderSource);
 		std::string ReadFile(const std::string& filePath);
 		std::unordered_map<GLenum, std::string> PreProcess(const std::string& shaderSources);
+        int GetUniformLocation(const std::string& name);
 
 
 
@@ -35,6 +36,7 @@ namespace Tso {
 
 	private:
 		uint32_t m_RendererId;
+        std::unordered_map<std::string, int>m_UniformCache;
 
 	};
 }
