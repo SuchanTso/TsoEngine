@@ -27,7 +27,11 @@ namespace Tso {
 
 
 	OpenGLVertexArray::OpenGLVertexArray() {
+#ifdef TSO_PLATFORM_WINDOWS
 		glCreateVertexArrays(1, &m_RendererId);
+#else
+        glGenVertexArrays(1, &m_RendererId);
+#endif
 	}
 
 	OpenGLVertexArray::~OpenGLVertexArray() {

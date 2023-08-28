@@ -40,15 +40,12 @@ static void GLFWErrorCallback(int error,const char* description){
 
 		if (!s_GLFWInitialized) {
 			int success = glfwInit();
-#ifdef TSO_PLATFORM_WINDOWS
 			TSO_CORE_ASSERT(success, "Could not initialize GLFW!");
-#endif
             
             glfwSetErrorCallback(GLFWErrorCallback);
 			s_GLFWInitialized = true;
 		}
 #ifdef TSO_PLATFORM_MACOSX
-    const char* glsl_version = "#version 410";
         glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
         glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2);
         glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);  // 3.2+ only

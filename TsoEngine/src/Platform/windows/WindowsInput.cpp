@@ -1,6 +1,6 @@
 #include "TPch.h"
 #include "WindowsInput.h"
-#include <GLFW/glfw3.h>
+#include "GLFW/glfw3.h"
 #include "Tso/Application.h"
 
 namespace Tso {

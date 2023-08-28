@@ -40,8 +40,6 @@ namespace Tso {
         
         for (auto it = m_LayerStack.end() - 1; it != m_LayerStack.begin(); it--) {
 
-            auto end = m_LayerStack.end() - 1;
-            auto begin = m_LayerStack.begin();
 
             (*it)->OnEvent(e);
 

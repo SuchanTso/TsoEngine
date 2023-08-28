@@ -1,9 +1,8 @@
 #pragma once
-#ifdef TSO_PLATFORM_WINDOWS
 #define SPDLOG_DISABLE_TID_CACHING
-#include <spdlog/spdlog.h>
+#include "spdlog/spdlog.h"
 #include "Core.h"
-#include <spdlog/sinks/stdout_color_sinks.h>
+#include "spdlog/sinks/stdout_color_sinks.h"
 
 namespace Tso {
 	class TSO_API Log
@@ -42,18 +41,3 @@ namespace Tso {
 #define TSO_FATAL(...)  ::Tso::Log::GetClientLogger()->fatal(__VA_ARGS__)
 
 
-#else
-#define TSO_CORE_TRACE(...)
-#define TSO_CORE_INFO(...) 
-#define TSO_CORE_WARN(...)
-#define TSO_CORE_ERROR(...)
-#define TSO_CORE_FATAL(...)
-
-// core client macros
-#define TSO_TRACE(...)
-#define TSO_INFO(...)
-#define TSO_WARN(...)
-#define TSO_ERROR(...)
-#define TSO_FATAL(...)
-
-#endif

@@ -1,7 +1,8 @@
 #include "TPch.h"
 #include "OpenGLShader.h"
-#include <glm/gtc/type_ptr.hpp>
+#include "glm/gtc/type_ptr.hpp"
 #include <fstream>
+#include <iostream>
 #include "glad/glad.h"
 
 
@@ -45,9 +46,9 @@ namespace Tso {
 
 	void OpenGLShader::UploadMatrix3(const std::string& name, const glm::mat3& matrix)
 	{
-		int location = glGetUniformLocation(m_RendererId, name.c_str());
+        int location = GetUniformLocation(name);
 		if (location < 0) {
-			TSO_CORE_ERROR("[shader error] : not found uniform named {0}", name);
+//			TSO_CORE_ERROR("[shader error] : not found uniform named {0}", name);
 		}
 		else {
 			glProgramUniformMatrix3fv(m_RendererId, location, 1, GL_FALSE, glm::value_ptr(matrix));
@@ -55,9 +56,9 @@ namespace Tso {
 	}
 
 	void OpenGLShader::UploadMatrix4(const std::string& name, const glm::mat4& matrix) {
-		int location = glGetUniformLocation(m_RendererId, name.c_str());
+        int location = GetUniformLocation(name);
 		if (location < 0) {
-			TSO_CORE_ERROR("[shader error] : not found uniform named {0}", name);
+//			TSO_CORE_ERROR("[shader error] : not found uniform named {0}", name);
 		}
 		else {
 			glProgramUniformMatrix4fv(m_RendererId, location, 1, GL_FALSE, glm::value_ptr(matrix));
@@ -66,9 +67,9 @@ namespace Tso {
 
 	void OpenGLShader::UploadFloat(const std::string& name, const float& value)
 	{
-		int location = glGetUniformLocation(m_RendererId, name.c_str());
+        int location = GetUniformLocation(name);
 		if (location < 0) {
-			TSO_CORE_ERROR("[shader error] : not found uniform named {0}", name);
+//			TSO_CORE_ERROR("[shader error] : not found uniform named {0}", name);
 		}
 		else {
 			glProgramUniform1f(m_RendererId, location, value);
@@ -77,9 +78,9 @@ namespace Tso {
 
 	void OpenGLShader::UploadFloat2(const std::string& name, const glm::vec2& value)
 	{
-		int location = glGetUniformLocation(m_RendererId, name.c_str());
+        int location = GetUniformLocation(name);
 		if (location < 0) {
-			TSO_CORE_ERROR("[shader error] : not found uniform named {0}", name);
+//			TSO_CORE_ERROR("[shader error] : not found uniform named {0}", name);
 		}
 		else {
 			glProgramUniform2f(m_RendererId, location , value.x , value.y);
@@ -88,9 +89,9 @@ namespace Tso {
 
 	void OpenGLShader::UploadFloat3(const std::string& name, const glm::vec3& value)
 	{
-		int location = glGetUniformLocation(m_RendererId, name.c_str());
+		int location = GetUniformLocation(name);
 		if (location < 0) {
-			TSO_CORE_ERROR("[shader error] : not found uniform named {0}", name);
+//			TSO_CORE_ERROR("[shader error] : not found uniform named {0}", name);
 		}
 		else {
 			glProgramUniform3f(m_RendererId, location, value.x, value.y , value.z);
@@ -99,9 +100,9 @@ namespace Tso {
 
 	void OpenGLShader::UploadFloat4(const std::string& name, const glm::vec4& value)
 	{
-		int location = glGetUniformLocation(m_RendererId, name.c_str());
+        int location = GetUniformLocation(name);
 		if (location < 0) {
-			TSO_CORE_ERROR("[shader error] : not found uniform named {0}", name);
+//			TSO_CORE_ERROR("[shader error] : not found uniform named {0}", name);
 		}
 		else {
 			glProgramUniform4f(m_RendererId, location, value.x, value.y, value.z , value.w);
@@ -110,9 +111,9 @@ namespace Tso {
 
 	void OpenGLShader::UploadInt(const std::string& name, const int& value)
 	{
-		int location = glGetUniformLocation(m_RendererId, name.c_str());
+        int location = GetUniformLocation(name);
 		if (location < 0) {
-			TSO_CORE_ERROR("[shader error] : not found uniform named {0}", name);
+//			TSO_CORE_ERROR("[shader error] : not found uniform named {0}", name);
 		}
 		else {
 			glProgramUniform1i(m_RendererId, location, value);
@@ -186,7 +187,7 @@ namespace Tso {
 
 	std::string OpenGLShader::ReadFile(const std::string& filePath)
 	{
-		std::ifstream in(filePath, std::ios::in, std::ios::binary);
+		std::ifstream in(filePath, std::ios::in | std::ios::binary);
 		std::string result = "";
 
 		if (in) {
@@ -224,6 +225,27 @@ namespace Tso {
 		}
 		return shaderMap;
 	}
+
+int OpenGLShader::GetUniformLocation(const std::string& name){
+    int res = -1;
+    if(m_UniformCache.find(name) != m_UniformCache.end()){
+        res = m_UniformCache[name];
+        if(res < 0){
+            res = glGetUniformLocation(m_RendererId, name.c_str());
+            m_UniformCache[name] = res;
+        }
+    }
+    else{
+        res = glGetUniformLocation(m_RendererId, name.c_str());
+        m_UniformCache[name] = res;
+        if(res < 0){
+            TSO_CORE_ERROR("[shader error] : not found uniform named {0}", name);
+        }
+    }
+    
+    return res;
+}
+
 
 
 }

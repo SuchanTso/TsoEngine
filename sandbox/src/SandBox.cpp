@@ -1,9 +1,11 @@
 #include "TSO.h"
-#include <Platform/OpenGL/OpenGLShader.h>
+#include "Platform/OpenGL/OpenGLShader.h"
 
-#include <glm/gtc/matrix_transform.hpp>
+#include "glm/gtc/matrix_transform.hpp"
 #include "imgui.h"
-#include <glm/gtc/type_ptr.hpp>
+#include "glm/gtc/type_ptr.hpp"
+
+#include <unistd.h>
 
 
 
@@ -94,13 +96,19 @@ public:
              
         )";
 
-      float test = pow(-2, -128);
 
-
+      const int MAXPATH=250;
+      char buffer[MAXPATH];
+      getcwd(buffer, MAXPATH);
+      TSO_CORE_INFO("The current directory is: {0}", buffer);
+      
+      
       m_Shader.reset(Tso::Shader::Create("asset/shader/Texture.glsl"));
       m_BackgroundShader.reset(Tso::Shader::Create(vertexSrc1, fragmentSrc));
-      m_Texture = Tso::Texture2D::Create(std::string("asset/lp2.png"));
-      m_BackGroundTexture = Tso::Texture2D::Create(std::string("asset/6_9.jpg"));
+      std::string lp = "asset/lp2.png";
+      std::string b6_9 = "asset/6_9.jpg";
+      m_Texture = Tso::Texture2D::Create(lp);
+      m_BackGroundTexture = Tso::Texture2D::Create(b6_9);
 
 
       std::dynamic_pointer_cast<Tso::OpenGLShader>(m_Shader)->Bind();
