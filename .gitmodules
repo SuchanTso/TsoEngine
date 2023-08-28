@@ -1,6 +1,6 @@
 [submodule "TsoEngine/third_party/spdlog"]
 	path = TsoEngine/third_party/spdlog
-	url = git@github.com:gabime/spdlog.git
+	url = git@github.com:Zediakense/spdlog.git
 [submodule "TsoEngine/third_party/GLFW"]
 	path = TsoEngine/third_party/GLFW
 	url = git@github.com:TheCherno/glfw.git

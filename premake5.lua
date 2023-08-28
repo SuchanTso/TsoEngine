@@ -1,5 +1,5 @@
 workspace "TsoEngine"
-	architecture "x64"
+	-- architecture "x64"
 
 	configurations{
 		"Debug",
@@ -73,7 +73,6 @@ project "TsoEngine"
 
 		defines{
 			"TSO_PLATFORM_WINDOWS",
-			"TSO_BUILD_DLL"
 		}
 
 
@@ -82,25 +81,27 @@ project "TsoEngine"
 		staticruntime "On"
 		systemversion "latest"
 
+		pchheader "src/TPch.h"
+		pchsource "%{prj.name}/src/TPch.cpp"
+
 		defines{
 			"TSO_PLATFORM_MACOSX",
-			"TSO_BUILD_DYLIB"
 		}
 		
 
 	filter "configurations:Debug"
 		defines "TSO_DEBUG"
-		buildoptions "/MDd"
+		-- buildoptions "/MDd"
 		symbols "On"
 
 	filter "configurations:Release"
 		defines "TSO_RELEASE"
-		buildoptions "/MD"
+		-- buildoptions "/MD"
 		optimize "On"
 
 	filter "configurations:Dist"
 		defines "TSO_DIST"
-		buildoptions "/MD"
+		-- buildoptions "/MD"
 		optimize "On"
 
 
@@ -139,18 +140,24 @@ project "Sandbox"
 		defines{
 				"TSO_PLATFORM_MACOSX"
 		}
+		links{
+			"Cocoa.framework",
+			"IOKit.framework",
+			"CoreVideo.framework",
+			"OpenGL.framework"
+		}
 
 	filter "configurations:Debug"
 		defines "TSO_DEBUG"
-		buildoptions "/MDd"
+		-- buildoptions "/MDd"
 		symbols "On"
 
 	filter "configurations:Release"
 		defines "TSO_RELEASE"
-		buildoptions "/MD"
+		-- buildoptions "/MD"
 		optimize "On"
 
 	filter "configurations:Dist"
 		defines "TSO_DIST"
-		buildoptions "/MD"
+		-- buildoptions "/MD"
 		optimize "On"
