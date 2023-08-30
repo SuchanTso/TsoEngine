@@ -4,7 +4,7 @@
 #include "Renderer.h"
 
 namespace Tso {
-	Shader* Shader::Create(std::string& vertexSrc, std::string& fragmentSrc) {
+	Ref<Shader> Shader::Create(const std::string& name ,std::string& vertexSrc, std::string& fragmentSrc) {
 		switch (Renderer::GetAPI())
 		{
 			case  RendererAPI::API::None: {
@@ -13,7 +13,7 @@ namespace Tso {
 			}
 			case  RendererAPI::API::OpenGL: {
 				TSO_CORE_INFO("OpenGL is chosen as Render API");
-				return new OpenGLShader(vertexSrc, fragmentSrc);
+				return std::make_shared<OpenGLShader>(name , vertexSrc, fragmentSrc);
 			}
 			default: {
 				TSO_CORE_ASSERT(false, "None RenderAPI chosen!");
@@ -23,7 +23,7 @@ namespace Tso {
 	}
 
 
-	Shader* Shader::Create(const std::string& filePath)
+	Ref<Shader> Shader::Create(const std::string& filePath)
 	{
 		switch (Renderer::GetAPI())
 		{
@@ -33,7 +33,7 @@ namespace Tso {
 		}
 		case  RendererAPI::API::OpenGL: {
 			TSO_CORE_INFO("OpenGL is chosen as Render API");
-			return new OpenGLShader(filePath);
+			return std::make_shared <OpenGLShader>(filePath);
 		}
 		default: {
 			TSO_CORE_ASSERT(false, "None RenderAPI chosen!");
@@ -41,4 +41,37 @@ namespace Tso {
 		}
 		}
 	}
+	void ShaderLibrary::Add(const Ref<Shader>& shader)
+	{
+		auto name = shader->GetName();
+		TSO_CORE_ASSERT(m_Shaders.find(name) != m_Shaders.end(), "[Shader Library] : failed to add shader , because {0} already exist !", name);
+		m_Shaders[name] = shader;
+
+	}
+	void ShaderLibrary::Add(const std::string& name, const Ref<Shader>& shader)
+	{
+		TSO_CORE_ASSERT(m_Shaders.find(name) != m_Shaders.end(), "[Shader Library] : failed to add shader , because {0} already exist !", name);
+		m_Shaders[name] = shader;
+	}
+	Ref<Shader> ShaderLibrary::Load(const std::string& path)
+	{
+		auto shader = Shader::Create(path);
+		Add(shader);
+		return shader;
+	}
+
+	Ref<Shader> ShaderLibrary::Load(const std::string& name, const std::string& path)
+	{
+		auto shader = Shader::Create(path);
+		Add(name, shader);
+		return shader;
+	}
+
+	Ref<Shader> ShaderLibrary::Get(const std::string& name)
+	{
+		return m_Shaders[name];
+	}
+
+
+	
 }
