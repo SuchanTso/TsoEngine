@@ -43,18 +43,6 @@ project "TsoEngine"
 
 	}
 
-	includedirs{
-		"%{prj.name}/third_party/spdlog/include",
-		"%{prj.name}/src",
-		"%{prj.name}/third_party/GLFW/include",
-		"%{prj.name}/third_party/Glad/include",
-		"%{prj.name}/third_party/imgui",
-		"%{prj.name}/third_party/glm",
-		"%{prj.name}/third_party/stb_image"
-
-
-	}
-
 	links{
 		"GLFW",
 		"Glad",
@@ -75,6 +63,18 @@ project "TsoEngine"
 			"TSO_PLATFORM_WINDOWS",
 		}
 
+		includedirs{
+			"%{prj.name}/third_party/spdlog/include",
+			"%{prj.name}/src",
+			"%{prj.name}/third_party/GLFW/include",
+			"%{prj.name}/third_party/Glad/include",
+			"%{prj.name}/third_party/imgui",
+			"%{prj.name}/third_party/glm",
+			"%{prj.name}/third_party/stb_image"
+	
+	
+		}
+
 
 	filter "system:macosx"
 		cppdialect "C++17"
@@ -86,6 +86,16 @@ project "TsoEngine"
 
 		defines{
 			"TSO_PLATFORM_MACOSX",
+		}
+
+		sysincludedirs{
+			"%{prj.name}/third_party/spdlog/include",
+			"%{prj.name}/src",
+			"%{prj.name}/third_party/GLFW/include",
+			"%{prj.name}/third_party/Glad/include",
+			"%{prj.name}/third_party/imgui",
+			"%{prj.name}/third_party/glm",
+			"%{prj.name}/third_party/stb_image"
 		}
 		
 
