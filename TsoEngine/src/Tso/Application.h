@@ -48,7 +48,7 @@ namespace Tso {
         Ref<Shader> m_Shader;
         Ref<VertexArray> m_VertexArray;
 
-        OrthographicCamera m_Camera;
+//        OrthographicCamera m_Camera;
 
         
 	};

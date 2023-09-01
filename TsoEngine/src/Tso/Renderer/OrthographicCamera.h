@@ -17,6 +17,10 @@ namespace Tso {
 		void SetRotationZ(const float& rotation_z) { m_rotationZ = rotation_z; RecalculateMatrix(); }
 
 		void SetPosition(const glm::vec3& position) { m_Position = position; RecalculateMatrix(); }
+        
+        void SetPorjectionMatrix(float left, float right, float bottom, float top);
+
+        
 
 		glm::mat4 GetProjectionMatrix() { return m_ProjMatrix; }
 

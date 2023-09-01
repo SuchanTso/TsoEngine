@@ -1,7 +1,6 @@
 #include "TPch.h"
 #include "Application.h"
 #include "GLFW/glfw3.h"
-#include "Input.h"
 #include "glm/glm.hpp"
 #include "Tso/Renderer/Renderer.h"
 
@@ -9,16 +8,14 @@
 // 
 //#include "Event/ApplicationEvent.h"
 namespace Tso {
-#define BIND_EVENT_FN(x) std::bind(&Application::x,this , std::placeholders::_1)
 
     Application* Application::s_Instance = nullptr;
 
 	Application::Application() 
-        :m_Camera(-1.6f , 1.6f , -0.9f , 0.9f)
     {
         s_Instance = this;
         m_Window = std::unique_ptr<Window>(Window::Create({"TsoEngine",1280,720}));
-		m_Window->SetEventCallback(BIND_EVENT_FN(OnEvent));
+		m_Window->SetEventCallback(BIND_EVENT_FN(Application::OnEvent));
 
         RenderCommand::Init();
         
@@ -36,10 +33,9 @@ namespace Tso {
         
         EventDispatcher dispatcher(e);
         
-        dispatcher.Dispatch<WindowCloseEvent>(BIND_EVENT_FN(OnWindowClosed));
+        dispatcher.Dispatch<WindowCloseEvent>(BIND_EVENT_FN(Application::OnWindowClosed));
         
-        for (auto it = m_LayerStack.end() - 1; it != m_LayerStack.begin(); it--) {
-
+        for (auto it = m_LayerStack.end() - 1;it >= m_LayerStack.begin() ; it--) {
 
             (*it)->OnEvent(e);
 
