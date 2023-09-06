@@ -10,3 +10,6 @@
 [submodule "TsoEngine/third_party/glm"]
 	path = TsoEngine/third_party/glm
 	url = git@github.com:g-truc/glm.git
+[submodule "TsoEngine/third_party/rapidjson"]
+	path = TsoEngine/third_party/rapidjson
+	url = git@github.com:Zediakense/rapidjson.git
