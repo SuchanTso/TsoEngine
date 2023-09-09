@@ -34,19 +34,41 @@ namespace Tso {
         EventDispatcher dispatcher(e);
         
         dispatcher.Dispatch<WindowCloseEvent>(BIND_EVENT_FN(Application::OnWindowClosed));
+        dispatcher.Dispatch<WindowResizeEvent>(BIND_EVENT_FN(Application::OnWindowResizeEvent));
+
         
-        for (auto it = m_LayerStack.end() - 1;it >= m_LayerStack.begin() ; it--) {
+        for (auto it = m_LayerStack.end() - 1; ; it--) {
 
             (*it)->OnEvent(e);
 
             if(e.m_Handled){
                 break;
             }
+
+            if (it == m_LayerStack.begin()) {
+                break;
+            }
         }
+        
         
 		//TSO_CORE_INFO("{0}", e.ToString());
         //printf("[%s]\n",e.ToString().c_str());
 	}
+
+    bool Application::OnWindowResizeEvent(WindowResizeEvent& e)
+    {
+        if (e.GetWidth() == 0 || e.GetHeight() == 0)
+        {
+            m_Minimized = true;
+            return false;
+        }
+
+        m_Minimized = false;
+        Renderer::OnWindowResize(e.GetWidth(), e.GetHeight());
+
+
+        return false;
+    }
 
 
     void Application::PushLayer(Layer *layer){

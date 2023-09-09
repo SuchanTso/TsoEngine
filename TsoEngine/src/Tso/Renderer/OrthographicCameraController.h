@@ -9,8 +9,9 @@
 #define OrthographicCameraController_hpp
 
 #include <stdio.h>
-#include "Renderer/OrthographicCamera.h"
-#include "Event/MouseEvent.h"
+#include "Tso/Renderer/OrthographicCamera.h"
+#include "Tso/Event/MouseEvent.h"
+#include "Tso/Event/ApplicationEvent.h"
 
 
 namespace Tso{
@@ -25,8 +26,11 @@ public:
     void OnUpdate(TimeStep ts);
     
     void OnEvent(Event& e);
-    
+private:
+
     bool OnMouseScrolledEvent(MouseScrolledEvent& e);
+
+    bool OnWindowResizeEvent(WindowResizeEvent& e);
     
 private:
     OrthographicCamera m_Camera;

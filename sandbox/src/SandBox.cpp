@@ -4,8 +4,11 @@
 #include "glm/gtc/matrix_transform.hpp"
 #include "imgui.h"
 #include "glm/gtc/type_ptr.hpp"
+#ifdef TSO_PLATFORM_MACOSX
 #include <unistd.h>
-#include "Tso/OrthographicCameraController.h"
+#endif
+#include "Tso/Renderer/OrthographicCameraController.h"
+#include "rapidjson/document.h"
 
 
 
@@ -61,10 +64,14 @@ public:
       float test = pow(-2, -128);
       m_ShaderLibrary = std::make_shared<Tso::ShaderLibrary>();
 
+
+#ifdef TSO_PLATFORM_MACOSX
+
       const int MAXPATH=250;
       char buffer[MAXPATH];
       getcwd(buffer, MAXPATH);
       TSO_CORE_INFO("The current directory is: {0}", buffer);
+#endif
       
       std::string lp = "asset/lp2.png";
       std::string b6_9 = "asset/6_9.jpg";
@@ -137,7 +144,7 @@ public:
     }
     
     void OnEvent(Tso::Event& event)override{
-        TSO_INFO("testLayer Event:{0}",event.ToString());
+        //TSO_INFO("testLayer Event:{0}",event.ToString());
         m_CameraController.OnEvent(event);
     }
 

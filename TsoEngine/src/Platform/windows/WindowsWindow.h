@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Tso/Window.h"
+#include "Tso/Core/Window.h"
 #include "Tso/Renderer/GraphicsContext.h"
 
 #include "GLFW/glfw3.h"

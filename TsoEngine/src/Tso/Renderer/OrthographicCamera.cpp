@@ -18,7 +18,7 @@ namespace Tso {
 
     void OrthographicCamera::SetPorjectionMatrix(float left, float right, float bottom, float top){
         m_ProjMatrix = glm::ortho(left, right , bottom , top , -1.f , 1.f);
-        RecalculateMatrix();
+		m_ProjViewMatrix = m_ProjMatrix * m_ViewMatrix;
     }
 
 }
