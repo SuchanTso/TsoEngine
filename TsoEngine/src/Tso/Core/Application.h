@@ -1,7 +1,7 @@
 #pragma once
 #include "Core.h"
 #include "Window.h"
-#include "Event/ApplicationEvent.h"
+#include "Tso/Event/ApplicationEvent.h"
 #include "LayerStack.h"
 #include "Tso/imgui/ImguiLayer.h"
 #include "Tso/Renderer/Shader.h"
@@ -21,7 +21,9 @@ namespace Tso {
 		void Run();
 
 		void OnEvent(Event& e);
-        
+
+        bool OnWindowResizeEvent(WindowResizeEvent& e);
+
         bool OnWindowClosed(const WindowCloseEvent& e);
         bool OnKeyEvent(const KeyEvent& e);
         
@@ -41,6 +43,7 @@ namespace Tso {
 		bool m_Running = true;
         LayerStack m_LayerStack;
         float m_LastTime;
+        bool m_Minimized = false;
         
     private:
         static Application * s_Instance;

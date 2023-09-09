@@ -14,6 +14,7 @@ OrthographicCameraController::OrthographicCameraController(float aspectRatio , b
 :m_AspectRatio(aspectRatio) , m_EnableRotation(enableRotation) , m_ZoomLevel(1.0f),
     m_Camera(-aspectRatio , aspectRatio , -1.0 , 1.0)
 {
+    TSO_CORE_INFO("cameraController coustruct : aspectRatio = {0}" , aspectRatio);
     
 }
 
@@ -47,6 +48,8 @@ void OrthographicCameraController::OnUpdate(TimeStep ts) {
 void OrthographicCameraController::OnEvent(Event& e){
     EventDispatcher dispatcher(e);
     dispatcher.Dispatch<MouseScrolledEvent>(BIND_EVENT_FN(OrthographicCameraController::OnMouseScrolledEvent));
+    dispatcher.Dispatch<WindowResizeEvent>(BIND_EVENT_FN(OrthographicCameraController::OnWindowResizeEvent));
+
     
 }
 
@@ -58,6 +61,18 @@ bool OrthographicCameraController::OnMouseScrolledEvent(MouseScrolledEvent& e){
     m_Camera.SetPorjectionMatrix(-m_AspectRatio * m_ZoomLevel , m_AspectRatio * m_ZoomLevel , -m_ZoomLevel , m_ZoomLevel);
     
     return true;
+}
+
+bool OrthographicCameraController::OnWindowResizeEvent(WindowResizeEvent& e)
+{
+    m_AspectRatio = e.GetWidth() * 1.0f / e.GetHeight();
+
+    TSO_CORE_INFO("cameraController resizeEvent : aspectRatio = {0}", m_AspectRatio);
+
+
+    m_Camera.SetPorjectionMatrix(-m_AspectRatio * m_ZoomLevel, m_AspectRatio * m_ZoomLevel, -m_ZoomLevel, m_ZoomLevel);
+
+    return false;
 }
 
 

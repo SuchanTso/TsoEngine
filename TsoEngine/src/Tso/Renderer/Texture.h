@@ -1,5 +1,5 @@
 #pragma once
-#include "Tso/Core.h"
+#include "Tso/Core/Core.h"
 #include <string>
 
 namespace Tso {

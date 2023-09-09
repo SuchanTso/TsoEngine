@@ -18,6 +18,7 @@ IncludeDir["Glad"] = "TsoEngine/third_party/Glad/include"
 IncludeDir["imgui"] = "TsoEngine/third_party/imgui"
 IncludeDir["glm"] = "TsoEngine/third_party/glm"
 IncludeDir["stb_image"] = "TsoEngine/third_party/stb_image"
+IncludeDir["rapidjson"] = "TsoEngine/third_party/rapidjson"
 
 
 include "TsoEngine/third_party/GLFW"
@@ -42,6 +43,7 @@ project "TsoEngine"
 		"%{prj.name}/third_party/glm/glm/**.inl",
 		"%{prj.name}/third_party/stb_image/**.h",
 		"%{prj.name}/third_party/stb_image/**.cpp",
+		"%{prj.name}/third_party/rapidjson/include/rapidjson/**.h"
 
 
 	}
@@ -73,7 +75,8 @@ project "TsoEngine"
 			"%{prj.name}/third_party/Glad/include",
 			"%{prj.name}/third_party/imgui",
 			"%{prj.name}/third_party/glm",
-			"%{prj.name}/third_party/stb_image"
+			"%{prj.name}/third_party/stb_image",
+			"%{prj.name}/third_party/rapidjson"
 	
 	
 		}
@@ -98,7 +101,9 @@ project "TsoEngine"
 			"%{prj.name}/third_party/Glad/include",
 			"%{prj.name}/third_party/imgui",
 			"%{prj.name}/third_party/glm",
-			"%{prj.name}/third_party/stb_image"
+			"%{prj.name}/third_party/stb_image",
+			"%{prj.name}/third_party/rapidjson"
+
 
 		}
 		
@@ -144,7 +149,8 @@ project "Sandbox"
 		"TsoEngine/third_party/spdlog/include",
 		"TsoEngine/src",
 		"%{IncludeDir.glm}",
-		"TsoEngine/third_party/imgui"
+		"TsoEngine/third_party/imgui",
+		"TsoEngine/third_party/rapidjson/include"
 	}
 
 	links{
@@ -169,6 +175,7 @@ project "Sandbox"
 
 	filter "configurations:Debug"
 		defines "TSO_DEBUG"
+
 		filter "system:windows"
 			buildoptions "/MDd"
 

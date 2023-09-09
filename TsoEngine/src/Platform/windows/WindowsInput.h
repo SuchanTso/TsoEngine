@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Tso/Input.h"
+#include "Tso/Core/Input.h"
 namespace Tso {
 	class WindowsInput : public Input
 	{

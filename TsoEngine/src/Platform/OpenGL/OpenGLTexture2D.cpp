@@ -38,6 +38,8 @@ Tso::OpenGLTexture2D::OpenGLTexture2D(const std::string& path)
 	glTextureParameteri(m_RendererID, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
 	glTextureSubImage2D(m_RendererID, 0, 0, 0, m_Width, m_Height, rgb, GL_UNSIGNED_BYTE, data);
+	glGenerateMipmap(GL_TEXTURE_2D);
+
 #else
     glGenTextures(1, &m_RendererID);
     glBindTexture(GL_TEXTURE_2D,m_RendererID);

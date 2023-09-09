@@ -1,7 +1,7 @@
 #pragma once
 #include "TPch.h"
 
-#include "Tso/Core.h"
+#include "Tso/Core/Core.h"
 #include "Tso/Event/Event.h"
 
 namespace Tso {
