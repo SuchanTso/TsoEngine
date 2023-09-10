@@ -1,4 +1,8 @@
 #include "TSO.h"
+//entry point --------------------------------
+#include "Tso/Core/EntryPoint.h"
+//--------------------------------------------
+
 #include "Platform/OpenGL/OpenGLShader.h"
 
 #include "glm/gtc/matrix_transform.hpp"
