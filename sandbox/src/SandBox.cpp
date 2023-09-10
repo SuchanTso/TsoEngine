@@ -4,7 +4,9 @@
 #include "glm/gtc/matrix_transform.hpp"
 #include "imgui.h"
 #include "glm/gtc/type_ptr.hpp"
+#ifdef TSO_PLATFORM_MACOSX
 #include <unistd.h>
+#endif
 #include "Tso/OrthographicCameraController.h"
 
 
