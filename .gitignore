@@ -1,0 +1,8 @@
+bin-int/Debug-macosx-/TsoEngine/TsoEngine.build
+bin-int/Debug-macosx-/TsoEngine/XCBuildData
+bin
+bin-int
+sandbox/Sandbox.xcodeproj
+TsoEngine.xcworkspace
+TsoEngine/TsoEngine.xcodeproj
+TsoEngine/third_party/Glad/bin-int

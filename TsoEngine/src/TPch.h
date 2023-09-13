@@ -24,6 +24,8 @@
 #include "Tso/Log.h"
 #include "Tso/Core/TimeStep.h"
 #include "Tso/Core.h"
+#include "Tso/Input.h"
+
 
 #include "Tso/Renderer/Buffer.h"
 #include "Tso/Renderer/VertexArray.h"

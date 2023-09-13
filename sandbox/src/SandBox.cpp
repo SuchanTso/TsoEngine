@@ -4,16 +4,19 @@
 #include "glm/gtc/matrix_transform.hpp"
 #include "imgui.h"
 #include "glm/gtc/type_ptr.hpp"
-
+#ifdef TSO_PLATFORM_MACOSX
 #include <unistd.h>
+#endif
+#include "Tso/OrthographicCameraController.h"
 
 
 
 class TestLayer : public Tso::Layer{
 public:
   TestLayer():
-    Layer("testLayer")
-    ,m_Camera(-1.6f, 1.6f, -0.9f, 0.9f) , m_TrianglePos(glm::vec3(0.f))
+    Layer("testLayer"),
+    m_CameraController(1280.0 / 720 , true),
+    m_TrianglePos(glm::vec3(0.f))
   {
       m_VertexArray.reset(Tso::VertexArray::Create());
       m_BackGroundVertexArray.reset(Tso::VertexArray::Create());
@@ -57,58 +60,23 @@ public:
       m_BackGroundVertexArray->AddVertexBuffer(backgroundVertexBuffer);
       m_BackGroundVertexArray->SetIndexBuffer(backgroundIndexBuffer);
 
-
-      std::string vertexSrc1 = R"(
-            #version 330 core
-           
-            layout(location = 0) in vec3 a_Position;
-            layout(location = 1) in vec2 a_TexCoord;
-
-            uniform mat4 u_ProjViewMat;
-            uniform mat4 u_Transform;
-
-            out vec3 v_Position;
-            out vec2 v_TexCoord;
-
-
-            void main(){
-                v_Position = a_Position;
-                v_TexCoord = a_TexCoord;
-                gl_Position = u_ProjViewMat * vec4(a_Position , 1.0);
-            }
-             
-        )";
-
-
-      std::string fragmentSrc = R"(
-            #version 330 core
-           
-            layout(location = 0) out vec4 color;
-            in vec3 v_Position;
-            in vec2 v_TexCoord;
-
-            uniform sampler2D u_Texture;
-
-            void main(){
-                color = texture(u_Texture , v_TexCoord);
-                //color = vec4(v_TexCoord , 0.0 , 1.0f);
-            }
-             
-        )";
-
+      float test = pow(-2, -128);
+      m_ShaderLibrary = std::make_shared<Tso::ShaderLibrary>();
 
       const int MAXPATH=250;
       char buffer[MAXPATH];
       getcwd(buffer, MAXPATH);
       TSO_CORE_INFO("The current directory is: {0}", buffer);
       
-      
-      m_Shader.reset(Tso::Shader::Create("asset/shader/Texture.glsl"));
-      m_BackgroundShader.reset(Tso::Shader::Create(vertexSrc1, fragmentSrc));
       std::string lp = "asset/lp2.png";
       std::string b6_9 = "asset/6_9.jpg";
+      
+      m_Shader = m_ShaderLibrary->Load("asset/shader/Texture.glsl");
+      m_BackgroundShader = m_ShaderLibrary->Load("asset/shader/Background.glsl");
+
       m_Texture = Tso::Texture2D::Create(lp);
       m_BackGroundTexture = Tso::Texture2D::Create(b6_9);
+
 
 
       std::dynamic_pointer_cast<Tso::OpenGLShader>(m_Shader)->Bind();
@@ -132,26 +100,8 @@ public:
         Tso::RenderCommand::SetClearColor({ 0.1f, 0.1f, 0.1f, 1 });
 
         Tso::RenderCommand::Clear();
-
-        if (Tso::Input::IsKeyPressed(TSO_KEY_W)) {
-            m_CameraPosition.y += m_MoveSpeed * ts;
-        }
-        else if (Tso::Input::IsKeyPressed(TSO_KEY_S)) {
-            m_CameraPosition.y -= m_MoveSpeed * ts;
-        }
-        else if (Tso::Input::IsKeyPressed(TSO_KEY_A)) {
-            m_CameraPosition.x -= m_MoveSpeed * ts;
-        }
-        else if (Tso::Input::IsKeyPressed(TSO_KEY_D)) {
-            m_CameraPosition.x += m_MoveSpeed * ts;
-        }
-
-        if (Tso::Input::IsKeyPressed(TSO_KEY_LEFT)) {
-            m_CameraRotation += m_RotationSpeed * ts;
-        }
-        else if (Tso::Input::IsKeyPressed(TSO_KEY_RIGHT)) {
-            m_CameraRotation -= m_RotationSpeed * ts;
-        }
+        
+        m_CameraController.OnUpdate(ts);
 
         if (Tso::Input::IsKeyPressed(TSO_KEY_I)) {
             m_TrianglePos.y += m_MoveSpeed * ts;
@@ -167,16 +117,13 @@ public:
         }
 
 
-        m_Camera.SetPosition(m_CameraPosition);
-        m_Camera.SetRotationZ(m_CameraRotation);
-
         glm::mat4 triangleTransform = glm::translate(glm::mat4(1.0f), m_TrianglePos);
         
         
         
 
 
-        Tso::Renderer::BeginScene(m_Camera);
+        Tso::Renderer::BeginScene(m_CameraController.GetCamera());
 
 
         m_BackGroundTexture->Bind();
@@ -193,13 +140,15 @@ public:
     
     void OnEvent(Tso::Event& event)override{
         TSO_INFO("testLayer Event:{0}",event.ToString());
+        m_CameraController.OnEvent(event);
     }
 
 private:
     Tso::Ref<Tso::Shader> m_Shader , m_BackgroundShader;
     Tso::Ref<Tso::VertexArray> m_VertexArray , m_BackGroundVertexArray;
+    Tso::Ref<Tso::ShaderLibrary> m_ShaderLibrary;
 
-    Tso::OrthographicCamera m_Camera;
+    Tso::OrthographicCameraController m_CameraController;
     glm::vec3 m_CameraPosition = glm::vec3(0.f);
     float m_CameraRotation = 0;
     float m_MoveSpeed = 5.f;
@@ -231,3 +180,4 @@ public:
 Tso::Application* Tso::CreateApplication() {
 	return new SandBox();
 }
+

@@ -19,7 +19,9 @@ namespace Tso {
 		return 0;
 	}
 
-	OpenGLShader::OpenGLShader(std::string& vertexSrc,std::string& fragmentSrc) {
+	OpenGLShader::OpenGLShader(const std::string& name ,std::string& vertexSrc,std::string& fragmentSrc) 
+		: m_Name(name)
+	{
 		
 		std::unordered_map<GLenum, std::string> shaderMap;
 		shaderMap[GL_VERTEX_SHADER] = vertexSrc;
@@ -34,6 +36,14 @@ namespace Tso {
 		std::string shaderSrcs = ReadFile(filePath);
 		auto shaderMap = PreProcess(shaderSrcs);
 		Compile(shaderMap);
+
+		auto last_slash = filePath.find_last_of("/\\");
+		auto start = last_slash == std::string::npos ? 0 : last_slash + 1;
+		auto last_dot = filePath.rfind(".");
+		int count = last_dot == std::string::npos ?  filePath.length() - start : last_dot - start;
+
+		m_Name = filePath.substr(start, count);
+
 	}
 
 	void OpenGLShader::Bind() {
