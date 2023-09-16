@@ -38,7 +38,7 @@ OpenGLTexture2D::OpenGLTexture2D(const std::string& path)
     glTextureParameteri(m_RendererID, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTextureParameteri(m_RendererID, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     
-    glTextureSubImage2D(m_RendererID, 0, 0, 0, m_Width, m_Height, rgb, GL_UNSIGNED_BYTE, data);
+    glTextureSubImage2D(m_RendererID, 0, 0, 0, m_Width, m_Height, m_RGB, GL_UNSIGNED_BYTE, data);
     glGenerateMipmap(GL_TEXTURE_2D);
     
 #else
