@@ -15,7 +15,7 @@ out vec2 v_TexCoord;
 void main(){
     v_Position = a_Position;
     v_TexCoord = a_TexCoord;
-    gl_Position = u_ProjViewMat * vec4(a_Position , 1.0);
+    gl_Position = u_ProjViewMat * u_Transform * vec4(a_Position , 1.0);
 }
 
 
@@ -28,8 +28,9 @@ in vec3 v_Position;
 in vec2 v_TexCoord;
 
 uniform sampler2D u_Texture;
+uniform vec4 u_Color;
 
 void main(){
-    color = texture(u_Texture , v_TexCoord);
+    color =  texture(u_Texture , v_TexCoord);
     //color = vec4(v_TexCoord , 0.0 , 1.0f);
 }

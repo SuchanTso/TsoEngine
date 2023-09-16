@@ -22,13 +22,13 @@ namespace Tso {
 
         
 
-		glm::mat4 GetProjectionMatrix() { return m_ProjMatrix; }
+		glm::mat4 GetProjectionMatrix()const { return m_ProjMatrix; }
 
 		glm::mat4 GetViewMatrix() { return m_ViewMatrix; }
 
 		float GetRotationZ() { return m_rotationZ; }
 
-		glm::mat4 GetProjViewMatrix() { return m_ProjViewMatrix; }
+		glm::mat4 GetProjViewMatrix()const { return m_ProjViewMatrix; }
 
 	private:
 		void RecalculateMatrix();
