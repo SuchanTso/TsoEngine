@@ -26,6 +26,7 @@ namespace Tso {
 
 	void OpenGLRendererAPI::SetViewPort(uint32_t x, uint32_t y, uint32_t width, uint32_t height)
 	{
+        TSO_CORE_INFO("openGL get window resized ({0} , {1} , {2} , {3})" , x , y , width , height);
 		glViewport(x , y , width , height);
 	}
 

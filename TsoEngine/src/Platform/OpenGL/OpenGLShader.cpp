@@ -130,6 +130,33 @@ namespace Tso {
 		}
 	}
 
+void OpenGLShader::SetInt(const std::string& name , const int& value){
+    UploadInt(name , value);
+}
+
+void OpenGLShader::SetFloat(const std::string& name , const float& value){
+    UploadFloat(name , value);
+}
+void OpenGLShader::SetFloat2(const std::string& name , const glm::vec2& value){
+    UploadFloat2(name , value);
+
+}
+void OpenGLShader::SetFloat3(const std::string& name , const glm::vec3& value){
+    UploadFloat3(name , value);
+
+}
+void OpenGLShader::SetFloat4(const std::string& name , const glm::vec4& value){
+    UploadFloat4(name , value);
+
+}
+
+void OpenGLShader::SetMatrix3(const std::string& name , const glm::mat3& matrix){
+    UploadMatrix3(name , matrix);
+}
+void OpenGLShader::SetMatrix4(const std::string& name , const glm::mat4& matrix){
+    UploadMatrix4(name , matrix);
+}
+
 	void OpenGLShader::Compile(const std::unordered_map<GLenum, std::string>& shaderSource)
 	{
 		auto program = glCreateProgram();

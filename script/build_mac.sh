@@ -1,1 +1,2 @@
-../vender/premake/premake5 xcode4
+cd ..
+./vender/premake/premake5 xcode4

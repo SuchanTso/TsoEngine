@@ -18,7 +18,7 @@ IncludeDir["Glad"] = "TsoEngine/third_party/Glad/include"
 IncludeDir["imgui"] = "TsoEngine/third_party/imgui"
 IncludeDir["glm"] = "TsoEngine/third_party/glm"
 IncludeDir["stb_image"] = "TsoEngine/third_party/stb_image"
-IncludeDir["rapidjson"] = "TsoEngine/third_party/rapidjson"
+IncludeDir["rapidjson"] = "TsoEngine/third_party/rapidjson/include"
 
 
 include "TsoEngine/third_party/GLFW"
@@ -76,7 +76,7 @@ project "TsoEngine"
 			"%{prj.name}/third_party/imgui",
 			"%{prj.name}/third_party/glm",
 			"%{prj.name}/third_party/stb_image",
-			"%{prj.name}/third_party/rapidjson"
+			"%{prj.name}/third_party/rapidjson/include"
 	
 	
 		}
@@ -102,8 +102,7 @@ project "TsoEngine"
 			"%{prj.name}/third_party/imgui",
 			"%{prj.name}/third_party/glm",
 			"%{prj.name}/third_party/stb_image",
-			"%{prj.name}/third_party/rapidjson"
-
+			"%{prj.name}/third_party/rapidjson/include"
 
 		}
 		

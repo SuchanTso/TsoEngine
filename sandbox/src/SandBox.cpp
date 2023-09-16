@@ -13,6 +13,8 @@
 #endif
 #include "Tso/Renderer/OrthographicCameraController.h"
 #include "rapidjson/document.h"
+#include "SandBox2D.h"
+
 
 
 
@@ -177,7 +179,7 @@ public:
 	SandBox() 
        
     {
-        PushLayer(new TestLayer());
+        PushLayer(new SandBox2D());
 	}
 	~SandBox() {
 
