@@ -100,6 +100,17 @@ void Renderer2D::DrawQuad(const glm::vec3& position , const glm::vec2& scale , c
 
 }
 
+void Renderer2D::DrawQuad(const glm::vec2& position, const glm::vec2& scale, Ref<Texture2D> texture)
+{
+    DrawQuad({position , 0.0} , 0.0 , scale ,texture);
+}
+
+void Renderer2D::DrawQuad(const glm::vec3& position, const glm::vec2& scale, Ref<Texture2D> texture)
+{
+    DrawQuad( position , 0.0, scale, texture);
+
+}
+
 void Renderer2D::DrawQuad(const glm::vec3& position , const float& rotation , const glm::vec2& scale , Ref<Texture2D> texture){
     s_Data->QuadShader->Bind();
     glm::mat4 scaleMat = glm::scale(glm::mat4(1.0f), glm::vec3(scale , 1.0f));

@@ -23,13 +23,13 @@ void OrthographicCameraController::OnUpdate(TimeStep ts) {
     if (Input::IsKeyPressed(TSO_KEY_W)) {
         m_CameraPosition.y += m_MoveSpeed * ts;
     }
-    else if (Input::IsKeyPressed(TSO_KEY_S)) {
+    if (Input::IsKeyPressed(TSO_KEY_S)) {
         m_CameraPosition.y -= m_MoveSpeed * ts;
     }
-    else if (Input::IsKeyPressed(TSO_KEY_A)) {
+    if (Input::IsKeyPressed(TSO_KEY_A)) {
         m_CameraPosition.x -= m_MoveSpeed * ts;
     }
-    else if (Input::IsKeyPressed(TSO_KEY_D)) {
+    if (Input::IsKeyPressed(TSO_KEY_D)) {
         m_CameraPosition.x += m_MoveSpeed * ts;
     }
     if(m_EnableRotation){
