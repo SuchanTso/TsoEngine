@@ -20,7 +20,7 @@ namespace Tso {
         RenderCommand::Init();
         
         m_ImGuiLayer = new ImGuiLayer;
-        m_LayerStack.PushOverlay(m_ImGuiLayer);
+        //m_LayerStack.PushOverlay(m_ImGuiLayer);
 
         
 	}
@@ -96,13 +96,13 @@ namespace Tso {
                 layer->OnUpdate(ts);
             }
 
-            m_ImGuiLayer->Begin();
+            //m_ImGuiLayer->Begin();
 
             for (auto layer : m_LayerStack) {
                 layer->OnImGuiRender();
             }
 
-            m_ImGuiLayer->End();
+            //m_ImGuiLayer->End();
 
 			m_Window->OnUpdate();
 		}
