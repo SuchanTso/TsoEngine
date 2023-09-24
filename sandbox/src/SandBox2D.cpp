@@ -43,9 +43,11 @@ void SandBox2D::OnUpdate(Tso::TimeStep ts)
 
     m_CameraController.OnUpdate(ts);
     Tso::Renderer2D::BeginScene(m_CameraController.GetCamera());
-    Tso::Renderer2D::DrawQuad({-0.75 , 0.0 , 0.0}, 0.f, {0.5 , 0.5}, {0.8 , 0.1 , 0.1 , 1.0});
-    Tso::Renderer2D::DrawQuad({0.5 , 0.0 , 0.0}, 0.f, {0.5 , 0.5}, {0.1 , 0.8 , 0.1 , 1.0});
-    Tso::Renderer2D::DrawQuad(m_TrianglePos, 0.f, {0.5 , 0.5}, m_Texture);
+    Tso::Renderer2D::DrawQuad({-0.5 , 0.5 , 0.0}, 0.f, {0.5 , 0.5}, {0.8 , 0.3 , 0.2 , 1.0});
+    Tso::Renderer2D::DrawQuad({0.5 , 0.0 , 0.0}, 0.f, {1.0 , 1.0}, {0.2 , 0.8 , 0.3 , 0.2});
+    Tso::Renderer2D::DrawQuad(m_TrianglePos, 0.f, { 0.5 , 0.5 }, m_Texture);
+
+
 
 
 
