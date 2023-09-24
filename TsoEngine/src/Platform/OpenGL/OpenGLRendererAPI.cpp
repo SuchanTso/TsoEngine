@@ -16,6 +16,8 @@ namespace Tso {
 	{
 		glEnable(GL_BLEND);
 
+		glEnable(GL_DEPTH_TEST);
+
 		glBlendFunc( GL_SRC_ALPHA , GL_ONE_MINUS_SRC_ALPHA);//src , dst
 	}
 
@@ -23,6 +25,14 @@ namespace Tso {
 		vertexArray->Bind();
 		glDrawElements(GL_TRIANGLES, vertexArray->GetIndexBuffer()->GetCount(), GL_UNSIGNED_INT, nullptr);
 	}
+
+	void OpenGLRendererAPI::SetViewPort(uint32_t x, uint32_t y, uint32_t width, uint32_t height)
+	{
+        TSO_CORE_INFO("openGL get window resized ({0} , {1} , {2} , {3})" , x , y , width , height);
+		glViewport(x , y , width , height);
+	}
+
+
 
 
 }

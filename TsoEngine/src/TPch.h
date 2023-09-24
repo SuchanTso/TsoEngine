@@ -20,11 +20,11 @@
 #include <unordered_set>
 #include "glm/glm.hpp"
 
-#include "Tso/Keycode.h"
-#include "Tso/Log.h"
+#include "Tso/Core/Keycode.h"
+#include "Tso/Core/Log.h"
 #include "Tso/Core/TimeStep.h"
-#include "Tso/Core.h"
-#include "Tso/Input.h"
+#include "Tso/Core/Core.h"
+#include "Tso/Core/Input.h"
 
 
 #include "Tso/Renderer/Buffer.h"

@@ -1,7 +1,7 @@
 #include "TPch.h"
 #include "WindowsInput.h"
 #include "GLFW/glfw3.h"
-#include "Tso/Application.h"
+#include "Tso/Core/Application.h"
 
 namespace Tso {
 

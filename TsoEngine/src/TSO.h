@@ -1,17 +1,14 @@
 #pragma once
 //client api deifination
 
-#include "Tso/Application.h"
-#include "Tso/Log.h"
+#include "Tso/Core/Application.h"
+#include "Tso/Core/Log.h"
 #include "Tso/imgui/ImGuiLayer.h"
-#include "Tso/Keycode.h"
-#include "Tso/MouseButtonCode.h"
-#include "Tso/Input.h"
-//i didn't find a way to import spdlog in macos temporarily
+#include "Tso/Core/Keycode.h"
+#include "Tso/Core/MouseButtonCode.h"
+#include "Tso/Core/Input.h"
 
-//#include "Tso/Event/Event.h"
-#include "Tso/Layer.h"
+#include "Tso/Event/Event.h"
+#include "Tso/Core/Layer.h"
 
-//entry point --------------------------------
-#include "Tso/EntryPoint.h"
-//--------------------------------------------
+

@@ -1,5 +1,5 @@
 #pragma once
-#include "Tso/Core.h"
+#include "Tso/Core/Core.h"
 #include <string>
 
 namespace Tso {
@@ -24,8 +24,13 @@ namespace Tso {
 		virtual uint32_t GetHeight() const override = 0;
 
 		virtual void Bind(const unsigned int slot = 0)const override = 0;
+        
+        virtual void SetData(void* data) = 0;
 
 		static Ref<Texture2D> Create(std::string& path);
+        
+        static Ref<Texture2D> Create(const int& width , const int& height);
+
 	};
 
 
