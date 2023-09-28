@@ -47,7 +47,7 @@ void Renderer2D::Init(Ref<Shader> quadShader){
         vertexBuffer->SetLayout(layout);
     }
 
-    uint32_t indices[6] = { 0 , 1 , 2 , 1 , 3, 2};
+    uint32_t indices[6] = { 0 , 1 , 2 , 1 , 3 , 2};
 
     Tso::Ref<Tso::IndexBuffer> indexBuffer;
     indexBuffer.reset(Tso::IndexBuffer::Create(indices, 6));

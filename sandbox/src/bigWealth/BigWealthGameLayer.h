@@ -23,5 +23,7 @@ private:
 	Tso::Ref<Tso::ShaderLibrary> m_ShaderLibrary = nullptr;
 	Tso::Ref<Tso::Shader> m_Shader;
 	Tso::Ref<Tso::Texture2D> m_Texture;
+    
+    BigWealth m_BigWealthLogic;
 
 };
