@@ -130,9 +130,28 @@ namespace Tso {
 		}
 	}
 
+	void OpenGLShader::UploadIntArray(const std::string& name, const int* values, uint32_t count)
+	{
+		int location = GetUniformLocation(name);
+		if (location < 0) {
+			//			TSO_CORE_ERROR("[shader error] : not found uniform named {0}", name);
+		}
+		else {
+			glProgramUniform1iv(m_RendererId, location, count , values);
+		}
+	}
+
 void OpenGLShader::SetInt(const std::string& name , const int& value){
     UploadInt(name , value);
 }
+
+void OpenGLShader::SetIntArray(const std::string& name, const int* values, uint32_t count)
+{
+	UploadIntArray(name, values , count);
+
+}
+
+
 
 void OpenGLShader::SetFloat(const std::string& name , const float& value){
     UploadFloat(name , value);

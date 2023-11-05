@@ -28,6 +28,17 @@ SandBox2D::SandBox2D()
 
 void SandBox2D::OnImGuiRender()
 {
+    ImGui::Begin("SandBox2D");
+
+    ImGui::Text("Render2DInfo");
+
+    auto stat = Tso::Renderer2D::GetStat();
+
+    ImGui::Text("DrawCalls : %d " , stat.DrawCalls);
+    ImGui::Text("QuadVertices : %d", stat.GetTotalVertexCount());
+    ImGui::Text("QuadIndices : %d" , stat.GetTotalIndexCount());
+
+    ImGui::End();
 }
 
 
@@ -80,19 +91,33 @@ void SandBox2D::OnUpdate(Tso::TimeStep ts)
          m_LpMovable = true;
     }
 
-//    m_CameraController.OnUpdate(ts);
+    Tso::Renderer2D::ResetStat();
+
+    m_CameraController.OnUpdate(ts);
     Tso::Renderer2D::BeginScene(m_CameraController.GetCamera());
-    Tso::Renderer2D::DrawQuad({-1.0 , 1.0 , 0.0}, 0.f, {0.5 , 0.5}, {0.8 , 0.3 , 0.2 , 1.0});
-    Tso::Renderer2D::DrawQuad({0.0 , 0.0 , 0.0}, 0.f, {2.0 , 2.0}, {0.2 , 0.8 , 0.3 , 0.2});
-    Tso::Renderer2D::DrawQuad(m_TrianglePos, 0.f, { 0.5 , 0.5 }, {0.2 , 0.8 , 0.3 , 0.2});
+    Tso::Renderer2D::DrawQuad({-0.5 , 0.0 , 0.0}, 45.f, {0.5 , 0.5}, {0.8 , 0.3 , 0.2 , 1.0});
+    Tso::Renderer2D::DrawQuad({0.0 , 0.0 , 0.0}, 0.f, {1.0 , 1.0}, {0.2 , 0.8 , 0.3 , 1.0});
+    Tso::Renderer2D::DrawQuad({0.5 , 0.5 , 0.0} , 0.f , {0.5 , 0.5} , m_Texture);
     
-    if(m_LpMovable){
-        m_TrianglePos = glm::vec3(LinearInterpretMove(m_MoveData.startTime, 1.0, m_Time, m_MoveData.originPos, m_MoveData.targetPos, m_LpMovable) , 0.1);
-//        m_CameraController.GetCamera().SetPosition(m_TrianglePos);
-    }
+//    if(m_LpMovable){
+//        m_TrianglePos = glm::vec3(LinearInterpretMove(m_MoveData.startTime, 1.0, m_Time, m_MoveData.originPos, m_MoveData.targetPos, m_LpMovable) , 0.1);
+////        m_CameraController.GetCamera().SetPosition(m_TrianglePos);
+//    }
 
     Tso::Renderer2D::EndScene();
-    
+
+    Tso::Renderer2D::BeginScene(m_CameraController.GetCamera());
+
+    for (float x = -5.0; x < 5.0; x += 0.5) {
+        for (float y = -5.0; y < 5.0; y += 0.5) {
+            glm::vec4 color = { (x + 5.0) / 10.0 ,0.4 , (y + 5.0) / 10.0 ,1.0 };
+            Tso::Renderer2D::DrawQuad({ x , y }, { 0.45 , 0.45 }, color);
+        }
+    }
+
+
+    Tso::Renderer2D::EndScene();
+
     m_Time += ts.GetSecond();
     
 }
@@ -102,6 +127,7 @@ void SandBox2D::OnEvent(Tso::Event& event)
     Tso::EventDispatcher dispatcher(event);
     dispatcher.Dispatch<Tso::MouseButtonPressedEvent>(BIND_EVENT_FN(SandBox2D::OnMouseButton));
     dispatcher.Dispatch<Tso::MouseMovedEvent>(BIND_EVENT_FN(SandBox2D::OnMouseMove));
+    m_CameraController.OnEvent(event);
 
 }
 

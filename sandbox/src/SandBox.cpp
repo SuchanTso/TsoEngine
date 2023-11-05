@@ -14,7 +14,7 @@
 #include "Tso/Renderer/OrthographicCameraController.h"
 #include "rapidjson/document.h"
 #include "SandBox2D.h"
-#include "BigWealthGameLayer.h"
+#include "BigWealth/BigWealthGameLayer.h"
 
 
 
@@ -179,7 +179,7 @@ public:
 	SandBox() 
        
     {
-        PushLayer(new BigWealthGameLayer());
+        PushLayer(new SandBox2D());
 	}
 	~SandBox() {
 
