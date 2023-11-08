@@ -15,8 +15,15 @@ SandBox2D::SandBox2D()
     Tso::Renderer2D::Init(m_Shader);
     
     std::string lp = "asset/lp2.png";
+    
+    std::string tileMap = "asset/tilemap_packed.png";
+
 
     m_Texture = Tso::Texture2D::Create(lp);
+    m_TileTexture = Tso::Texture2D::Create(tileMap);
+    m_subTexture = Tso::SubTexture2D::CreateByCoord(m_TileTexture , {16.0 , 16.0} , {2.0 , 3.0} , {1.0 , 1.0});
+    m_sub1 = Tso::SubTexture2D::CreateByCoord(m_TileTexture , {16.0 , 16.0} , {0.0 , 5.0} , {1.0 , 1.0});
+
     
     m_TrianglePos = glm::vec3(0.0 , 0.0 , 0.1);
     
@@ -98,6 +105,11 @@ void SandBox2D::OnUpdate(Tso::TimeStep ts)
     Tso::Renderer2D::DrawQuad({-0.5 , 0.0 , 0.0}, 45.f, {0.5 , 0.5}, {0.8 , 0.3 , 0.2 , 1.0});
     Tso::Renderer2D::DrawQuad({0.0 , 0.0 , 0.0}, 0.f, {1.0 , 1.0}, {0.2 , 0.8 , 0.3 , 1.0});
     Tso::Renderer2D::DrawQuad({0.5 , 0.5 , 0.0} , 0.f , {0.5 , 0.5} , m_Texture);
+    Tso::Renderer2D::DrawQuad({1.5 , 0.5 , 0.0} , 0.f , {0.5 , 0.5} , m_subTexture);
+    Tso::Renderer2D::DrawQuad({1.5 , -0.5 , 0.0} , 0.f , {0.2 , 0.2} , m_sub1);
+
+
+    
     
 //    if(m_LpMovable){
 //        m_TrianglePos = glm::vec3(LinearInterpretMove(m_MoveData.startTime, 1.0, m_Time, m_MoveData.originPos, m_MoveData.targetPos, m_LpMovable) , 0.1);

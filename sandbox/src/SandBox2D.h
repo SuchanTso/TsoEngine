@@ -38,7 +38,9 @@ private:
 	glm::vec3 m_TrianglePos;
     Tso::Ref<Tso::Shader> m_Shader;
     Tso::Ref<Tso::ShaderLibrary> m_ShaderLibrary;
-    Tso::Ref<Tso::Texture2D> m_Texture;
+    Tso::Ref<Tso::Texture2D> m_Texture , m_TileTexture;
+    Tso::Ref<Tso::SubTexture2D> m_subTexture , m_sub1;
+
     float m_MoveSpeed = 1.0f;
     bool m_LpMovable = false;
     float m_Time = 0.0;
