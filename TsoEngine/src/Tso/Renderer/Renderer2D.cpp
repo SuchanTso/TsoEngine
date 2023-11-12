@@ -26,7 +26,7 @@ struct Renderer2DData{
     static const uint32_t maxQuads = 2000;
     static const uint32_t maxVertices = maxQuads * 4;
     static const uint32_t maxIndices = maxQuads * 6;
-    static const uint32_t maxTextureSlot = 16;
+    static const uint32_t maxTextureSlot = 32;
 
     Ref<VertexArray> QuadVertextArray;
     Ref<VertexBuffer> QuadVertexBuffer;
@@ -217,7 +217,7 @@ void Renderer2D::DrawQuad(const glm::vec3& position , const float& rotation , co
     s_Data.QuadVertexBufferPtr->postion = transform * s_Data.quadVertices[3];
     s_Data.QuadVertexBufferPtr->color = color;
     s_Data.QuadVertexBufferPtr->textureIndex = textureIndex;
-    s_Data.QuadVertexBufferPtr->texCoord = { 0.0f , 0.0f };
+    s_Data.QuadVertexBufferPtr->texCoord = { 0.0f , 1.0f };
     s_Data.QuadVertexBufferPtr++;
     
     s_Data.QuadIndexCount += 6;

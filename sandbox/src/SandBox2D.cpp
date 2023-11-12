@@ -68,7 +68,7 @@ T SandBox2D::LinearInterpretMove(const float & start , const float& duration , c
 
 void SandBox2D::OnUpdate(Tso::TimeStep ts)
 {
-    
+
     Tso::RenderCommand::SetClearColor({ 0.1f, 0.1f, 0.1f, 1.f });
     Tso::RenderCommand::Clear();
 
@@ -102,15 +102,15 @@ void SandBox2D::OnUpdate(Tso::TimeStep ts)
 
     m_CameraController.OnUpdate(ts);
     Tso::Renderer2D::BeginScene(m_CameraController.GetCamera());
-    Tso::Renderer2D::DrawQuad({-0.5 , 0.0 , 0.0}, 45.f, {0.5 , 0.5}, {0.8 , 0.3 , 0.2 , 1.0});
-    Tso::Renderer2D::DrawQuad({0.0 , 0.0 , 0.0}, 0.f, {1.0 , 1.0}, {0.2 , 0.8 , 0.3 , 1.0});
-    Tso::Renderer2D::DrawQuad({0.5 , 0.5 , 0.0} , 0.f , {0.5 , 0.5} , m_Texture);
+   /* Tso::Renderer2D::DrawQuad({-0.5 , 0.0 , 0.0}, 45.f, {0.5 , 0.5}, {0.8 , 0.3 , 0.2 , 1.0});
+    Tso::Renderer2D::DrawQuad({0.0 , 0.0 , 0.0}, 0.f, {1.0 , 1.0}, {0.2 , 0.8 , 0.3 , 1.0});*/
+    Tso::Renderer2D::DrawQuad({0.5 , 0.5 , 0.0} , 0.f , {0.5 , 0.5} , m_TileTexture);
     Tso::Renderer2D::DrawQuad({1.5 , 0.5 , 0.0} , 0.f , {0.5 , 0.5} , m_subTexture);
     Tso::Renderer2D::DrawQuad({1.5 , -0.5 , 0.0} , 0.f , {0.2 , 0.2} , m_sub1);
 
 
-    
-    
+
+     
 //    if(m_LpMovable){
 //        m_TrianglePos = glm::vec3(LinearInterpretMove(m_MoveData.startTime, 1.0, m_Time, m_MoveData.originPos, m_MoveData.targetPos, m_LpMovable) , 0.1);
 ////        m_CameraController.GetCamera().SetPosition(m_TrianglePos);
