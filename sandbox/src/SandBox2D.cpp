@@ -24,7 +24,9 @@ SandBox2D::SandBox2D()
     m_subTexture = Tso::SubTexture2D::CreateByCoord(m_TileTexture , {16.0 , 16.0} , {2.0 , 3.0} , {1.0 , 1.0});
     m_sub1 = Tso::SubTexture2D::CreateByCoord(m_TileTexture , {16.0 , 16.0} , {0.0 , 5.0} , {1.0 , 1.0});
 
-    
+    Tso::FrameBufferInfo info = {720 , 1280 , false};
+    m_FrameBuffer = Tso::FrameBuffer::Create(info);
+
     m_TrianglePos = glm::vec3(0.0 , 0.0 , 0.1);
     
     m_MoveData.startTime = m_Time;
@@ -44,6 +46,8 @@ void SandBox2D::OnImGuiRender()
     ImGui::Text("DrawCalls : %d " , stat.DrawCalls);
     ImGui::Text("QuadVertices : %d", stat.GetTotalVertexCount());
     ImGui::Text("QuadIndices : %d" , stat.GetTotalIndexCount());
+    uint32_t fbId = m_FrameBuffer->GetColorAttachment();
+    ImGui::Image((void*)fbId, ImVec2{ 360.f , 360.f });
 
     ImGui::End();
 }
@@ -118,6 +122,7 @@ void SandBox2D::OnUpdate(Tso::TimeStep ts)
 
     Tso::Renderer2D::EndScene();
 
+    m_FrameBuffer->Bind();
     Tso::Renderer2D::BeginScene(m_CameraController.GetCamera());
 
     for (float x = -5.0; x < 5.0; x += 0.5) {
@@ -129,6 +134,7 @@ void SandBox2D::OnUpdate(Tso::TimeStep ts)
 
 
     Tso::Renderer2D::EndScene();
+    m_FrameBuffer->UnBind();
 
     m_Time += ts.GetSecond();
     

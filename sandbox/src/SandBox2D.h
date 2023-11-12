@@ -4,6 +4,7 @@
 #include "Tso/Renderer/OrthographicCameraController.h"
 #include "glm/glm.hpp"
 #include "Tso/Renderer/Renderer2D.h"
+#include "Tso/Renderer/FrameBuffer.h"
 
 class SandBox2D : public Tso::Layer {
     
@@ -40,6 +41,7 @@ private:
     Tso::Ref<Tso::ShaderLibrary> m_ShaderLibrary;
     Tso::Ref<Tso::Texture2D> m_Texture , m_TileTexture;
     Tso::Ref<Tso::SubTexture2D> m_subTexture , m_sub1;
+    Tso::Ref<Tso::FrameBuffer> m_FrameBuffer;
 
     float m_MoveSpeed = 1.0f;
     bool m_LpMovable = false;

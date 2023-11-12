@@ -204,7 +204,7 @@ void OpenGLShader::SetMatrix4(const std::string& name , const glm::mat4& matrix)
 				TSO_CORE_ERROR("[shader] vertex shader error : {0}", infoLog.data());
 
 				glDeleteShader(shader);
-				TSO_CORE_ASSERT(false);
+				TSO_CORE_ASSERT(false , "");
 				return;
 			}
 			glAttachShader(program, shader);
@@ -230,7 +230,7 @@ void OpenGLShader::SetMatrix4(const std::string& name , const glm::mat4& matrix)
 			TSO_CORE_ERROR("[shader program] link error : {0}", infoLog.data());
 
 			glDeleteProgram(m_RendererId);
-			TSO_CORE_ASSERT(false);
+			TSO_CORE_ASSERT(false , "");
 			return;
 		}
 		for (auto& kv : shaderSource) {
