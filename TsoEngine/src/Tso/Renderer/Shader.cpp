@@ -53,13 +53,13 @@ namespace Tso {
 	void ShaderLibrary::Add(const Ref<Shader>& shader)
 	{
 		auto name = shader->GetName();
-		TSO_CORE_ASSERT(m_Shaders.find(name) != m_Shaders.end(), "[Shader Library] : failed to add shader , because {0} already exist !", name);
+		TSO_CORE_ASSERT(m_Shaders.find(name) == m_Shaders.end(), "[Shader Library] : failed to add shader , because {0} already exist !", name);
 		m_Shaders[name] = shader;
 
 	}
 	void ShaderLibrary::Add(const std::string& name, const Ref<Shader>& shader)
 	{
-		TSO_CORE_ASSERT(m_Shaders.find(name) != m_Shaders.end(), "[Shader Library] : failed to add shader , because {0} already exist !", name);
+		TSO_CORE_ASSERT(m_Shaders.find(name) == m_Shaders.end(), "[Shader Library] : failed to add shader , because {0} already exist !", name);
 		m_Shaders[name] = shader;
 	}
 	Ref<Shader> ShaderLibrary::Load(const std::string& path)
