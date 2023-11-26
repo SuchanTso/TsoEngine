@@ -8,7 +8,7 @@ workspace "TsoEngine"
 		"Dist"
 	}
 
-	startproject "Sandbox"
+	startproject "TsoEditor"
 
 outputdir = "%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}"
 
@@ -66,6 +66,7 @@ project "TsoEngine"
 
 		defines{
 			"TSO_PLATFORM_WINDOWS",
+			"TSO_ENABLE_ASSERTS"
 		}
 
 		includedirs{
@@ -164,6 +165,75 @@ project "Sandbox"
 	filter "system:macosx"
 		defines{
 				"TSO_PLATFORM_MACOSX"
+		}
+		links{
+			"Cocoa.framework",
+			"IOKit.framework",
+			"CoreVideo.framework",
+			"OpenGL.framework"
+		}
+
+	filter "configurations:Debug"
+		defines "TSO_DEBUG"
+
+		filter "system:windows"
+			buildoptions "/MDd"
+
+		symbols "On"
+
+	filter "configurations:Release"
+		defines "TSO_RELEASE"
+		filter "system:windows"
+			buildoptions "/MD"
+
+		optimize "On"
+
+	filter "configurations:Dist"
+		defines "TSO_DIST"
+		filter "system:windows"
+			buildoptions "/MD"
+
+		optimize "On"
+
+
+project "TsoEditor"
+	location "TsoEditor"
+	kind "ConsoleApp"
+	language "C++"
+	cppdialect "C++17"
+	staticruntime "on"
+
+	targetdir ("bin/" .. outputdir .."/%{prj.name}")
+	objdir ("bin-int/" .. outputdir .."/%{prj.name}")
+
+	files{
+		"%{prj.name}/src/**.h",
+		"%{prj.name}/src/**.cpp"
+	}
+
+	includedirs{
+		"TsoEngine/third_party/spdlog/include",
+		"TsoEngine/src",
+		"%{IncludeDir.glm}",
+		"TsoEngine/third_party/imgui",
+		"TsoEngine/third_party/rapidjson/include"
+	}
+
+	links{
+		"TsoEngine"
+	}
+
+	filter "system:windows"
+		defines{
+				"TSO_PLATFORM_WINDOWS",
+				"TSO_EDITOR"
+		}
+	
+	filter "system:macosx"
+		defines{
+				"TSO_PLATFORM_MACOSX",
+				"TSO_EDITOR"
+
 		}
 		links{
 			"Cocoa.framework",
