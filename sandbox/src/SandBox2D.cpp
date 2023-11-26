@@ -113,17 +113,12 @@ void SandBox2D::OnUpdate(Tso::TimeStep ts)
     Tso::Renderer2D::DrawQuad({1.5 , -0.5 , 0.0} , 0.f , {0.2 , 0.2} , m_sub1);
 
 
-
-     
-//    if(m_LpMovable){
-//        m_TrianglePos = glm::vec3(LinearInterpretMove(m_MoveData.startTime, 1.0, m_Time, m_MoveData.originPos, m_MoveData.targetPos, m_LpMovable) , 0.1);
-////        m_CameraController.GetCamera().SetPosition(m_TrianglePos);
-//    }
-
     Tso::Renderer2D::EndScene();
 
     m_FrameBuffer->Bind();
     Tso::Renderer2D::BeginScene(m_CameraController.GetCamera());
+    Tso::RenderCommand::SetClearColor({ 0.1f, 0.1f, 0.1f, 1.f });
+    Tso::RenderCommand::Clear();
 
     for (float x = -5.0; x < 5.0; x += 0.5) {
         for (float y = -5.0; y < 5.0; y += 0.5) {
