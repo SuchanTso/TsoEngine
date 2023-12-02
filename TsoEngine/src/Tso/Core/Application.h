@@ -15,7 +15,7 @@ namespace Tso {
 	class TSO_API Application
 	{
 	public:
-		Application();
+		Application(const std::string& windowName = "TsoEngine");
 		virtual ~Application();
 
 		void Run();

@@ -10,10 +10,10 @@ namespace Tso {
 
     Application* Application::s_Instance = nullptr;
 
-	Application::Application() 
+	Application::Application(const std::string& windowName)
     {
         s_Instance = this;
-        m_Window = std::unique_ptr<Window>(Window::Create({"TsoEngine",1280,720}));
+        m_Window = std::unique_ptr<Window>(Window::Create({ windowName ,1280,720}));
 		m_Window->SetEventCallback(BIND_EVENT_FN(Application::OnEvent));
 
         RenderCommand::Init();
