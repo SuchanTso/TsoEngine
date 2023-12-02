@@ -16,6 +16,7 @@
 #include <sstream>
 #include <array>
 #include <vector>
+#include <queue>
 #include <unordered_map>
 #include <unordered_set>
 #include "glm/glm.hpp"
@@ -25,6 +26,7 @@
 #include "Tso/Core/TimeStep.h"
 #include "Tso/Core/Core.h"
 #include "Tso/Core/Input.h"
+#include "Tso/Event/Event.h"
 
 
 #include "Tso/Renderer/Buffer.h"

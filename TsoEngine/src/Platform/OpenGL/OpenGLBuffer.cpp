@@ -16,12 +16,30 @@ namespace Tso {
 
 	}
 
+	OpenGLVertexBuffer::OpenGLVertexBuffer(uint32_t size)
+	{
+#ifdef TSO_PLATFORM_WINDOWS
+		glCreateBuffers(1, &m_RendererId);
+#else
+		glGenBuffers(1, &m_RendererId);
+#endif
+
+		glBindBuffer(GL_ARRAY_BUFFER, m_RendererId);
+		glBufferData(GL_ARRAY_BUFFER, size, nullptr, GL_DYNAMIC_DRAW);
+	}
+
 	void OpenGLVertexBuffer::Bind()const {
 		glBindBuffer(GL_ARRAY_BUFFER, m_RendererId);
 	}
 
 	void OpenGLVertexBuffer::UnBind()const {
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
+	}
+
+	void OpenGLVertexBuffer::SetData(const void* data, uint32_t size)
+	{
+		glBindBuffer(GL_ARRAY_BUFFER, m_RendererId);
+		glBufferSubData(GL_ARRAY_BUFFER, 0, size, data);
 	}
 
 	//------------------------------------------indexBuffer---------------------------------------------------------------------

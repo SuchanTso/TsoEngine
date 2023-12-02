@@ -25,8 +25,12 @@ namespace Tso {
 		void UploadFloat4(const std::string& name, const glm::vec4& value);
 
 		void UploadInt(const std::string& name, const int& value);
+		void UploadIntArray(const std::string& name, const int* values , uint32_t count);
+
         
         virtual void SetInt(const std::string& name , const int& value)override;
+		virtual void SetIntArray(const std::string& name, const int* values , uint32_t count)override;
+
         
         virtual void SetFloat(const std::string& name , const float& value)override;
         virtual void SetFloat2(const std::string& name , const glm::vec2& value)override;

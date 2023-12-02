@@ -14,6 +14,7 @@
 #include "Tso/Renderer/OrthographicCameraController.h"
 #include "rapidjson/document.h"
 #include "SandBox2D.h"
+#include "BigWealth/BigWealthGameLayer.h"
 
 
 
@@ -67,7 +68,6 @@ public:
       m_BackGroundVertexArray->AddVertexBuffer(backgroundVertexBuffer);
       m_BackGroundVertexArray->SetIndexBuffer(backgroundIndexBuffer);
 
-      float test = pow(-2, -128);
       m_ShaderLibrary = std::make_shared<Tso::ShaderLibrary>();
 
 
@@ -90,11 +90,11 @@ public:
 
 
 
-      std::dynamic_pointer_cast<Tso::OpenGLShader>(m_Shader)->Bind();
-      std::dynamic_pointer_cast<Tso::OpenGLShader>(m_Shader)->UploadInt("u_Texture", 0);
+      m_Shader->Bind();
+      m_Shader->SetInt("u_Texture", 0);
 
-      std::dynamic_pointer_cast<Tso::OpenGLShader>(m_BackgroundShader)->Bind();
-      std::dynamic_pointer_cast<Tso::OpenGLShader>(m_BackgroundShader)->UploadInt("u_Texture", 0);
+      m_BackgroundShader->Bind();
+      m_BackgroundShader->SetInt("u_Texture", 0);
 
   }
 

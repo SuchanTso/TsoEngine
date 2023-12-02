@@ -25,6 +25,8 @@ public:
     
     void OnUpdate(TimeStep ts);
     
+    void OnResize(const float& width , const float& height);
+    
     void OnEvent(Event& e);
 private:
 

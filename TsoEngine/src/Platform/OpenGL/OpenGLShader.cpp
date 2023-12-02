@@ -130,9 +130,28 @@ namespace Tso {
 		}
 	}
 
+	void OpenGLShader::UploadIntArray(const std::string& name, const int* values, uint32_t count)
+	{
+		int location = GetUniformLocation(name);
+		if (location < 0) {
+			//			TSO_CORE_ERROR("[shader error] : not found uniform named {0}", name);
+		}
+		else {
+			glProgramUniform1iv(m_RendererId, location, count , values);
+		}
+	}
+
 void OpenGLShader::SetInt(const std::string& name , const int& value){
     UploadInt(name , value);
 }
+
+void OpenGLShader::SetIntArray(const std::string& name, const int* values, uint32_t count)
+{
+	UploadIntArray(name, values , count);
+
+}
+
+
 
 void OpenGLShader::SetFloat(const std::string& name , const float& value){
     UploadFloat(name , value);
@@ -185,7 +204,7 @@ void OpenGLShader::SetMatrix4(const std::string& name , const glm::mat4& matrix)
 				TSO_CORE_ERROR("[shader] vertex shader error : {0}", infoLog.data());
 
 				glDeleteShader(shader);
-				TSO_CORE_ASSERT(false);
+				TSO_CORE_ASSERT(false , "");
 				return;
 			}
 			glAttachShader(program, shader);
@@ -211,7 +230,7 @@ void OpenGLShader::SetMatrix4(const std::string& name , const glm::mat4& matrix)
 			TSO_CORE_ERROR("[shader program] link error : {0}", infoLog.data());
 
 			glDeleteProgram(m_RendererId);
-			TSO_CORE_ASSERT(false);
+			TSO_CORE_ASSERT(false , "");
 			return;
 		}
 		for (auto& kv : shaderSource) {

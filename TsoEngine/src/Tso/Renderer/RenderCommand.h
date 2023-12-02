@@ -20,8 +20,8 @@ namespace Tso {
 			s_RendererAPI -> Init();
 		}
 
-		static inline void DrawIndexed(const Ref<VertexArray>& vertexArray) {
-			s_RendererAPI->DrawIndexed(vertexArray);
+		static inline void DrawIndexed(const Ref<VertexArray>& vertexArray , uint32_t indexCount = 0) {
+			s_RendererAPI->DrawIndexed(vertexArray , indexCount);
 		}
 
 		static inline void SetViewPort(uint32_t x, uint32_t y, uint32_t width, uint32_t height) {

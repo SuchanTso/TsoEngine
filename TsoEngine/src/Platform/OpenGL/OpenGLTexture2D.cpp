@@ -79,8 +79,9 @@ void OpenGLTexture2D::Bind(const unsigned int slot) const
     glBindTextureUnit(slot, m_RendererID);
 #else
     glActiveTexture(GL_TEXTURE0 + slot);
-#endif
     glBindTexture(GL_TEXTURE_2D, m_RendererID);
+#endif
+    
     
     
 }

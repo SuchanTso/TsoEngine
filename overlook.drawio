@@ -1,95 +1,95 @@
-<mxfile host="app.diagrams.net" modified="2023-09-17T13:01:39.411Z" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/117.0.0.0 Safari/537.36" etag="uSKMYllrqvIlBZPUpbAi" version="21.7.5" type="device">
+<mxfile host="app.diagrams.net" modified="2023-09-24T15:16:15.848Z" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/117.0.0.0 Safari/537.36" etag="F5TAISAxqTOUKU8gSen-" version="21.7.5" type="device" pages="2">
   <diagram name="Engine" id="jccJxAV8VWQj_4SU6kNb">
-    <mxGraphModel dx="1430" dy="1888" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+    <mxGraphModel dx="2074" dy="2242" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
-        <mxCell id="BOV9qi9u9eHS66plc-o9-5" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="BOV9qi9u9eHS66plc-o9-1" target="BOV9qi9u9eHS66plc-o9-4">
+        <mxCell id="BOV9qi9u9eHS66plc-o9-5" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" parent="1" source="BOV9qi9u9eHS66plc-o9-1" target="BOV9qi9u9eHS66plc-o9-4" edge="1">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="BOV9qi9u9eHS66plc-o9-1" value="开始" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+        <mxCell id="BOV9qi9u9eHS66plc-o9-1" value="开始" style="rounded=0;whiteSpace=wrap;html=1;" parent="1" vertex="1">
           <mxGeometry x="530" y="60" width="120" height="60" as="geometry" />
         </mxCell>
-        <mxCell id="BOV9qi9u9eHS66plc-o9-9" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;shape=flexArrow;" edge="1" parent="1" source="BOV9qi9u9eHS66plc-o9-4">
+        <mxCell id="BOV9qi9u9eHS66plc-o9-9" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;shape=flexArrow;" parent="1" source="BOV9qi9u9eHS66plc-o9-4" edge="1">
           <mxGeometry relative="1" as="geometry">
             <mxPoint x="710" y="240" as="targetPoint" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="BOV9qi9u9eHS66plc-o9-40" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=1.017;entryY=0.421;entryDx=0;entryDy=0;entryPerimeter=0;" edge="1" parent="1" source="BOV9qi9u9eHS66plc-o9-4" target="BOV9qi9u9eHS66plc-o9-39">
+        <mxCell id="BOV9qi9u9eHS66plc-o9-40" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=1.017;entryY=0.421;entryDx=0;entryDy=0;entryPerimeter=0;" parent="1" source="BOV9qi9u9eHS66plc-o9-4" target="BOV9qi9u9eHS66plc-o9-39" edge="1">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="BOV9qi9u9eHS66plc-o9-47" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="BOV9qi9u9eHS66plc-o9-4" target="BOV9qi9u9eHS66plc-o9-46">
+        <mxCell id="BOV9qi9u9eHS66plc-o9-47" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" parent="1" source="BOV9qi9u9eHS66plc-o9-4" target="BOV9qi9u9eHS66plc-o9-46" edge="1">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="BOV9qi9u9eHS66plc-o9-4" value="entry point" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+        <mxCell id="BOV9qi9u9eHS66plc-o9-4" value="entry point" style="rounded=1;whiteSpace=wrap;html=1;" parent="1" vertex="1">
           <mxGeometry x="530" y="210" width="120" height="60" as="geometry" />
         </mxCell>
-        <mxCell id="BOV9qi9u9eHS66plc-o9-10" value="代码解释" style="swimlane;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+        <mxCell id="BOV9qi9u9eHS66plc-o9-10" value="代码解释" style="swimlane;whiteSpace=wrap;html=1;" parent="1" vertex="1">
           <mxGeometry x="710" y="140" width="200" height="200" as="geometry" />
         </mxCell>
-        <mxCell id="BOV9qi9u9eHS66plc-o9-11" value="&lt;div style=&quot;text-align: left;&quot;&gt;&lt;span style=&quot;background-color: initial;&quot;&gt;main函数放在entry point里，通过&lt;/span&gt;&lt;/div&gt;&lt;div style=&quot;text-align: left;&quot;&gt;CreateApplication()&lt;span style=&quot;background-color: initial;&quot;&gt;，在死循环中&lt;/span&gt;&lt;/div&gt;&lt;div style=&quot;text-align: left;&quot;&gt;&lt;span style=&quot;background-color: initial;&quot;&gt;调用&lt;/span&gt;&lt;span style=&quot;background-color: initial;&quot;&gt;app的run()函数&lt;/span&gt;&lt;/div&gt;&lt;div style=&quot;text-align: left;&quot;&gt;&lt;span style=&quot;background-color: initial;&quot;&gt;run()函数的作用：&lt;/span&gt;&lt;/div&gt;&lt;div style=&quot;text-align: left;&quot;&gt;&lt;span style=&quot;background-color: initial;&quot;&gt;1、判断循环停止（关闭窗口）&lt;/span&gt;&lt;/div&gt;&lt;div style=&quot;text-align: left;&quot;&gt;&lt;span style=&quot;background-color: initial;&quot;&gt;2、获取时间间隔&lt;/span&gt;&lt;/div&gt;&lt;div style=&quot;text-align: left;&quot;&gt;&lt;span style=&quot;background-color: initial;&quot;&gt;3、调用每一层的OnUpdate()函数&lt;/span&gt;&lt;/div&gt;&lt;div style=&quot;text-align: left;&quot;&gt;&lt;span style=&quot;background-color: initial;&quot;&gt;更新每一层自己的逻辑&lt;/span&gt;&lt;/div&gt;" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;" vertex="1" parent="BOV9qi9u9eHS66plc-o9-10">
+        <mxCell id="BOV9qi9u9eHS66plc-o9-11" value="&lt;div style=&quot;text-align: left;&quot;&gt;&lt;span style=&quot;background-color: initial;&quot;&gt;main函数放在entry point里，通过&lt;/span&gt;&lt;/div&gt;&lt;div style=&quot;text-align: left;&quot;&gt;CreateApplication()&lt;span style=&quot;background-color: initial;&quot;&gt;，在死循环中&lt;/span&gt;&lt;/div&gt;&lt;div style=&quot;text-align: left;&quot;&gt;&lt;span style=&quot;background-color: initial;&quot;&gt;调用&lt;/span&gt;&lt;span style=&quot;background-color: initial;&quot;&gt;app的run()函数&lt;/span&gt;&lt;/div&gt;&lt;div style=&quot;text-align: left;&quot;&gt;&lt;span style=&quot;background-color: initial;&quot;&gt;run()函数的作用：&lt;/span&gt;&lt;/div&gt;&lt;div style=&quot;text-align: left;&quot;&gt;&lt;span style=&quot;background-color: initial;&quot;&gt;1、判断循环停止（关闭窗口）&lt;/span&gt;&lt;/div&gt;&lt;div style=&quot;text-align: left;&quot;&gt;&lt;span style=&quot;background-color: initial;&quot;&gt;2、获取时间间隔&lt;/span&gt;&lt;/div&gt;&lt;div style=&quot;text-align: left;&quot;&gt;&lt;span style=&quot;background-color: initial;&quot;&gt;3、调用每一层的OnUpdate()函数&lt;/span&gt;&lt;/div&gt;&lt;div style=&quot;text-align: left;&quot;&gt;&lt;span style=&quot;background-color: initial;&quot;&gt;更新每一层自己的逻辑&lt;/span&gt;&lt;/div&gt;" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;" parent="BOV9qi9u9eHS66plc-o9-10" vertex="1">
           <mxGeometry y="35" width="200" height="130" as="geometry" />
         </mxCell>
-        <mxCell id="BOV9qi9u9eHS66plc-o9-13" value="" style="shape=internalStorage;whiteSpace=wrap;html=1;backgroundOutline=1;" vertex="1" parent="1">
+        <mxCell id="BOV9qi9u9eHS66plc-o9-13" value="" style="shape=internalStorage;whiteSpace=wrap;html=1;backgroundOutline=1;" parent="1" vertex="1">
           <mxGeometry x="935" y="70" width="340" height="350" as="geometry" />
         </mxCell>
-        <mxCell id="BOV9qi9u9eHS66plc-o9-15" value="层的概念Layer" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+        <mxCell id="BOV9qi9u9eHS66plc-o9-15" value="层的概念Layer" style="rounded=0;whiteSpace=wrap;html=1;" parent="1" vertex="1">
           <mxGeometry x="1030" y="70" width="150" height="20" as="geometry" />
         </mxCell>
-        <mxCell id="BOV9qi9u9eHS66plc-o9-17" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.515;entryY=0.914;entryDx=0;entryDy=0;entryPerimeter=0;" edge="1" parent="1" target="BOV9qi9u9eHS66plc-o9-13">
+        <mxCell id="BOV9qi9u9eHS66plc-o9-17" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.515;entryY=0.914;entryDx=0;entryDy=0;entryPerimeter=0;" parent="1" target="BOV9qi9u9eHS66plc-o9-13" edge="1">
           <mxGeometry relative="1" as="geometry">
             <mxPoint x="1110" y="460" as="sourcePoint" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="BOV9qi9u9eHS66plc-o9-19" value="视野方向，&lt;br&gt;即从这一点出发&lt;br&gt;向显示器内部看" style="ellipse;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+        <mxCell id="BOV9qi9u9eHS66plc-o9-19" value="视野方向，&lt;br&gt;即从这一点出发&lt;br&gt;向显示器内部看" style="ellipse;whiteSpace=wrap;html=1;" parent="1" vertex="1">
           <mxGeometry x="1050" y="450" width="120" height="80" as="geometry" />
         </mxCell>
-        <mxCell id="BOV9qi9u9eHS66plc-o9-22" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.505;entryY=1.06;entryDx=0;entryDy=0;entryPerimeter=0;" edge="1" parent="1" source="BOV9qi9u9eHS66plc-o9-20" target="BOV9qi9u9eHS66plc-o9-21">
+        <mxCell id="BOV9qi9u9eHS66plc-o9-22" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.505;entryY=1.06;entryDx=0;entryDy=0;entryPerimeter=0;" parent="1" source="BOV9qi9u9eHS66plc-o9-20" target="BOV9qi9u9eHS66plc-o9-21" edge="1">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="BOV9qi9u9eHS66plc-o9-20" value="层1：UI层" style="shape=process;whiteSpace=wrap;html=1;backgroundOutline=1;" vertex="1" parent="1">
+        <mxCell id="BOV9qi9u9eHS66plc-o9-20" value="层1：UI层" style="shape=process;whiteSpace=wrap;html=1;backgroundOutline=1;" parent="1" vertex="1">
           <mxGeometry x="960" y="325" width="120" height="20" as="geometry" />
         </mxCell>
-        <mxCell id="BOV9qi9u9eHS66plc-o9-21" value="层2：游戏层1" style="shape=process;whiteSpace=wrap;html=1;backgroundOutline=1;" vertex="1" parent="1">
+        <mxCell id="BOV9qi9u9eHS66plc-o9-21" value="层2：游戏层1" style="shape=process;whiteSpace=wrap;html=1;backgroundOutline=1;" parent="1" vertex="1">
           <mxGeometry x="960" y="265" width="120" height="20" as="geometry" />
         </mxCell>
-        <mxCell id="BOV9qi9u9eHS66plc-o9-29" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=1;entryDx=0;entryDy=0;" edge="1" parent="1" source="BOV9qi9u9eHS66plc-o9-26" target="BOV9qi9u9eHS66plc-o9-27">
+        <mxCell id="BOV9qi9u9eHS66plc-o9-29" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=1;entryDx=0;entryDy=0;" parent="1" source="BOV9qi9u9eHS66plc-o9-26" target="BOV9qi9u9eHS66plc-o9-27" edge="1">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="BOV9qi9u9eHS66plc-o9-26" value="层n：游戏层n-1" style="shape=process;whiteSpace=wrap;html=1;backgroundOutline=1;" vertex="1" parent="1">
+        <mxCell id="BOV9qi9u9eHS66plc-o9-26" value="层n：游戏层n-1" style="shape=process;whiteSpace=wrap;html=1;backgroundOutline=1;" parent="1" vertex="1">
           <mxGeometry x="960" y="205" width="120" height="20" as="geometry" />
         </mxCell>
-        <mxCell id="BOV9qi9u9eHS66plc-o9-27" value="层n+1：其他层" style="shape=process;whiteSpace=wrap;html=1;backgroundOutline=1;" vertex="1" parent="1">
+        <mxCell id="BOV9qi9u9eHS66plc-o9-27" value="层n+1：其他层" style="shape=process;whiteSpace=wrap;html=1;backgroundOutline=1;" parent="1" vertex="1">
           <mxGeometry x="960" y="135" width="120" height="20" as="geometry" />
         </mxCell>
-        <mxCell id="BOV9qi9u9eHS66plc-o9-30" value="" style="endArrow=none;dashed=1;html=1;dashPattern=1 3;strokeWidth=2;rounded=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;exitX=0.5;exitY=0;exitDx=0;exitDy=0;" edge="1" parent="1" source="BOV9qi9u9eHS66plc-o9-21" target="BOV9qi9u9eHS66plc-o9-26">
+        <mxCell id="BOV9qi9u9eHS66plc-o9-30" value="" style="endArrow=none;dashed=1;html=1;dashPattern=1 3;strokeWidth=2;rounded=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;exitX=0.5;exitY=0;exitDx=0;exitDy=0;" parent="1" source="BOV9qi9u9eHS66plc-o9-21" target="BOV9qi9u9eHS66plc-o9-26" edge="1">
           <mxGeometry width="50" height="50" relative="1" as="geometry">
             <mxPoint x="1110" y="270" as="sourcePoint" />
             <mxPoint x="1160" y="220" as="targetPoint" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="BOV9qi9u9eHS66plc-o9-31" value="层添加方向" style="ellipse;shape=cloud;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+        <mxCell id="BOV9qi9u9eHS66plc-o9-31" value="层添加方向" style="ellipse;shape=cloud;whiteSpace=wrap;html=1;" parent="1" vertex="1">
           <mxGeometry x="1060" y="90" width="85" height="30" as="geometry" />
         </mxCell>
-        <mxCell id="BOV9qi9u9eHS66plc-o9-32" value="" style="endArrow=classic;html=1;rounded=0;entryX=0.549;entryY=0.829;entryDx=0;entryDy=0;entryPerimeter=0;" edge="1" parent="1">
+        <mxCell id="BOV9qi9u9eHS66plc-o9-32" value="" style="endArrow=classic;html=1;rounded=0;entryX=0.549;entryY=0.829;entryDx=0;entryDy=0;entryPerimeter=0;" parent="1" edge="1">
           <mxGeometry width="50" height="50" relative="1" as="geometry">
             <mxPoint x="1104.17" y="127.37" as="sourcePoint" />
             <mxPoint x="1105.83" y="362.62" as="targetPoint" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="BOV9qi9u9eHS66plc-o9-33" value="层update方向" style="ellipse;shape=cloud;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+        <mxCell id="BOV9qi9u9eHS66plc-o9-33" value="层update方向" style="ellipse;shape=cloud;whiteSpace=wrap;html=1;" parent="1" vertex="1">
           <mxGeometry x="1140" y="90" width="90" height="30" as="geometry" />
         </mxCell>
-        <mxCell id="BOV9qi9u9eHS66plc-o9-34" value="" style="endArrow=classic;html=1;rounded=0;entryX=0.549;entryY=0.829;entryDx=0;entryDy=0;entryPerimeter=0;" edge="1" parent="1">
+        <mxCell id="BOV9qi9u9eHS66plc-o9-34" value="" style="endArrow=classic;html=1;rounded=0;entryX=0.549;entryY=0.829;entryDx=0;entryDy=0;entryPerimeter=0;" parent="1" edge="1">
           <mxGeometry width="50" height="50" relative="1" as="geometry">
             <mxPoint x="1179.17" y="127.37" as="sourcePoint" />
             <mxPoint x="1180.83" y="362.62" as="targetPoint" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="BOV9qi9u9eHS66plc-o9-36" value="事件更新方向" style="ellipse;shape=cloud;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+        <mxCell id="BOV9qi9u9eHS66plc-o9-36" value="事件更新方向" style="ellipse;shape=cloud;whiteSpace=wrap;html=1;" parent="1" vertex="1">
           <mxGeometry x="1170" y="390" width="110" height="30" as="geometry" />
         </mxCell>
-        <mxCell id="BOV9qi9u9eHS66plc-o9-37" value="" style="endArrow=classic;html=1;rounded=0;entryX=0.923;entryY=-0.006;entryDx=0;entryDy=0;entryPerimeter=0;" edge="1" parent="1">
+        <mxCell id="BOV9qi9u9eHS66plc-o9-37" value="" style="endArrow=classic;html=1;rounded=0;entryX=0.923;entryY=-0.006;entryDx=0;entryDy=0;entryPerimeter=0;" parent="1" edge="1">
           <mxGeometry width="50" height="50" relative="1" as="geometry">
             <mxPoint x="1240.3500000000001" y="264.47" as="sourcePoint" />
             <mxPoint x="1240.0000000000002" y="139.99999999999997" as="targetPoint" />
@@ -98,10 +98,10 @@
             </Array>
           </mxGeometry>
         </mxCell>
-        <mxCell id="BOV9qi9u9eHS66plc-o9-38" value="添加方向：越先添加的层，越远离屏幕&lt;br&gt;update方向：先添加的层，先更新&lt;br&gt;事件方向：越靠近屏幕的层，越先响应事件" style="ellipse;shape=cloud;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+        <mxCell id="BOV9qi9u9eHS66plc-o9-38" value="添加方向：越先添加的层，越远离屏幕&lt;br&gt;update方向：先添加的层，先更新&lt;br&gt;事件方向：越靠近屏幕的层，越先响应事件" style="ellipse;shape=cloud;whiteSpace=wrap;html=1;" parent="1" vertex="1">
           <mxGeometry x="935" y="-30" width="355" height="100" as="geometry" />
         </mxCell>
-        <mxCell id="BOV9qi9u9eHS66plc-o9-45" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=1.009;entryY=0.539;entryDx=0;entryDy=0;entryPerimeter=0;" edge="1" parent="1" source="BOV9qi9u9eHS66plc-o9-39" target="BOV9qi9u9eHS66plc-o9-43">
+        <mxCell id="BOV9qi9u9eHS66plc-o9-45" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=1.009;entryY=0.539;entryDx=0;entryDy=0;entryPerimeter=0;" parent="1" source="BOV9qi9u9eHS66plc-o9-39" target="BOV9qi9u9eHS66plc-o9-43" edge="1">
           <mxGeometry relative="1" as="geometry">
             <Array as="points">
               <mxPoint x="285" y="245" />
@@ -109,33 +109,33 @@
             </Array>
           </mxGeometry>
         </mxCell>
-        <mxCell id="BOV9qi9u9eHS66plc-o9-39" value="sanbox.cpp" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+        <mxCell id="BOV9qi9u9eHS66plc-o9-39" value="sanbox.cpp" style="rounded=1;whiteSpace=wrap;html=1;" parent="1" vertex="1">
           <mxGeometry x="310" y="215" width="120" height="60" as="geometry" />
         </mxCell>
-        <mxCell id="BOV9qi9u9eHS66plc-o9-41" value="代码解释" style="swimlane;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+        <mxCell id="BOV9qi9u9eHS66plc-o9-41" value="代码解释" style="swimlane;whiteSpace=wrap;html=1;" parent="1" vertex="1">
           <mxGeometry x="60" y="140" width="200" height="200" as="geometry" />
         </mxCell>
-        <mxCell id="BOV9qi9u9eHS66plc-o9-43" value="&lt;div style=&quot;text-align: left;&quot;&gt;实现了CreateApplication()函数来&lt;/div&gt;&lt;div style=&quot;text-align: left;&quot;&gt;生成一个app&lt;/div&gt;&lt;div style=&quot;text-align: left;&quot;&gt;并且向层栈(LayerStack)中push&lt;/div&gt;&lt;div style=&quot;text-align: left;&quot;&gt;进去相应的层，这样，生成的层&lt;/div&gt;&lt;div style=&quot;text-align: left;&quot;&gt;通过重写run()中被调用的函数，&lt;/div&gt;&lt;div style=&quot;text-align: left;&quot;&gt;例如OnUpdate()函数来实现更新&lt;/div&gt;" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;" vertex="1" parent="BOV9qi9u9eHS66plc-o9-41">
+        <mxCell id="BOV9qi9u9eHS66plc-o9-43" value="&lt;div style=&quot;text-align: left;&quot;&gt;实现了CreateApplication()函数来&lt;/div&gt;&lt;div style=&quot;text-align: left;&quot;&gt;生成一个app&lt;/div&gt;&lt;div style=&quot;text-align: left;&quot;&gt;并且向层栈(LayerStack)中push&lt;/div&gt;&lt;div style=&quot;text-align: left;&quot;&gt;进去相应的层，这样，生成的层&lt;/div&gt;&lt;div style=&quot;text-align: left;&quot;&gt;通过重写run()中被调用的函数，&lt;/div&gt;&lt;div style=&quot;text-align: left;&quot;&gt;例如OnUpdate()函数来实现更新&lt;/div&gt;" style="text;html=1;align=center;verticalAlign=middle;resizable=0;points=[];autosize=1;strokeColor=none;fillColor=none;" parent="BOV9qi9u9eHS66plc-o9-41" vertex="1">
           <mxGeometry y="50" width="200" height="100" as="geometry" />
         </mxCell>
-        <mxCell id="BOV9qi9u9eHS66plc-o9-14" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.015;entryY=0.486;entryDx=0;entryDy=0;entryPerimeter=0;" edge="1" parent="1" source="BOV9qi9u9eHS66plc-o9-11" target="BOV9qi9u9eHS66plc-o9-13">
+        <mxCell id="BOV9qi9u9eHS66plc-o9-14" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.015;entryY=0.486;entryDx=0;entryDy=0;entryPerimeter=0;" parent="1" source="BOV9qi9u9eHS66plc-o9-11" target="BOV9qi9u9eHS66plc-o9-13" edge="1">
           <mxGeometry relative="1" as="geometry">
             <mxPoint x="930" y="240" as="targetPoint" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="BOV9qi9u9eHS66plc-o9-49" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.511;entryY=-0.061;entryDx=0;entryDy=0;entryPerimeter=0;" edge="1" parent="1" source="BOV9qi9u9eHS66plc-o9-46" target="BOV9qi9u9eHS66plc-o9-48">
+        <mxCell id="BOV9qi9u9eHS66plc-o9-49" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.511;entryY=-0.061;entryDx=0;entryDy=0;entryPerimeter=0;" parent="1" source="BOV9qi9u9eHS66plc-o9-46" target="BOV9qi9u9eHS66plc-o9-48" edge="1">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="BOV9qi9u9eHS66plc-o9-46" value="app.run()" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+        <mxCell id="BOV9qi9u9eHS66plc-o9-46" value="app.run()" style="rounded=1;whiteSpace=wrap;html=1;" parent="1" vertex="1">
           <mxGeometry x="530" y="350" width="120" height="60" as="geometry" />
         </mxCell>
-        <mxCell id="BOV9qi9u9eHS66plc-o9-51" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="BOV9qi9u9eHS66plc-o9-48" target="BOV9qi9u9eHS66plc-o9-50">
+        <mxCell id="BOV9qi9u9eHS66plc-o9-51" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" parent="1" source="BOV9qi9u9eHS66plc-o9-48" target="BOV9qi9u9eHS66plc-o9-50" edge="1">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="BOV9qi9u9eHS66plc-o9-48" value="while(window)" style="rhombus;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+        <mxCell id="BOV9qi9u9eHS66plc-o9-48" value="while(window)" style="rhombus;whiteSpace=wrap;html=1;" parent="1" vertex="1">
           <mxGeometry x="525" y="450" width="130" height="80" as="geometry" />
         </mxCell>
-        <mxCell id="BOV9qi9u9eHS66plc-o9-52" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" edge="1" parent="1" source="BOV9qi9u9eHS66plc-o9-50">
+        <mxCell id="BOV9qi9u9eHS66plc-o9-52" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" parent="1" source="BOV9qi9u9eHS66plc-o9-50" edge="1">
           <mxGeometry relative="1" as="geometry">
             <mxPoint x="660" y="490" as="targetPoint" />
             <Array as="points">
@@ -144,8 +144,40 @@
             </Array>
           </mxGeometry>
         </mxCell>
-        <mxCell id="BOV9qi9u9eHS66plc-o9-50" value="layer.Onupdate()" style="rounded=1;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+        <mxCell id="BOV9qi9u9eHS66plc-o9-50" value="layer.Onupdate()" style="rounded=1;whiteSpace=wrap;html=1;" parent="1" vertex="1">
           <mxGeometry x="530" y="590" width="120" height="60" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram id="gHFGC6pbi4ehwhvwj72N" name="大富翁游戏逻辑">
+    <mxGraphModel dx="2074" dy="1142" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="3bMV71uacH8mTh_6BNwS-3" value="" style="group" vertex="1" connectable="0" parent="1">
+          <mxGeometry x="300" y="220" width="300" height="440" as="geometry" />
+        </mxCell>
+        <mxCell id="3bMV71uacH8mTh_6BNwS-1" value="&lt;div style=&quot;text-align: left;&quot;&gt;&lt;span style=&quot;background-color: initial;&quot;&gt;1、None：该状态不做任何操作，仅仅是一个&lt;/span&gt;&lt;/div&gt;&lt;div style=&quot;text-align: left;&quot;&gt;&lt;span style=&quot;background-color: initial;&quot;&gt;默认值&lt;/span&gt;&lt;/div&gt;&lt;div style=&quot;text-align: left;&quot;&gt;&lt;span style=&quot;background-color: initial;&quot;&gt;2、&lt;/span&gt;&lt;span style=&quot;background-color: initial;&quot;&gt;LogIn：创建房间，获取玩家ID并且获取游&lt;/span&gt;&lt;/div&gt;&lt;div style=&quot;text-align: left;&quot;&gt;戏开始的信号&lt;/div&gt;&lt;div style=&quot;text-align: left;&quot;&gt;3、Init：根据服务端下发的素材，加载地图、&lt;/div&gt;&lt;div style=&quot;text-align: left;&quot;&gt;人物模型等&lt;/div&gt;&lt;div style=&quot;text-align: left;&quot;&gt;4、Acting：投骰子前，玩家可以使用道具&lt;/div&gt;&lt;div style=&quot;text-align: left;&quot;&gt;5、gambling：投骰子，获取到值&lt;/div&gt;&lt;div style=&quot;text-align: left;&quot;&gt;6、calculate：根据值计算当前player到达的格&lt;/div&gt;&lt;div style=&quot;text-align: left;&quot;&gt;并且响应相应的事件&lt;/div&gt;&lt;div style=&quot;text-align: left;&quot;&gt;7、render：更新player以及地图的渲染&lt;/div&gt;&lt;div style=&quot;text-align: left;&quot;&gt;8、game over：游戏结束&lt;/div&gt;" style="shape=internalStorage;whiteSpace=wrap;html=1;backgroundOutline=1;dx=20;dy=50;" vertex="1" parent="3bMV71uacH8mTh_6BNwS-3">
+          <mxGeometry width="300" height="440" as="geometry" />
+        </mxCell>
+        <mxCell id="3bMV71uacH8mTh_6BNwS-2" value="gameState（游戏状态）" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="3bMV71uacH8mTh_6BNwS-3">
+          <mxGeometry x="70" width="170" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="3bMV71uacH8mTh_6BNwS-7" value="" style="group" vertex="1" connectable="0" parent="1">
+          <mxGeometry x="50" y="340" width="170" height="190" as="geometry" />
+        </mxCell>
+        <mxCell id="3bMV71uacH8mTh_6BNwS-8" value="" style="group" vertex="1" connectable="0" parent="3bMV71uacH8mTh_6BNwS-7">
+          <mxGeometry x="-30" y="-20" width="170" height="190" as="geometry" />
+        </mxCell>
+        <mxCell id="3bMV71uacH8mTh_6BNwS-5" value="OnUpdate()函数中&lt;br&gt;判断gameState(),&lt;br&gt;根据不同的状态&lt;br&gt;进行不同的操作&lt;br&gt;" style="shape=internalStorage;whiteSpace=wrap;html=1;backgroundOutline=1;dx=20;dy=40;" vertex="1" parent="3bMV71uacH8mTh_6BNwS-8">
+          <mxGeometry width="170" height="190" as="geometry" />
+        </mxCell>
+        <mxCell id="3bMV71uacH8mTh_6BNwS-6" value="gameLayer" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="3bMV71uacH8mTh_6BNwS-8">
+          <mxGeometry x="48.57" width="91.43" height="40" as="geometry" />
+        </mxCell>
+        <mxCell id="3bMV71uacH8mTh_6BNwS-10" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=-0.01;entryY=0.443;entryDx=0;entryDy=0;entryPerimeter=0;" edge="1" parent="1" source="3bMV71uacH8mTh_6BNwS-5" target="3bMV71uacH8mTh_6BNwS-1">
+          <mxGeometry relative="1" as="geometry" />
         </mxCell>
       </root>
     </mxGraphModel>
