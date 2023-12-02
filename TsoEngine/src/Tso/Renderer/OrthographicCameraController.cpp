@@ -53,6 +53,14 @@ void OrthographicCameraController::OnEvent(Event& e){
     
 }
 
+void OrthographicCameraController::OnResize(const float& width , const float& height){
+    m_AspectRatio = width  / height;
+    m_Camera.SetPorjectionMatrix(-m_AspectRatio * m_ZoomLevel, m_AspectRatio * m_ZoomLevel, -m_ZoomLevel, m_ZoomLevel);
+    TSO_CORE_INFO("cameraController resizeEvent : aspectRatio = {0}", m_AspectRatio);
+
+}
+
+
 bool OrthographicCameraController::OnMouseScrolledEvent(MouseScrolledEvent& e){
     float yOffset = e.GetYOffset();
     m_ZoomLevel += yOffset;
@@ -65,12 +73,7 @@ bool OrthographicCameraController::OnMouseScrolledEvent(MouseScrolledEvent& e){
 
 bool OrthographicCameraController::OnWindowResizeEvent(WindowResizeEvent& e)
 {
-    m_AspectRatio = e.GetWidth() * 1.0f / e.GetHeight();
-
-    TSO_CORE_INFO("cameraController resizeEvent : aspectRatio = {0}", m_AspectRatio);
-
-
-    m_Camera.SetPorjectionMatrix(-m_AspectRatio * m_ZoomLevel, m_AspectRatio * m_ZoomLevel, -m_ZoomLevel, m_ZoomLevel);
+    OnResize(e.GetWidth(), e.GetHeight());
 
     return false;
 }

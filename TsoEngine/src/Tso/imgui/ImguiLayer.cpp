@@ -55,6 +55,12 @@ void ImGuiLayer::End() {
     }
 }
 
+void ImGuiLayer::OnEvent(Event &e){
+    ImGuiIO& io = ImGui::GetIO();
+    e.m_Handled |= e.IsInCategory(EventCategoryMouse) & io.WantCaptureMouse;
+    e.m_Handled |= e.IsInCategory(EventCategoryKeyboard) & io.WantCaptureKeyboard;
+}
+
 
 
 
@@ -74,6 +80,8 @@ void ImGuiLayer::OnAttach() {
     //io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
     io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;           // Enable Docking
     io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;         // Enable Multi-Viewport / Platform Windows
+    io.WantCaptureMouse = true;
+    io.WantCaptureKeyboard = true;
     //io.ConfigViewportsNoAutoMerge = true;
     //io.ConfigViewportsNoTaskBarIcon = true;
 

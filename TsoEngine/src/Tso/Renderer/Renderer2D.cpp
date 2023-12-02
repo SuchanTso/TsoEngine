@@ -26,7 +26,7 @@ struct Renderer2DData{
     static const uint32_t maxQuads = 2000;
     static const uint32_t maxVertices = maxQuads * 4;
     static const uint32_t maxIndices = maxQuads * 6;
-    static const uint32_t maxTextureSlot = 32;
+    static const uint32_t maxTextureSlot = 16;
 
     Ref<VertexArray> QuadVertextArray;
     Ref<VertexBuffer> QuadVertexBuffer;
@@ -179,8 +179,12 @@ void Renderer2D::FlushAndRest()
 
     s_Data.QuadIndexCount = 0;
 
-    s_Data.QuadTextureIndex = 1;
-
+    while(s_Data.QuadTextureIndex < s_Data.QuadTextureSlots.size()){
+        if(s_Data.QuadTextureSlots[s_Data.QuadTextureIndex] == nullptr){
+            break;
+        }
+        s_Data.QuadTextureIndex++;
+    }
 }
 
 

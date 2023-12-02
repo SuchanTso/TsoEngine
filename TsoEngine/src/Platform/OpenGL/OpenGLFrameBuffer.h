@@ -14,6 +14,8 @@ namespace Tso {
 
 		virtual void Bind() override;
 		virtual void UnBind() override;
+        virtual void Resize(const uint32_t& width , const uint32_t& height) override;
+
 
 		virtual uint32_t GetColorAttachment()const override { return m_ColorAttachMent; }
 		virtual uint32_t GetDepthAttachment()const override { return m_DepthAttachMent; }
