@@ -20,6 +20,9 @@ IncludeDir["glm"] = "TsoEngine/third_party/glm"
 IncludeDir["stb_image"] = "TsoEngine/third_party/stb_image"
 IncludeDir["rapidjson"] = "TsoEngine/third_party/rapidjson/include"
 
+IncludeDir["entt"] = "TsoEngine/third_party/entt"
+
+
 
 include "TsoEngine/third_party/GLFW"
 include "TsoEngine/third_party/Glad"
@@ -43,7 +46,10 @@ project "TsoEngine"
 		"%{prj.name}/third_party/glm/glm/**.inl",
 		"%{prj.name}/third_party/stb_image/**.h",
 		"%{prj.name}/third_party/stb_image/**.cpp",
-		"%{prj.name}/third_party/rapidjson/include/rapidjson/**.h"
+		"%{prj.name}/third_party/rapidjson/include/rapidjson/**.h",
+		"%{prj.name}/third_party/entt/entt.hpp"
+
+
 
 
 	}
@@ -77,7 +83,8 @@ project "TsoEngine"
 			"%{prj.name}/third_party/imgui",
 			"%{prj.name}/third_party/glm",
 			"%{prj.name}/third_party/stb_image",
-			"%{prj.name}/third_party/rapidjson/include"
+			"%{prj.name}/third_party/rapidjson/include",
+			IncludeDir["entt"]
 	
 	
 		}
@@ -103,7 +110,9 @@ project "TsoEngine"
 			"%{prj.name}/third_party/imgui",
 			"%{prj.name}/third_party/glm",
 			"%{prj.name}/third_party/stb_image",
-			"%{prj.name}/third_party/rapidjson/include"
+			"%{prj.name}/third_party/rapidjson/include",
+			IncludeDir["entt"]
+
 
 		}
 		
@@ -150,7 +159,9 @@ project "Sandbox"
 		"TsoEngine/src",
 		"%{IncludeDir.glm}",
 		"TsoEngine/third_party/imgui",
-		"TsoEngine/third_party/rapidjson/include"
+		"TsoEngine/third_party/rapidjson/include",
+		IncludeDir["entt"]
+
 	}
 
 	links{
@@ -216,7 +227,9 @@ project "TsoEditor"
 		"TsoEngine/src",
 		"%{IncludeDir.glm}",
 		"TsoEngine/third_party/imgui",
-		"TsoEngine/third_party/rapidjson/include"
+		"TsoEngine/third_party/rapidjson/include",
+		IncludeDir["entt"]
+
 	}
 
 	links{
