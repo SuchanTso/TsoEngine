@@ -18,10 +18,29 @@ namespace Tso {
 	public:
 		TransformComponent() = delete;
 		TransformComponent(const glm::mat4& transform = glm::mat4(1.0));
+		TransformComponent(const glm::vec3& pos = glm::vec3(1.0));
 		TransformComponent(const TransformComponent& transform);
+
+		glm::vec3& GetPos() { return m_Pos; }
+
+		void SetPos(const glm::vec3& pos) { m_Pos = pos; }
 
 		virtual void OnUpdate(TimeStep ts)override;
         
-        static void AddComponent(const glm::vec3& pos);
+	private:
+		glm::vec3 m_Pos = glm::vec3(0.0, 0.0, 1.0);
+	};
+
+	class Renderable : public Component {
+	public:
+		Renderable() = delete;
+		Renderable(const glm::vec4& color);
+
+		void Render(glm::vec3 pos);
+
+		virtual void OnUpdate(TimeStep ts)override;
+
+	private:
+		glm::vec4 m_Color = glm::vec4(0.3 , 0.8 , 0.2 , 1.0);
 	};
 }

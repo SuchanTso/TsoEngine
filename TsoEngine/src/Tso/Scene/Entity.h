@@ -1,5 +1,6 @@
 #pragma once
 #include "Scene.h"
+#include <utility>
 
 
 namespace Tso {
@@ -10,9 +11,14 @@ namespace Tso {
 		Entity(const entt::entity& entityId , Scene* scene , const std::string& name = std::string());
 
 		template<typename T , typename... Arg>
-        void AddComponent(Arg&& ...arg){
-//            AddComponent<T>(std::forward<Arg>(arg)...);
+        T AddComponent(Arg&& ...arg){
+			return m_Scene->m_Registry.emplace<T>(m_EntityID, std::forward<Arg>(arg)...);
         }
+		template<typename T>
+		T GetComponent() {
+			TSO_CORE_ASSERT(m_Scene->m_Registry.has<T>(m_EntityID));
+			return m_Scene->m_Registry.get<T>(m_EntityID);
+		}
 	private:
 
 		Scene* m_Scene = nullptr;
