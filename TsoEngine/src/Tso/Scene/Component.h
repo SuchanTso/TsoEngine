@@ -8,6 +8,9 @@ namespace Tso {
 		Component() = default;
 		~Component() {}
 		virtual void OnUpdate(TimeStep ts) = 0;
+        
+        template<typename T , typename Arg>
+        static void AddComponent(const Arg&& arg...);
 	};
 
 
@@ -18,5 +21,7 @@ namespace Tso {
 		TransformComponent(const TransformComponent& transform);
 
 		virtual void OnUpdate(TimeStep ts)override;
+        
+        static void AddComponent(const glm::vec3& pos);
 	};
 }

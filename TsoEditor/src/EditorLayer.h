@@ -6,6 +6,7 @@
 #include "Tso/Renderer/OrthographicCameraController.h"
 #include "Tso/Renderer/Renderer2D.h"
 #include "Tso/Renderer/FrameBuffer.h"
+#include "Tso/Scene/Scene.h"
 
 
 namespace Tso {
@@ -45,6 +46,7 @@ namespace Tso {
         Ref<Texture2D> m_Texture, m_TileTexture;
         Ref<SubTexture2D> m_subTexture, m_sub1;
         Ref<FrameBuffer> m_FrameBuffer;
+        Ref<Scene>      m_Scene;
 
         float m_MoveSpeed = 1.0f;
         bool m_LpMovable = false;

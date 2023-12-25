@@ -1,7 +1,9 @@
 #include "TPch.h"
 #include "EditorLayer.h"
 #include "imgui.h"
-
+#include "Tso/Scene/Scene.h"
+#include "Tso/Scene/Entity.h"
+#include "Tso/Scene/Component.h"
 
 
 namespace Tso {
@@ -14,6 +16,7 @@ namespace Tso {
 
         m_Shader = m_ShaderLibrary->Load("asset/shader/Shader2D.glsl");
         Renderer2D::Init(m_Shader);
+        m_Scene = std::make_shared<Scene>();
 
         std::string lp = "asset/lp2.png";
 
@@ -33,6 +36,9 @@ namespace Tso {
         m_MoveData.startTime = m_Time;
         m_MoveData.targetPos = glm::vec2(0.0, 0.0);
         m_MoveData.originPos = glm::vec2(0.0, 0.0);
+        
+        auto entity = m_Scene->CreateEntity();
+        entity.AddComponent<TransformComponent>(glm::vec3(1.0 , 1.0 , 1.0));
     }
 
 
@@ -134,33 +140,41 @@ namespace Tso {
 
             ImGui::EndMenuBar();
         }
+{
 
-        ImGui::Begin("RenderInfo");
+            ImGui::Begin("RenderInfo");
 
-        ImGui::Text("Render2DInfo");
+            ImGui::Text("Render2DInfo");
 
-        auto stat = Renderer2D::GetStat();
+            auto stat = Renderer2D::GetStat();
 
-        ImGui::Text("DrawCalls : %d ", stat.DrawCalls);
-        ImGui::Text("QuadsCount : %d ", stat.QuadCount);
-        ImGui::Text("QuadVertices : %d", stat.GetTotalVertexCount());
-        ImGui::Text("QuadIndices : %d", stat.GetTotalIndexCount());
+            ImGui::Text("DrawCalls : %d ", stat.DrawCalls);
+            ImGui::Text("QuadsCount : %d ", stat.QuadCount);
+            ImGui::Text("QuadVertices : %d", stat.GetTotalVertexCount());
+            ImGui::Text("QuadIndices : %d", stat.GetTotalIndexCount());
 
-        ImGui::End();
+            ImGui::End();
 
-        ImGui::Begin("Viewport");
+            ImGui::Begin("Viewport");
 
-        auto content = ImGui::GetContentRegionAvail();
-        if (content.x > 0.f && content.y > 0.f && (content.x != m_ViewportSize.x || content.y != m_ViewportSize.y)) {
-            m_ViewportSize = { content.x , content.y };
-            m_FrameBuffer->Resize(uint32_t(m_ViewportSize.x), uint32_t(m_ViewportSize.y));
-            //        m_CameraController.OnResize(m_ViewportSize.x, m_ViewportSize.y);
+            auto content = ImGui::GetContentRegionAvail();
+            if (content.x > 0.f && content.y > 0.f && (content.x != m_ViewportSize.x || content.y != m_ViewportSize.y)) {
+                m_ViewportSize = { content.x , content.y };
+                m_FrameBuffer->Resize(uint32_t(m_ViewportSize.x), uint32_t(m_ViewportSize.y));
+                //        m_CameraController.OnResize(m_ViewportSize.x, m_ViewportSize.y);
+            }
+            uint32_t fbId = m_FrameBuffer->GetColorAttachment();
+
+            ImGui::Image((void*)fbId, ImVec2{ m_ViewportSize.x , m_ViewportSize.y });
+
+            ImGui::End();
+}
+        {
+            ImGui::Begin("GameObjectPannel");
+            
+            ImGui::End();
+
         }
-        uint32_t fbId = m_FrameBuffer->GetColorAttachment();
-
-        ImGui::Image((void*)fbId, ImVec2{ m_ViewportSize.x , m_ViewportSize.y });
-
-        ImGui::End();
 
         ImGui::End();
     }
