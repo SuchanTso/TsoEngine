@@ -59,6 +59,7 @@ void ImGuiLayer::OnEvent(Event &e){
     ImGuiIO& io = ImGui::GetIO();
     e.m_Handled |= e.IsInCategory(EventCategoryMouse) & io.WantCaptureMouse;
     e.m_Handled |= e.IsInCategory(EventCategoryKeyboard) & io.WantCaptureKeyboard;
+    TSO_CORE_INFO("handle key = {0} , handle mouse = {1}" , io.WantCaptureKeyboard,  io.WantCaptureMouse);
 }
 
 
