@@ -172,7 +172,23 @@ namespace Tso {
 }
         {
             ImGui::Begin("GameObjectPannel");
-            
+            ImGui::BeginChild("block1", ImVec2(0, 100), false, ImGuiWindowFlags_HorizontalScrollbar);
+
+                   // 在垂直分块中添加内容
+                   ImGui::Text("i get block 1");
+
+                   // 结束垂直分块
+                   ImGui::EndChild();
+
+                   // 创建另一个垂直分块
+                   ImGui::BeginChild("block2", ImVec2(0, 100), false, ImGuiWindowFlags_HorizontalScrollbar);
+
+                   // 在垂直分块中添加内容
+                   ImGui::Text("i get block 2");
+
+                   // 结束垂直分块
+                   ImGui::EndChild();
+               
             ImGui::End();
 
         }
