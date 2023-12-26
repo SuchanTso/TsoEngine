@@ -30,6 +30,7 @@ namespace Tso {
         void PushLayer(Layer* layer);
         void PushOverlay(Layer* overlay);
         
+        ImGuiLayer* GetGUILayer(){return m_ImGuiLayer;}
         void PopLayer(Layer* layer);
         void PopOverlay(Layer* layer);
         

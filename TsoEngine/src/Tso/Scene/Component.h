@@ -23,7 +23,7 @@ namespace Tso {
 
 		glm::vec3& GetPos() { return m_Pos; }
 
-        void SetPos(const glm::vec3& pos) { m_Pos = pos;TSO_CORE_INFO("update m_Pos = [{0} , {1} , {2}]",m_Pos.x,m_Pos.y,m_Pos.z); }
+        void SetPos(const glm::vec3& pos) { m_Pos = pos; }
 
 		virtual void OnUpdate(TimeStep ts)override;
         

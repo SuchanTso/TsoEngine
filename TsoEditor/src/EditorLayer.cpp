@@ -8,7 +8,7 @@
 
 namespace Tso {
     EditorLayer::EditorLayer()
-        :Layer("testLayer"),
+        :Layer("EditorLayer"),
         m_CameraController(1280.0 / 720, true),
         m_TrianglePos(glm::vec3(0.f))
     {
@@ -38,8 +38,6 @@ namespace Tso {
         m_MoveData.originPos = glm::vec2(0.0, 0.0);
         
         auto entity = m_Scene->CreateEntity();
-        entity.AddComponent<TransformComponent>(glm::vec3(1.0 , 1.0 , 0.9));
-        entity.AddComponent<Renderable>(glm::vec4(0.6f, 0.3f, 0.2f, 1.0f));
     }
 
 
@@ -157,6 +155,8 @@ namespace Tso {
             ImGui::End();
 
             ImGui::Begin("Viewport");
+            m_ViewportFocused = ImGui::IsWindowFocused();
+            Application::Get().GetGUILayer()->BlockEvents(!m_ViewportFocused);
 
             auto content = ImGui::GetContentRegionAvail();
             if (content.x > 0.f && content.y > 0.f && (content.x != m_ViewportSize.x || content.y != m_ViewportSize.y)) {
@@ -205,44 +205,10 @@ namespace Tso {
         RenderCommand::SetClearColor({ 0.1f, 0.1f, 0.1f, 1.f });
         RenderCommand::Clear();
 
-        if (Input::IsKeyPressed(TSO_KEY_I)) {
-            m_TrianglePos.y += m_MoveSpeed * ts;
-            TSO_INFO("moved Triangle at {0}", m_TrianglePos.y);
-
-        }
-        if (Input::IsKeyPressed(TSO_KEY_K)) {
-            m_TrianglePos.y -= m_MoveSpeed * ts;
-            TSO_INFO("moved Triangle at {0}", m_TrianglePos.y);
-
-        }
-        if (Input::IsKeyPressed(TSO_KEY_J)) {
-            m_TrianglePos.x -= m_MoveSpeed * ts;
-            TSO_INFO("moved Triangle at {0}", m_TrianglePos.x);
-
-        }
-        if (Input::IsKeyPressed(TSO_KEY_L)) {
-            m_TrianglePos.x += m_MoveSpeed * ts;
-            TSO_INFO("moved Triangle at {0}", m_TrianglePos.x);
-        }
-        if (Input::IsKeyPressed(TSO_KEY_SPACE)) {
-            m_MoveData.startTime = m_Time;
-            m_MoveData.targetPos = glm::vec2(0.5, 0.5);
-            m_MoveData.originPos = m_TrianglePos;
-            m_LpMovable = true;
-        }
-
         Renderer2D::ResetStat();
-
-        m_CameraController.OnUpdate(ts);
-        //Renderer2D::BeginScene(m_CameraController.GetCamera());
-        /* Renderer2D::DrawQuad({-0.5 , 0.0 , 0.0}, 45.f, {0.5 , 0.5}, {0.8 , 0.3 , 0.2 , 1.0});
-         Renderer2D::DrawQuad({0.0 , 0.0 , 0.0}, 0.f, {1.0 , 1.0}, {0.2 , 0.8 , 0.3 , 1.0});*/
-        //Renderer2D::DrawQuad({ 0.5 , 0.5 , 0.0 }, 0.f, { 0.5 , 0.5 }, m_TileTexture);
-        //Renderer2D::DrawQuad({ 1.5 , 0.5 , 0.0 }, 0.f, { 0.5 , 0.5 }, m_subTexture);
-        //Renderer2D::DrawQuad({ 1.5 , -0.5 , 0.0 }, 0.f, { 0.5 , 0.5 }, m_sub1);
-
-
-        //Renderer2D::EndScene();
+        if(m_ViewportFocused){
+            m_CameraController.OnUpdate(ts);
+        }
 
         m_FrameBuffer->Bind();
         Renderer2D::BeginScene(m_CameraController.GetCamera());
@@ -251,14 +217,12 @@ namespace Tso {
         RenderCommand::Clear();
 
 
-        for (float x = -5.0; x < 5.0; x += 0.5) {
-            for (float y = -5.0; y < 5.0; y += 0.5) {
+        for (float x = -5.0f; x < 5.0f; x += 0.5f) {
+            for (float y = -5.0f; y < 5.0f; y += 0.5f) {
                 glm::vec4 color = { (x + 5.0) / 10.0 ,0.4 , (y + 5.0) / 10.0 ,1.0 };
                 Renderer2D::DrawQuad({ x , y , 0.8f}, { 0.45 , 0.45 }, color);
             }
         }
-
-
 
 
         Renderer2D::EndScene();

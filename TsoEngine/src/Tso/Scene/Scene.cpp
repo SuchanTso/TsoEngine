@@ -9,6 +9,8 @@ namespace Tso {
 Entity Scene::CreateEntity(){
     entt::entity entityID = m_Registry.create();
     Entity res = Entity(entityID , this , "");
+    res.AddComponent<TransformComponent>(glm::vec3(0.0 , 0.0 , 0.9));
+    res.AddComponent<Renderable>(glm::vec4(0.6f, 0.3f, 0.2f, 1.0f));
     return res;
 }
 
