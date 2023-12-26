@@ -14,22 +14,21 @@ Entity Scene::CreateEntity(){
 
 void Scene::OnUpdate(TimeStep ts)
 {
-    auto view = m_Registry.view<TransformComponent>();
+    const auto& view = m_Registry.view<TransformComponent>();
     for (auto& entity : view) {
         TransformComponent& comp = view.get<TransformComponent>(entity);
-        glm::vec3 pos = comp.GetPos();
-        
+        glm::vec3& pos = comp.GetPos();
         m_Time += ts.GetSecond();
         pos.x = cos(m_Time);
         pos.y = sin(m_Time);
-
-        comp.SetPos(pos);
     }
 
-    auto group = m_Registry.group<Renderable , TransformComponent>();
+    auto group = m_Registry.view<Renderable , TransformComponent>();
     for (auto& entity : group) {
-        auto& [render, trans] = group.get< Renderable, TransformComponent>(entity);
-        render.Render(trans.GetPos());
+        const auto& [render, trans] = group.get<Renderable, TransformComponent>(entity);
+        auto pos = trans.GetPos();
+        
+        render.Render(pos);
         
     }
 }

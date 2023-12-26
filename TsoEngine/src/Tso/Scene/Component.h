@@ -18,17 +18,17 @@ namespace Tso {
 	public:
 		TransformComponent() = delete;
 		TransformComponent(const glm::mat4& transform = glm::mat4(1.0));
-		TransformComponent(const glm::vec3& pos = glm::vec3(1.0));
+		TransformComponent(const glm::vec3& pos = glm::vec3(1.0,1.0,1.0));
 		TransformComponent(const TransformComponent& transform);
 
 		glm::vec3& GetPos() { return m_Pos; }
 
-		void SetPos(const glm::vec3& pos) { m_Pos = pos; }
+        void SetPos(const glm::vec3& pos) { m_Pos = pos;TSO_CORE_INFO("update m_Pos = [{0} , {1} , {2}]",m_Pos.x,m_Pos.y,m_Pos.z); }
 
 		virtual void OnUpdate(TimeStep ts)override;
         
 	private:
-		glm::vec3 m_Pos = glm::vec3(0.0, 0.0, 1.0);
+		glm::vec3 m_Pos = glm::vec3(0.0, 0.0, -0.5);
 	};
 
 	class Renderable : public Component {
@@ -36,7 +36,7 @@ namespace Tso {
 		Renderable() = delete;
 		Renderable(const glm::vec4& color);
 
-		void Render(glm::vec3 pos);
+		void Render(const glm::vec3& pos);
 
 		virtual void OnUpdate(TimeStep ts)override;
 
