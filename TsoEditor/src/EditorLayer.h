@@ -55,6 +55,8 @@ namespace Tso {
 
         float m_MouseX = 0.f, m_MouseY = 0.f;
         bool m_ViewportFocused = false;
+        bool m_PannelDirty = true;//temp
+        std::vector<std::string> m_EntityList;//temp
 
         glm::vec2 m_ViewportSize = { 720.0 , 1280.0 };
 };

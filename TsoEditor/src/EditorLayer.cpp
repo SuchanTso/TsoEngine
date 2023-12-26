@@ -37,7 +37,6 @@ namespace Tso {
         m_MoveData.targetPos = glm::vec2(0.0, 0.0);
         m_MoveData.originPos = glm::vec2(0.0, 0.0);
         
-        auto entity = m_Scene->CreateEntity();
     }
 
 
@@ -172,22 +171,26 @@ namespace Tso {
 }
         {
             ImGui::Begin("GameObjectPannel");
-            ImGui::BeginChild("block1", ImVec2(0, 100), false, ImGuiWindowFlags_HorizontalScrollbar);
+            if (ImGui::Button("Add rotateQuad")) {
+                auto e = m_Scene->CreateEntity();
+                m_PannelDirty = true;
+            }
+            if (m_PannelDirty) {
+                m_EntityList = m_Scene->GetSceneEntityNames();
+                m_PannelDirty = false;
+            }
+                for (int i = 0; i < m_EntityList.size(); i++) {
+                    ImGui::BeginChild(m_EntityList[i].c_str(), ImVec2(0, 100), false, ImGuiWindowFlags_HorizontalScrollbar);
 
-                   // 在垂直分块中添加内容
-                   ImGui::Text("i get block 1");
+                    // 在垂直分块中添加内容
+                    ImGui::Text(("i get entity" + m_EntityList[i]).c_str());
 
-                   // 结束垂直分块
-                   ImGui::EndChild();
 
-                   // 创建另一个垂直分块
-                   ImGui::BeginChild("block2", ImVec2(0, 100), false, ImGuiWindowFlags_HorizontalScrollbar);
+                    // 结束垂直分块
+                    ImGui::EndChild();
+                }
+            
 
-                   // 在垂直分块中添加内容
-                   ImGui::Text("i get block 2");
-
-                   // 结束垂直分块
-                   ImGui::EndChild();
                
             ImGui::End();
 
@@ -267,7 +270,7 @@ namespace Tso {
 
             float targetX = m_MouseX / width * asp * 4 - 2 * asp;
             float targetY = m_MouseY / height * asp * 2 - asp;
-            TSO_INFO("mouse position = ({0} , {1}) , and caled pos = ({2} , {3})", m_MouseX, m_MouseY, targetX, targetY);
+            //TSO_INFO("mouse position = ({0} , {1}) , and caled pos = ({2} , {3})", m_MouseX, m_MouseY, targetX, targetY);
 
 
             m_MoveData.startTime = m_Time;

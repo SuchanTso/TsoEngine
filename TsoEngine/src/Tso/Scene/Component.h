@@ -7,7 +7,6 @@ namespace Tso {
 	public:
 		Component() = default;
 		~Component() {}
-		virtual void OnUpdate(TimeStep ts) = 0;
         
         template<typename T , typename Arg>
         static void AddComponent(const Arg&& arg...);
@@ -23,12 +22,17 @@ namespace Tso {
 
 		glm::vec3& GetPos() { return m_Pos; }
 
+		void SetRand(const float& rand) { m_Rand = rand; }
+
+		float GetRand() { return m_Rand; }
+
         void SetPos(const glm::vec3& pos) { m_Pos = pos; }
 
-		virtual void OnUpdate(TimeStep ts)override;
         
 	private:
 		glm::vec3 m_Pos = glm::vec3(0.0, 0.0, -0.5);
+
+		float m_Rand = -1.f;
 	};
 
 	class Renderable : public Component {
@@ -38,9 +42,20 @@ namespace Tso {
 
 		void Render(const glm::vec3& pos);
 
-		virtual void OnUpdate(TimeStep ts)override;
 
 	private:
 		glm::vec4 m_Color = glm::vec4(0.3 , 0.8 , 0.2 , 1.0);
+	};
+
+	class TagComponent : public Component {
+	public:
+		TagComponent() = delete;
+		TagComponent(const std::string& name = "blankNameEntity");
+
+		std::string GetTagName() { return m_Name; }
+
+		void SetTagName(const std::string& name) { m_Name = name; }
+	private:
+		std::string m_Name = "";
 	};
 }
