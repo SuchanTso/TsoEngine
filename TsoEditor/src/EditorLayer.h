@@ -54,6 +54,7 @@ namespace Tso {
         MovaData m_MoveData;
 
         float m_MouseX = 0.f, m_MouseY = 0.f;
+        bool m_ViewportFocused = false;
 
         glm::vec2 m_ViewportSize = { 720.0 , 1280.0 };
 };

@@ -25,12 +25,15 @@ public:
     virtual void OnImGuiRender()override;
     
     virtual void OnEvent(Event& e)override;
+    
+    void BlockEvents(const bool& block){ m_BlockEvent = block;};
 
     void Begin();
     void End();
     
 private:
     float m_Time;
+    bool m_BlockEvent = false;
 };
 
 }
