@@ -38,8 +38,8 @@ namespace Tso {
         m_MoveData.originPos = glm::vec2(0.0, 0.0);
         
         auto entity = m_Scene->CreateEntity();
-        entity.AddComponent<TransformComponent>(glm::vec3(1.0 , 1.0 , 1.0));
-        entity.AddComponent<Renderable>(glm::vec4(0.6f, 0.3f, 0.2f, 1.f));
+        entity.AddComponent<TransformComponent>(glm::vec3(1.0 , 1.0 , 0.9));
+        entity.AddComponent<Renderable>(glm::vec4(0.6f, 0.3f, 0.2f, 1.0f));
     }
 
 
@@ -245,18 +245,20 @@ namespace Tso {
         //Renderer2D::EndScene();
 
         m_FrameBuffer->Bind();
-        RenderCommand::Clear();
         Renderer2D::BeginScene(m_CameraController.GetCamera());
         m_Scene->OnUpdate(ts);
         RenderCommand::SetClearColor({ 0.1f, 0.1f, 0.1f, 1.f });
         RenderCommand::Clear();
 
-        /*for (float x = -5.0; x < 5.0; x += 0.5) {
+
+        for (float x = -5.0; x < 5.0; x += 0.5) {
             for (float y = -5.0; y < 5.0; y += 0.5) {
                 glm::vec4 color = { (x + 5.0) / 10.0 ,0.4 , (y + 5.0) / 10.0 ,1.0 };
-                Renderer2D::DrawQuad({ x , y }, { 0.45 , 0.45 }, color);
+                Renderer2D::DrawQuad({ x , y , 0.8f}, { 0.45 , 0.45 }, color);
             }
-        }*/
+        }
+
+
 
 
         Renderer2D::EndScene();
