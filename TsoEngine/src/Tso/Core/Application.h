@@ -33,6 +33,7 @@ namespace Tso {
         ImGuiLayer* GetGUILayer(){return m_ImGuiLayer;}
         void PopLayer(Layer* layer);
         void PopOverlay(Layer* layer);
+        void OnClose(){m_Running = false;}
         
         inline static Application& Get(){return *s_Instance;}
         

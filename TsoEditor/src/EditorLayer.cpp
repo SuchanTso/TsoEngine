@@ -131,8 +131,10 @@ namespace Tso {
                 if (ImGui::MenuItem("Flag: PassthruCentralNode", "", (dockspace_flags & ImGuiDockNodeFlags_PassthruCentralNode) != 0, opt_fullscreen)) { dockspace_flags ^= ImGuiDockNodeFlags_PassthruCentralNode; }
                 ImGui::Separator();
 
-                if (ImGui::MenuItem("Close", NULL, false))
+                if (ImGui::MenuItem("Close", NULL, false)){
                     dockSpaceOpen = false;
+                    Application::Get().OnClose();
+                }
                 ImGui::EndMenu();
             }
 
@@ -183,7 +185,7 @@ namespace Tso {
                     ImGui::BeginChild(m_EntityList[i].c_str(), ImVec2(0, 100), false, ImGuiWindowFlags_HorizontalScrollbar);
 
                     // 在垂直分块中添加内容
-                    ImGui::Text(("i get entity" + m_EntityList[i]).c_str());
+                    ImGui::Text(("entity_" + m_EntityList[i]).c_str());
 
 
                     // 结束垂直分块
