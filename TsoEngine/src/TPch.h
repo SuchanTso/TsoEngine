@@ -37,6 +37,8 @@
 #include "Tso/Renderer/Renderer.h"
 #include "Tso/Renderer/RenderCommand.h"
 
+#include "imgui.h"
+
 
 #ifdef TSO_PLATFORM_WINDOWS
   //  #include <Windows.h>

@@ -20,6 +20,8 @@ namespace Tso {
         
         void SetPorjectionMatrix(float left, float right, float bottom, float top);
 
+		glm::vec3& GetPosition() { return m_Position; }
+
         
 
 		glm::mat4 GetProjectionMatrix()const { return m_ProjMatrix; }

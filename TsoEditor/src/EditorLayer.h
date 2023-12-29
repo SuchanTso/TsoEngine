@@ -7,10 +7,11 @@
 #include "Tso/Renderer/Renderer2D.h"
 #include "Tso/Renderer/FrameBuffer.h"
 #include "Tso/Scene/Scene.h"
-
+#include "Tso/Scene/Entity.h"
+#include "panel/SceneHierarchyPanel.h"
 
 namespace Tso {
-
+    class Entity;
 	class EditorLayer : public Layer {
         struct MovaData {
             glm::vec2 originPos;
@@ -47,6 +48,7 @@ namespace Tso {
         Ref<SubTexture2D> m_subTexture, m_sub1;
         Ref<FrameBuffer> m_FrameBuffer;
         Ref<Scene>      m_Scene;
+        SceneHierarchyPanel m_Panel;
 
         float m_MoveSpeed = 1.0f;
         bool m_LpMovable = false;
@@ -55,8 +57,7 @@ namespace Tso {
 
         float m_MouseX = 0.f, m_MouseY = 0.f;
         bool m_ViewportFocused = false;
-        bool m_PannelDirty = true;//temp
-        std::vector<std::string> m_EntityList;//temp
+
 
         glm::vec2 m_ViewportSize = { 720.0 , 1280.0 };
 };

@@ -1,10 +1,12 @@
 #pragma once
 #include "entt.hpp"
+#include "Tso/Core/TimeStep.h"
 
 namespace Tso {
 	class Entity;
 	class Scene {
 		friend class Entity;
+		friend class SceneHierarchyPanel;
 	public:
 		Scene() = default;
 		~Scene() {}

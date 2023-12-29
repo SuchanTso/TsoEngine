@@ -4,10 +4,6 @@
 
 namespace Tso {
 
-template<typename T , typename Arg>
-void Component::AddComponent(const Arg &&arg ...){
-    return AddComponent<T>(std::forward<T>(arg));
-}
 
 
 TransformComponent::TransformComponent(const glm::mat4& transform)
