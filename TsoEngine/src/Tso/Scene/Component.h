@@ -1,6 +1,8 @@
 #pragma once
 #include "glm/glm.hpp"
 #include "Tso/Core/TimeStep.h"
+#include "ScriptableEntity.h"
+
 namespace Tso {
 
 	class Component {
@@ -8,12 +10,10 @@ namespace Tso {
 		Component() = default;
 		~Component() {}
         
-        template<typename T , typename Arg>
-        static void AddComponent(const Arg&& arg...);
 	};
 
 
-	class TransformComponent : public Component {
+	struct TransformComponent {
 	public:
 		TransformComponent() = delete;
 		TransformComponent(const glm::mat4& transform = glm::mat4(1.0));
@@ -28,8 +28,6 @@ namespace Tso {
 
         void SetPos(const glm::vec3& pos) { m_Pos = pos; }
 
-        
-	private:
 		glm::vec3 m_Pos = glm::vec3(0.0, 0.0, -0.5);
 
 		float m_Rand = -1.f;
@@ -58,4 +56,41 @@ namespace Tso {
 	private:
 		std::string m_Name = "";
 	};
+
+
+
+	class ScriptableEntity;
+
+	struct NativeScriptComponent {
+
+		ScriptableEntity* Instance = nullptr;
+		std::string test = "null";
+
+		ScriptableEntity* (*InstantiateScript)();
+		//std::function<ScriptableEntity* ()>InstantiateScript;
+		void (*DestroyScript)(NativeScriptComponent*);
+
+		template<typename T>
+		void Bind()
+		{
+			auto lambda = []()->ScriptableEntity* {
+				TSO_INFO("On Bind!"); return static_cast<ScriptableEntity*>(new T());
+				};
+			InstantiateScript = lambda;
+			if (InstantiateScript) {
+				TSO_CORE_INFO("BIiiid not null");
+				test = "not null";
+			}
+			else {
+				TSO_CORE_INFO("BIiiid but null");
+			}
+			DestroyScript = [](NativeScriptComponent* nsc) { delete nsc->Instance; nsc->Instance = nullptr; };
+		}
+
+	};
+
+	
+
+	
+
 }

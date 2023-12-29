@@ -20,7 +20,42 @@ Entity Scene::CreateEntity(const std::string& name){
 void Scene::OnUpdate(TimeStep ts)
 {
     m_Time += ts.GetSecond();
-    const auto& view = m_Registry.view<TransformComponent>();
+
+    /*auto& view = m_Registry.view<NativeScriptComponent>();
+    for (auto& e : view) {
+        auto& nsc = m_Registry.get<NativeScriptComponent>(e);
+        if (!nsc.Instance)
+        {
+            TSO_CORE_INFO("test content = {0}", nsc.test.c_str());
+
+            if (!nsc.InstantiateScript)
+                continue;
+            nsc.Instance = nsc.InstantiateScript();
+            nsc.Instance->m_Entity = Entity{ e, this };
+            nsc.Instance->OnCreate();
+        }
+
+        nsc.Instance->OnUpdate(ts);
+    }*/
+
+    m_Registry.view<NativeScriptComponent>().each([=](auto entity, auto& nsc)
+        {
+            // TODO: Move to Scene::OnScenePlay
+            if (!nsc.Instance)
+            {
+                nsc.Instance = nsc.InstantiateScript();
+                nsc.Instance->m_Entity = Entity{ entity, this };
+                nsc.Instance->OnCreate();
+            }
+
+            nsc.Instance->OnUpdate(ts);
+        });
+
+   
+
+
+
+    /*const auto& view = m_Registry.view<TransformComponent>();
     for (auto& entity : view) {
         TransformComponent& comp = view.get<TransformComponent>(entity);
         glm::vec3& pos = comp.GetPos();
@@ -31,7 +66,7 @@ void Scene::OnUpdate(TimeStep ts)
         }
         pos.x = cos(m_Time + comp.GetRand());
         pos.y = sin(m_Time + comp.GetRand());
-    }
+    }*/
 
     auto group = m_Registry.view<Renderable , TransformComponent>();
     for (auto& entity : group) {

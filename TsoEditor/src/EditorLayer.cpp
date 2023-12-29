@@ -4,6 +4,8 @@
 #include "Tso/Scene/Scene.h"
 #include "Tso/Scene/Entity.h"
 #include "Tso/Scene/Component.h"
+#include "glm/gtc/type_ptr.hpp"
+#include "Tso/Scene/Entity.h"
 
 
 namespace Tso {
@@ -17,6 +19,7 @@ namespace Tso {
         m_Shader = m_ShaderLibrary->Load("asset/shader/Shader2D.glsl");
         Renderer2D::Init(m_Shader);
         m_Scene = std::make_shared<Scene>();
+        m_Panel.SetContext(m_Scene);
 
         std::string lp = "asset/lp2.png";
 
@@ -36,7 +39,15 @@ namespace Tso {
         m_MoveData.startTime = m_Time;
         m_MoveData.targetPos = glm::vec2(0.0, 0.0);
         m_MoveData.originPos = glm::vec2(0.0, 0.0);
+
         
+
+        auto e = m_Scene->CreateEntity("EEEE");
+
+        e.AddComponent<NativeScriptComponent>().Bind<CircleBehavior>();
+
+        auto t = m_Scene->CreateEntity("Static Quad");
+
     }
 
 
@@ -153,6 +164,8 @@ namespace Tso {
             ImGui::Text("QuadVertices : %d", stat.GetTotalVertexCount());
             ImGui::Text("QuadIndices : %d", stat.GetTotalIndexCount());
 
+            ImGui::DragFloat3("ComeraPos", glm::value_ptr(m_CameraController.GetCamera().GetPosition()));
+
             ImGui::End();
 
             ImGui::Begin("Viewport");
@@ -163,7 +176,7 @@ namespace Tso {
             if (content.x > 0.f && content.y > 0.f && (content.x != m_ViewportSize.x || content.y != m_ViewportSize.y)) {
                 m_ViewportSize = { content.x , content.y };
                 m_FrameBuffer->Resize(uint32_t(m_ViewportSize.x), uint32_t(m_ViewportSize.y));
-                //        m_CameraController.OnResize(m_ViewportSize.x, m_ViewportSize.y);
+                        //m_CameraController.OnResize(m_ViewportSize.x, m_ViewportSize.y);
             }
             uint32_t fbId = m_FrameBuffer->GetColorAttachment();
 
@@ -171,33 +184,7 @@ namespace Tso {
 
             ImGui::End();
 }
-        {
-            ImGui::Begin("GameObjectPannel");
-            if (ImGui::Button("Add rotateQuad")) {
-                auto e = m_Scene->CreateEntity();
-                m_PannelDirty = true;
-            }
-            if (m_PannelDirty) {
-                m_EntityList = m_Scene->GetSceneEntityNames();
-                m_PannelDirty = false;
-            }
-                for (int i = 0; i < m_EntityList.size(); i++) {
-                    ImGui::BeginChild(m_EntityList[i].c_str(), ImVec2(0, 100), false, ImGuiWindowFlags_HorizontalScrollbar);
-
-                    // 在垂直分块中添加内容
-                    ImGui::Text(("entity_" + m_EntityList[i]).c_str());
-
-
-                    // 结束垂直分块
-                    ImGui::EndChild();
-                }
-            
-
-               
-            ImGui::End();
-
-        }
-
+        m_Panel.OnGuiRender();
         ImGui::End();
     }
 
@@ -238,12 +225,13 @@ namespace Tso {
         RenderCommand::Clear();
 
 
-        for (float x = -5.0f; x < 5.0f; x += 0.5f) {
+        /*for (float x = -5.0f; x < 5.0f; x += 0.5f) {
             for (float y = -5.0f; y < 5.0f; y += 0.5f) {
                 glm::vec4 color = { (x + 5.0) / 10.0 ,0.4 , (y + 5.0) / 10.0 ,1.0 };
                 Renderer2D::DrawQuad({ x , y , 0.8f}, { 0.45 , 0.45 }, color);
             }
-        }
+        }*/
+        //Renderer2D::DrawQuad({ 0.f , 0.f , 0.8f }, { 0.45f , 0.45f }, { 0.8f , 0.3f , 0.2f , 1.f });
 
 
         Renderer2D::EndScene();
