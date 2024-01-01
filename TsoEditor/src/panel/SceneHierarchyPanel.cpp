@@ -15,6 +15,9 @@ namespace Tso {
 
 		ImGui::End();
 
+		if (ImGui::IsMouseDown(0) && ImGui::IsWindowHovered()) {
+			m_SelectedEntity.m_EntityID = entt::null;
+		}
 
 		ImGui::Begin("Components");
 		if (m_SelectedEntity.m_EntityID != entt::null) {
@@ -39,15 +42,26 @@ namespace Tso {
 	void SceneHierarchyPanel::DrawComponents(Entity& entity)
 	{
 		if (entity.HasComponent<TagComponent>()) {
-			auto& tag = entity.GetComponent<TagComponent>().GetTagName();
 
-			ImGui::Text("%s", tag.c_str());
+			auto& comp = entity.GetComponent<TagComponent>();
+
+			auto& tag = comp.GetTagName();
+			char buff[256];
+			
+			strcpy_s(buff, tag.c_str());
+
+			if (ImGui::InputText("tagName", buff, sizeof(buff))) {
+				comp.SetTagName(buff);
+			}
 		}
 		if (entity.HasComponent<TransformComponent>()) {
-			auto& comp = entity.GetComponent<TransformComponent>();
-			auto& pos = comp.GetPos();
-			if (ImGui::DragFloat3("pos:", glm::value_ptr(pos))) {
-				comp.SetPos(pos);
+			if(ImGui::TreeNodeEx("Transform", ImGuiTreeNodeFlags_OpenOnArrow)) {
+				auto& comp = entity.GetComponent<TransformComponent>();
+				auto& pos = comp.GetPos();
+				if (ImGui::DragFloat3("pos:", glm::value_ptr(pos) , 0.1f)) {
+					comp.SetPos(pos);
+				}
+				ImGui::TreePop();
 			}
 		}
 	}

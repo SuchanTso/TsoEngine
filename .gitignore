@@ -7,3 +7,6 @@ TsoEngine.xcworkspace
 TsoEngine/TsoEngine.xcodeproj
 TsoEngine/third_party/Glad/bin-int
 TsoEngine.sln
+*.ipch
+*.vsidx
+*.db
