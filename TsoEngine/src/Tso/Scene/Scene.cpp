@@ -21,23 +21,6 @@ void Scene::OnUpdate(TimeStep ts)
 {
     m_Time += ts.GetSecond();
 
-    /*auto& view = m_Registry.view<NativeScriptComponent>();
-    for (auto& e : view) {
-        auto& nsc = m_Registry.get<NativeScriptComponent>(e);
-        if (!nsc.Instance)
-        {
-            TSO_CORE_INFO("test content = {0}", nsc.test.c_str());
-
-            if (!nsc.InstantiateScript)
-                continue;
-            nsc.Instance = nsc.InstantiateScript();
-            nsc.Instance->m_Entity = Entity{ e, this };
-            nsc.Instance->OnCreate();
-        }
-
-        nsc.Instance->OnUpdate(ts);
-    }*/
-
     m_Registry.view<NativeScriptComponent>().each([=](auto entity, auto& nsc)
         {
             // TODO: Move to Scene::OnScenePlay
@@ -53,27 +36,12 @@ void Scene::OnUpdate(TimeStep ts)
 
    
 
-
-
-    /*const auto& view = m_Registry.view<TransformComponent>();
-    for (auto& entity : view) {
-        TransformComponent& comp = view.get<TransformComponent>(entity);
-        glm::vec3& pos = comp.GetPos();
-        
-        if (comp.GetRand() < 0) {
-            TSO_CORE_INFO("get rand = {0}", comp.GetRand());
-            comp.SetRand(m_Time);
-        }
-        pos.x = cos(m_Time + comp.GetRand());
-        pos.y = sin(m_Time + comp.GetRand());
-    }*/
-
     auto group = m_Registry.view<Renderable , TransformComponent>();
     for (auto& entity : group) {
         const auto& [render, trans] = group.get<Renderable, TransformComponent>(entity);
-        auto pos = trans.GetPos();
+        auto transform = trans.GetTransform();
         
-        render.Render(pos);
+        render.Render(transform);
         
     }
 

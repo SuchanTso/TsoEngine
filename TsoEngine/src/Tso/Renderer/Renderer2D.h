@@ -31,10 +31,14 @@ public:
     static void DrawQuad(const glm::vec3& position , const glm::vec2& scale , const glm::vec4& color);
     static void DrawQuad(const glm::vec3& position , const float& rotation , const glm::vec2& scale , const glm::vec4& color);
     
+    static void DrawQuad(const glm::mat4& transform , const glm::vec4& color);
+    
     static void DrawQuad(const glm::vec2& position , const glm::vec2& scale , Ref<Texture2D> texture);
     static void DrawQuad(const glm::vec3& position , const glm::vec2& scale , Ref<Texture2D> texture);
     static void DrawQuad(const glm::vec3& position , const float& rotation , const glm::vec2& scale , Ref<Texture2D> texture);
     static void DrawQuad(const glm::vec3& position , const float& rotation , const glm::vec2& scale , Ref<SubTexture2D> subTexture);
+    static void DrawQuad(const glm::mat4& transform , Ref<Texture2D> texture);
+    static void DrawQuad(const glm::mat4& transform , Ref<SubTexture2D> subTexture);
 
 
     struct Statistics {
