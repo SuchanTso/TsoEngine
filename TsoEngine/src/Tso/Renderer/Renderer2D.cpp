@@ -199,6 +199,11 @@ void Renderer2D::DrawQuad(const glm::vec3& position , const float& rotation , co
     glm::mat4 transform = glm::translate(glm::mat4(1.0), position) * glm::rotate(glm::mat4(1.0), glm::radians(rotation), glm::vec3(0.0, 0.0, 1.0))
         * glm::scale(glm::mat4(1.0), glm::vec3(scale, 1.0f));
 
+    DrawQuad(transform , color);
+}
+
+void Renderer2D::DrawQuad(const glm::mat4& transform, const glm::vec4& color){
+    
     const float textureIndex = 0.0f;//white texture
     s_Data.QuadVertexBufferPtr->postion = transform * s_Data.quadVertices[0];
     s_Data.QuadVertexBufferPtr->color = color;
@@ -227,8 +232,7 @@ void Renderer2D::DrawQuad(const glm::vec3& position , const float& rotation , co
     s_Data.QuadIndexCount += 6;
 
     s_Data.Stat.QuadCount++;
-
-     
+    
 }
 
 void Renderer2D::DrawQuad(const glm::vec2& position , const glm::vec2& scale , const glm::vec4& color){
@@ -252,16 +256,12 @@ void Renderer2D::DrawQuad(const glm::vec3& position, const glm::vec2& scale, Ref
 
 }
 
-void Renderer2D::DrawQuad(const glm::vec3& position , const float& rotation , const glm::vec2& scale , Ref<Texture2D> texture){
-
+void Renderer2D::DrawQuad(const glm::mat4& transform , Ref<Texture2D> texture){
     if (s_Data.QuadIndexCount >= Renderer2DData::maxIndices) {
         FlushAndRest();
     }
 
     constexpr glm::vec4 color = { 1.0 , 1.0 , 1.0 , 1.0 };
-
-    glm::mat4 transform = glm::translate(glm::mat4(1.0), position) * glm::rotate(glm::mat4(1.0), glm::radians(rotation), glm::vec3(0.0, 0.0, 1.0))
-        * glm::scale(glm::mat4(1.0), glm::vec3(scale, 1.0f));
 
     float textureIndex = 0.0f;
 
@@ -309,7 +309,18 @@ void Renderer2D::DrawQuad(const glm::vec3& position , const float& rotation , co
     s_Data.Stat.QuadCount++;
 }
 
-void Renderer2D::DrawQuad(const glm::vec3& position , const float& rotation , const glm::vec2& scale , Ref<SubTexture2D> subTexture){
+
+void Renderer2D::DrawQuad(const glm::vec3& position , const float& rotation , const glm::vec2& scale , Ref<Texture2D> texture){
+
+    
+
+    glm::mat4 transform = glm::translate(glm::mat4(1.0), position) * glm::rotate(glm::mat4(1.0), glm::radians(rotation), glm::vec3(0.0, 0.0, 1.0))
+        * glm::scale(glm::mat4(1.0), glm::vec3(scale, 1.0f));
+    
+    DrawQuad(transform , texture);
+}
+
+void Renderer2D::DrawQuad(const glm::mat4& transform , Ref<SubTexture2D> subTexture){
     if (s_Data.QuadIndexCount >= Renderer2DData::maxIndices) {
         FlushAndRest();
     }
@@ -317,9 +328,6 @@ void Renderer2D::DrawQuad(const glm::vec3& position , const float& rotation , co
     Ref<Texture2D> texture = subTexture->GetTexture();
 
     constexpr glm::vec4 color = { 1.0 , 1.0 , 1.0 , 1.0 };
-
-    glm::mat4 transform = glm::translate(glm::mat4(1.0), position) * glm::rotate(glm::mat4(1.0), glm::radians(rotation), glm::vec3(0.0, 0.0, 1.0))
-        * glm::scale(glm::mat4(1.0), glm::vec3(scale, 1.0f));
 
     float textureIndex = 0.0f;
 
@@ -367,6 +375,14 @@ void Renderer2D::DrawQuad(const glm::vec3& position , const float& rotation , co
     s_Data.QuadIndexCount += 6;
     
     s_Data.Stat.QuadCount++;
+}
+
+void Renderer2D::DrawQuad(const glm::vec3& position , const float& rotation , const glm::vec2& scale , Ref<SubTexture2D> subTexture){
+
+    glm::mat4 transform = glm::translate(glm::mat4(1.0), position) * glm::rotate(glm::mat4(1.0), glm::radians(rotation), glm::vec3(0.0, 0.0, 1.0))
+        * glm::scale(glm::mat4(1.0), glm::vec3(scale, 1.0f));
+
+    DrawQuad(transform , subTexture);
 }
 
 void Renderer2D::ResetStat()

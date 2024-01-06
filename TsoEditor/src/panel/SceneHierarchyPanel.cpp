@@ -48,7 +48,7 @@ namespace Tso {
 			auto& tag = comp.GetTagName();
 			char buff[256];
 			
-			strcpy_s(buff, tag.c_str());
+			strcpy(buff, tag.c_str());
 
 			if (ImGui::InputText("tagName", buff, sizeof(buff))) {
 				comp.SetTagName(buff);

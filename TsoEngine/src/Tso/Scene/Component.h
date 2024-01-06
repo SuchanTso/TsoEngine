@@ -1,7 +1,9 @@
 #pragma once
 #include "glm/glm.hpp"
+#include "glm/gtc/matrix_transform.hpp"
 #include "Tso/Core/TimeStep.h"
 #include "ScriptableEntity.h"
+#include "SceneCamera.h"
 
 namespace Tso {
 
@@ -13,24 +15,31 @@ namespace Tso {
 		TransformComponent(const glm::vec3& pos = glm::vec3(1.0,1.0,1.0));
 		TransformComponent(const TransformComponent& transform);
 
-		glm::vec3& GetPos() { return m_Pos; }
-
-		void SetRand(const float& rand) { m_Rand = rand; }
-
-		float GetRand() { return m_Rand; }
-
-        void SetPos(const glm::vec3& pos) { m_Pos = pos; }
-
-		glm::vec3 m_Pos = glm::vec3(0.0, 0.0, -0.5);
-
-		float m_Rand = -1.f;
+        void SetPos(const glm::vec3& pos) { m_Translation = pos; }
+        glm::vec3& GetPos(){return m_Translation;}
+        
+        glm::mat4 GetTransform(){
+            glm::mat4 res = glm::mat4(1.0f);
+            
+            res = glm::translate(glm::mat4(1.0f) , m_Translation) * glm::scale(glm::mat4(1.0f) , m_Scale) *                              glm::rotate(glm::mat4(1.0f) , m_Rotation.x , glm::vec3(1.0f , 0.0f , 0.0f)) *
+                  glm::rotate(glm::mat4(1.0f) , m_Rotation.y , glm::vec3(0.0f , 1.0f , 0.0f)) *
+                  glm::rotate(glm::mat4(1.0f) , m_Rotation.z , glm::vec3(0.0f , 0.0f , 1.0f));
+            
+            return res;
+        }
+        
+        glm::vec3 m_Translation = glm::vec3(0.0f , 0.0f , 0.f);
+        
+        glm::vec3 m_Scale = glm::vec3(1.0f , 1.0f , 1.0f);
+        
+        glm::vec3 m_Rotation = glm::vec3(0.0f , 0.0f , 0.0f);
 	};
 
 	struct Renderable  {
 		Renderable() = delete;
 		Renderable(const glm::vec4& color);
 
-		void Render(const glm::vec3& pos);
+		void Render(const glm::mat4& transform);
 
 		glm::vec4 m_Color = glm::vec4(0.3 , 0.8 , 0.2 , 1.0);
 	};
@@ -39,7 +48,7 @@ namespace Tso {
 		TagComponent() = delete;
 		TagComponent(const std::string& name = "blankNameEntity");
 
-		std::string GetTagName() { return m_Name; }
+		std::string& GetTagName() { return m_Name; }
 
 		void SetTagName(const std::string& name) { m_Name = name; }
 		std::string m_Name = "";
@@ -76,6 +85,16 @@ namespace Tso {
 		}
 
 	};
+
+
+struct CameraComponent{
+    CameraComponent() = delete;
+    CameraComponent(const std::string& name = "blankNameEntity");
+    
+    SceneCamera m_Camera;
+    
+    
+};
 
 	
 
