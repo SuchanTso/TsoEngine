@@ -14,6 +14,7 @@
 #include "Shader.h"
 #include "Texture.h"
 #include "SubTexture2D.h"
+#include "Tso/Scene/SceneCamera.h"
 
 namespace Tso {
 
@@ -22,6 +23,8 @@ public:
     static void Init(Ref<Shader> quadShader);
     
     static void BeginScene(const OrthographicCamera& camera);
+
+    static void BeginScene(const SceneCamera& camera, const glm::mat4& cameraTransform);
     
     static void EndScene();
 

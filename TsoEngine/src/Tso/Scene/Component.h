@@ -16,12 +16,18 @@ namespace Tso {
 		TransformComponent(const TransformComponent& transform);
 
         void SetPos(const glm::vec3& pos) { m_Translation = pos; }
+		void SetRotate(const glm::vec3& rotate) { m_Rotation = rotate; }
+		void SetScale(const glm::vec3& scale) { m_Scale = scale; }
+
         glm::vec3& GetPos(){return m_Translation;}
+		glm::vec3& GetRotate() { return m_Rotation; }
+		glm::vec3& GetScale() { return m_Scale; }
         
         glm::mat4 GetTransform(){
             glm::mat4 res = glm::mat4(1.0f);
             
-            res = glm::translate(glm::mat4(1.0f) , m_Translation) * glm::scale(glm::mat4(1.0f) , m_Scale) *                              glm::rotate(glm::mat4(1.0f) , m_Rotation.x , glm::vec3(1.0f , 0.0f , 0.0f)) *
+            res = glm::translate(glm::mat4(1.0f) , m_Translation) * glm::scale(glm::mat4(1.0f) , m_Scale) *       
+				  glm::rotate(glm::mat4(1.0f) , m_Rotation.x , glm::vec3(1.0f , 0.0f , 0.0f)) *
                   glm::rotate(glm::mat4(1.0f) , m_Rotation.y , glm::vec3(0.0f , 1.0f , 0.0f)) *
                   glm::rotate(glm::mat4(1.0f) , m_Rotation.z , glm::vec3(0.0f , 0.0f , 1.0f));
             
@@ -88,11 +94,12 @@ namespace Tso {
 
 
 struct CameraComponent{
-    CameraComponent() = delete;
-    CameraComponent(const std::string& name = "blankNameEntity");
+    CameraComponent(){}
     
+	bool m_Pramiary = false;
+	bool FixedAspectRatio = false;
+
     SceneCamera m_Camera;
-    
     
 };
 

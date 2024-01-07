@@ -2,6 +2,8 @@
 #include "Scene.h"
 #include "Entity.h"
 #include "Component.h"
+#include "Tso/Renderer/Renderer2D.h"
+
 
 namespace Tso {
 
@@ -34,6 +36,22 @@ void Scene::OnUpdate(TimeStep ts)
             nsc.Instance->OnUpdate(ts);
         });
 
+    auto view = m_Registry.view<TransformComponent, CameraComponent>();
+    SceneCamera* mainCamera = nullptr;
+    glm::mat4* mainCameraTransfrom = nullptr;
+
+    for (auto& e : view) {
+        auto& camera = view.get<CameraComponent>(e);
+        if (camera.m_Pramiary) {
+            mainCamera = &camera.m_Camera;
+            auto& transfrom = view.get<TransformComponent>(e);
+            mainCameraTransfrom = &transfrom.GetTransform();
+        }
+    }
+
+    if (mainCamera) {
+        Renderer2D::BeginScene(*mainCamera, *mainCameraTransfrom);
+    }
    
 
     auto group = m_Registry.view<Renderable , TransformComponent>();

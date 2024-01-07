@@ -42,11 +42,18 @@ namespace Tso {
 
         
 
-        auto e = m_Scene->CreateEntity("EEEE");
+        /*auto e = m_Scene->CreateEntity("EEEE");
 
-        e.AddComponent<NativeScriptComponent>().Bind<CircleBehavior>();
+        e.AddComponent<NativeScriptComponent>().Bind<CircleBehavior>();*/
 
         auto t = m_Scene->CreateEntity("Static Quad");
+
+        m_CameraEntity = m_Scene->CreateEntity("MainCamera");
+        //m_CameraEntity.RemoveComponent<Renderable>();
+        auto& camera = m_CameraEntity.AddComponent<CameraComponent>();
+        camera.m_Pramiary = true;
+        m_CameraEntity.AddComponent<NativeScriptComponent>().Bind<Controlable>();
+
 
     }
 
@@ -135,11 +142,6 @@ namespace Tso {
                 ImGui::MenuItem("Padding", NULL, &opt_padding);
                 ImGui::Separator();
 
-                if (ImGui::MenuItem("Flag: NoSplit", "", (dockspace_flags & ImGuiDockNodeFlags_NoSplit) != 0)) { dockspace_flags ^= ImGuiDockNodeFlags_NoSplit; }
-                if (ImGui::MenuItem("Flag: NoResize", "", (dockspace_flags & ImGuiDockNodeFlags_NoResize) != 0)) { dockspace_flags ^= ImGuiDockNodeFlags_NoResize; }
-                if (ImGui::MenuItem("Flag: NoDockingInCentralNode", "", (dockspace_flags & ImGuiDockNodeFlags_NoDockingInCentralNode) != 0)) { dockspace_flags ^= ImGuiDockNodeFlags_NoDockingInCentralNode; }
-                if (ImGui::MenuItem("Flag: AutoHideTabBar", "", (dockspace_flags & ImGuiDockNodeFlags_AutoHideTabBar) != 0)) { dockspace_flags ^= ImGuiDockNodeFlags_AutoHideTabBar; }
-                if (ImGui::MenuItem("Flag: PassthruCentralNode", "", (dockspace_flags & ImGuiDockNodeFlags_PassthruCentralNode) != 0, opt_fullscreen)) { dockspace_flags ^= ImGuiDockNodeFlags_PassthruCentralNode; }
                 ImGui::Separator();
 
                 if (ImGui::MenuItem("Close", NULL, false)){
@@ -176,11 +178,13 @@ namespace Tso {
             if (content.x > 0.f && content.y > 0.f && (content.x != m_ViewportSize.x || content.y != m_ViewportSize.y)) {
                 m_ViewportSize = { content.x , content.y };
                 m_FrameBuffer->Resize(uint32_t(m_ViewportSize.x), uint32_t(m_ViewportSize.y));
+                auto& camera = m_CameraEntity.GetComponent<CameraComponent>();
+                camera.m_Camera.SetViewportSize(m_ViewportSize.x , m_ViewportSize.y);
                         //m_CameraController.OnResize(m_ViewportSize.x, m_ViewportSize.y);
             }
             uint32_t fbId = m_FrameBuffer->GetColorAttachment();
 
-            ImGui::Image((void*)fbId, ImVec2{ m_ViewportSize.x , m_ViewportSize.y });
+            ImGui::Image((void*)fbId, ImVec2{ m_ViewportSize.x , m_ViewportSize.y },ImVec2{ 0, 1 }, ImVec2{ 1, 0 });
 
             ImGui::End();
 }
@@ -208,10 +212,6 @@ namespace Tso {
 
     void EditorLayer::OnUpdate(TimeStep ts)
     {
-        
-
-        RenderCommand::SetClearColor({ 0.1f, 0.1f, 0.1f, 1.f });
-        RenderCommand::Clear();
 
         Renderer2D::ResetStat();
         if(m_ViewportFocused){
@@ -219,10 +219,11 @@ namespace Tso {
         }
 
         m_FrameBuffer->Bind();
-        Renderer2D::BeginScene(m_CameraController.GetCamera());
-        m_Scene->OnUpdate(ts);
+        //Renderer2D::BeginScene(m_CameraController.GetCamera());
         RenderCommand::SetClearColor({ 0.1f, 0.1f, 0.1f, 1.f });
         RenderCommand::Clear();
+        m_Scene->OnUpdate(ts);
+        
 
 
         /*for (float x = -5.0f; x < 5.0f; x += 0.5f) {
