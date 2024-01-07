@@ -41,4 +41,19 @@ namespace Tso {
 		float m_Time = 0.f;
 	};
 
+	class Controlable : public ScriptableEntity {
+	public:
+		Controlable() {}
+		virtual ~Controlable() {}
+		virtual void OnCreate()override {
+			TSO_CORE_INFO("On Create!");
+		}
+		virtual void OnUpdate(const TimeStep& ts)override;
+		virtual void OnDestroy()override {}
+
+	private:
+		float m_Time = 0.f;
+		float m_MoveSpeed = 10.f;
+	};
+
 }

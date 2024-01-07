@@ -23,6 +23,18 @@ namespace Tso {
 		}
 
 		template<typename T>
+		void RemoveComponent()
+		{
+			//TSO_CORE_ASSERT(HasComponent<T>(), "Entity does not have component!");
+			if(HasComponent<T>())
+				m_Scene->m_Registry.remove<T>(m_EntityID);
+			else {
+				TSO_CORE_WARN("no component to remove");
+			}
+		}
+		
+
+		template<typename T>
 		bool HasComponent() {
 			return m_Scene->m_Registry.all_of<T>(m_EntityID);
 		}

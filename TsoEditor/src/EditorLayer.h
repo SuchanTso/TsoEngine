@@ -49,6 +49,7 @@ namespace Tso {
         Ref<FrameBuffer> m_FrameBuffer;
         Ref<Scene>      m_Scene;
         SceneHierarchyPanel m_Panel;
+        Entity m_CameraEntity;
 
         float m_MoveSpeed = 1.0f;
         bool m_LpMovable = false;

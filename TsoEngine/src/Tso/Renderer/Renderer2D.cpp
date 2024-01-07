@@ -153,6 +153,27 @@ void Renderer2D::BeginScene(const OrthographicCamera& camera){
     
 }
 
+void Renderer2D::BeginScene(const SceneCamera& camera, const glm::mat4& cameraTransform)
+{
+    s_Data.QuadShader->Bind();
+
+    s_Data.QuadShader->SetMatrix4("u_ProjViewMat", camera.GetProjection() * glm::inverse(cameraTransform));
+
+    s_Data.QuadVertexBufferPtr = s_Data.QuadVertexBufferBase;
+
+    s_Data.QuadIndexCount = 0;
+
+
+    s_Data.QuadTextureIndex = 1;
+    while (s_Data.QuadTextureIndex < s_Data.QuadTextureSlots.size()) {
+        if (s_Data.QuadTextureSlots[s_Data.QuadTextureIndex] == nullptr) {
+            break;
+        }
+        s_Data.QuadTextureIndex++;
+    }
+
+}
+
 void Renderer2D::EndScene() {
 
 
