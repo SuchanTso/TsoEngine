@@ -13,7 +13,16 @@ namespace Tso {
 			Entity e( entity , m_Context.get() );
 			DrwaEntityNode(e);
 			});
-
+        
+        if(m_SelectedEntity.m_EntityID == entt::null){
+            if (ImGui::BeginPopupContextWindow(0, 1))
+            {
+                if (ImGui::MenuItem("Create Empty Entity"))
+                    m_Context->CreateEntity("Empty Entity");
+                
+                ImGui::EndPopup();
+            }
+        }
 		ImGui::End();
 
 		if (ImGui::IsMouseDown(0) && ImGui::IsWindowHovered()) {
@@ -35,13 +44,40 @@ namespace Tso {
 		if (ImGui::IsItemClicked()) {
 			m_SelectedEntity = entity;
 		}
+        
+        bool entityDeleted = false;
+        if (ImGui::BeginPopupContextItem())
+        {
+            if (ImGui::MenuItem("Delete Entity"))
+                entityDeleted = true;
+
+            ImGui::EndPopup();
+        }
 
 		if (opened) {
 			ImGui::TreePop();
 		}
+        if(entityDeleted){
+            m_Context->DeleteEntity(entity);
+            if (m_SelectedEntity == entity)
+                m_SelectedEntity = Entity{entt::null , m_Context.get()};
+        }
 	}
 	void SceneHierarchyPanel::DrawComponents(Entity& entity)
-	{
+{
+        
+        if (ImGui::Button("Add Component"))
+            ImGui::OpenPopup("AddComponent");
+        
+        if (ImGui::BeginPopup("AddComponent"))
+        {
+            DisplayAddComponentEntry<CameraComponent>("Camera");
+            DisplayAddComponentEntry<NativeScriptComponent>("NativeScript");
+
+            
+            ImGui::EndPopup();
+        }
+    
 		if (entity.HasComponent<TagComponent>()) {
 
 			auto& comp = entity.GetComponent<TagComponent>();
@@ -141,4 +177,19 @@ namespace Tso {
 			}
 		}
 	}
+
+
+template<typename T>
+    void SceneHierarchyPanel::DisplayAddComponentEntry(const std::string& entryName) {
+        if (!m_SelectedEntity.HasComponent<T>())
+        {
+            if (ImGui::MenuItem(entryName.c_str()))
+            {
+                m_SelectedEntity.AddComponent<T>();
+                ImGui::CloseCurrentPopup();
+            }
+        }
+    }
+
+
 }

@@ -39,14 +39,14 @@ void OpenGLFrameBuffer::Resize(const uint32_t& width , const uint32_t& height){
     Invalidate();
 }
 
-	void OpenGLFrameBuffer::Invalidate()
-	{
-        
-        if(m_RendererID){
-            glDeleteFramebuffers(1, &m_RendererID);
-            glDeleteTextures(1, &m_ColorAttachMent);
-            glDeleteTextures(1, &m_DepthAttachMent);
-        }
+void OpenGLFrameBuffer::Invalidate()
+{
+    
+    if(m_RendererID){
+        glDeleteFramebuffers(1, &m_RendererID);
+        glDeleteTextures(1, &m_ColorAttachMent);
+        glDeleteTextures(1, &m_DepthAttachMent);
+    }
         
 #ifdef TSO_PLATFORM_WINDOWS
 		glCreateFramebuffers(1, &m_RendererID);

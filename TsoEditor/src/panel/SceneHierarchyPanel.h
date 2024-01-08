@@ -11,6 +11,9 @@ namespace Tso {
 		~SceneHierarchyPanel(){}
 
 		void SetContext(Ref<Scene> context) { m_Context = context; }
+        
+        template<typename T>
+        void DisplayAddComponentEntry(const std::string& entryName);
 
 		void OnGuiRender();
 	private:

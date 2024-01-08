@@ -49,7 +49,7 @@ namespace Tso {
         auto t = m_Scene->CreateEntity("Static Quad");
 
         m_CameraEntity = m_Scene->CreateEntity("MainCamera");
-        //m_CameraEntity.RemoveComponent<Renderable>();
+//        m_CameraEntity.RemoveComponent<Renderable>();
         auto& camera = m_CameraEntity.AddComponent<CameraComponent>();
         camera.m_Pramiary = true;
         m_CameraEntity.AddComponent<NativeScriptComponent>().Bind<Controlable>();
@@ -219,19 +219,19 @@ namespace Tso {
         }
 
         m_FrameBuffer->Bind();
-        //Renderer2D::BeginScene(m_CameraController.GetCamera());
+//        Renderer2D::BeginScene(m_CameraController.GetCamera());
         RenderCommand::SetClearColor({ 0.1f, 0.1f, 0.1f, 1.f });
         RenderCommand::Clear();
         m_Scene->OnUpdate(ts);
         
 
 
-        /*for (float x = -5.0f; x < 5.0f; x += 0.5f) {
-            for (float y = -5.0f; y < 5.0f; y += 0.5f) {
-                glm::vec4 color = { (x + 5.0) / 10.0 ,0.4 , (y + 5.0) / 10.0 ,1.0 };
-                Renderer2D::DrawQuad({ x , y , 0.8f}, { 0.45 , 0.45 }, color);
-            }
-        }*/
+//        for (float x = -5.0f; x < 5.0f; x += 0.5f) {
+//            for (float y = -5.0f; y < 5.0f; y += 0.5f) {
+//                glm::vec4 color = { (x + 5.0) / 10.0 ,0.4 , (y + 5.0) / 10.0 ,1.0 };
+//                Renderer2D::DrawQuad({ x , y , 0.8f}, { 0.45 , 0.45 }, color);
+//            }
+//        }
         //Renderer2D::DrawQuad({ 0.f , 0.f , 0.8f }, { 0.45f , 0.45f }, { 0.8f , 0.3f , 0.2f , 1.f });
 
 
