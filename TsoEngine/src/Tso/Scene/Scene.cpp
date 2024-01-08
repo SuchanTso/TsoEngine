@@ -59,12 +59,17 @@ void Scene::OnUpdate(TimeStep ts)
         const auto& [render, trans] = group.get<Renderable, TransformComponent>(entity);
         auto transform = trans.GetTransform();
         
-        render.Render(transform);
+        Renderer2D::DrawQuad(transform,render.m_Color);
         
     }
 
     
 }
+
+void Scene::DeleteEntity(Entity entity){
+    m_Registry.destroy(entity);
+}
+
 
 std::vector<std::string> Scene::GetSceneEntityNames()
 {

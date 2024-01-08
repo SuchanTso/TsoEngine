@@ -43,6 +43,8 @@ namespace Tso {
 		bool operator==(Entity& other) {
 			return other.m_EntityID != entt::null && other.m_EntityID == m_EntityID;
 		}
+        operator entt::entity() const { return m_EntityID; }
+
 	private:
 
 		Scene* m_Scene = nullptr;

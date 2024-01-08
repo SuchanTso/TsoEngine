@@ -12,6 +12,8 @@ namespace Tso {
 		~Scene() {}
 
 		Entity CreateEntity(const std::string& name = "");
+        
+        void DeleteEntity(Entity entity);
 
 		void OnUpdate(TimeStep ts);
 
