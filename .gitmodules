@@ -13,3 +13,6 @@
 [submodule "TsoEngine/third_party/rapidjson"]
 	path = TsoEngine/third_party/rapidjson
 	url = git@github.com:Zediakense/rapidjson.git
+[submodule "TsoEngine/third_party/yaml-cpp"]
+	path = TsoEngine/third_party/yaml-cpp
+	url = git@github.com:Zediakense/yaml-cpp.git

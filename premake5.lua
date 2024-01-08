@@ -21,6 +21,7 @@ IncludeDir["stb_image"] = "TsoEngine/third_party/stb_image"
 IncludeDir["rapidjson"] = "TsoEngine/third_party/rapidjson/include"
 
 IncludeDir["entt"] = "TsoEngine/third_party/entt"
+IncludeDir["yaml_cpp"] = "TsoEngine/third_party/yaml-cpp/include"
 
 
 
@@ -47,7 +48,8 @@ project "TsoEngine"
 		"%{prj.name}/third_party/stb_image/**.h",
 		"%{prj.name}/third_party/stb_image/**.cpp",
 		"%{prj.name}/third_party/rapidjson/include/rapidjson/**.h",
-		"%{prj.name}/third_party/entt/entt.hpp"
+		"%{prj.name}/third_party/entt/entt.hpp",
+		"%{prj.name}/third_party/yaml-cpp/include/**.h"
 
 
 
@@ -84,7 +86,8 @@ project "TsoEngine"
 			"%{prj.name}/third_party/glm",
 			"%{prj.name}/third_party/stb_image",
 			"%{prj.name}/third_party/rapidjson/include",
-			IncludeDir["entt"]
+			IncludeDir["entt"],
+			IncludeDir["yaml_cpp"]
 	
 	
 		}
@@ -111,7 +114,8 @@ project "TsoEngine"
 			"%{prj.name}/third_party/glm",
 			"%{prj.name}/third_party/stb_image",
 			"%{prj.name}/third_party/rapidjson/include",
-			IncludeDir["entt"]
+			IncludeDir["entt"],
+			IncludeDir["yaml_cpp"]
 
 
 		}
@@ -160,7 +164,8 @@ project "Sandbox"
 		"%{IncludeDir.glm}",
 		"TsoEngine/third_party/imgui",
 		"TsoEngine/third_party/rapidjson/include",
-		IncludeDir["entt"]
+		IncludeDir["entt"],
+		IncludeDir["yaml_cpp"]
 
 	}
 
@@ -228,7 +233,8 @@ project "TsoEditor"
 		"%{IncludeDir.glm}",
 		"TsoEngine/third_party/imgui",
 		"TsoEngine/third_party/rapidjson/include",
-		IncludeDir["entt"]
+		IncludeDir["entt"],
+		IncludeDir["yaml_cpp"]
 
 	}
 
