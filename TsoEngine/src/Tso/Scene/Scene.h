@@ -7,6 +7,7 @@ namespace Tso {
 	class Scene {
 		friend class Entity;
 		friend class SceneHierarchyPanel;
+		friend class Seriealizer;
 	public:
 		Scene() = default;
 		~Scene() {}
