@@ -47,13 +47,13 @@ namespace Tso {
 
         e.AddComponent<NativeScriptComponent>().Bind<CircleBehavior>();*/
 
-        auto t = m_Scene->CreateEntity("Static Quad");
+//        auto t = m_Scene->CreateEntity("Static Quad");
 
-        m_CameraEntity = m_Scene->CreateEntity("MainCamera");
+//        m_CameraEntity = m_Scene->CreateEntity("MainCamera");
 //        m_CameraEntity.RemoveComponent<Renderable>();
-        auto& camera = m_CameraEntity.AddComponent<CameraComponent>();
-        camera.m_Pramiary = true;
-        m_CameraEntity.AddComponent<NativeScriptComponent>().Bind<Controlable>();
+//        auto& camera = m_CameraEntity.AddComponent<CameraComponent>();
+//        camera.m_Pramiary = true;
+//        m_CameraEntity.AddComponent<NativeScriptComponent>().Bind<Controlable>();
 
 
     }
@@ -147,7 +147,12 @@ namespace Tso {
 
                 if (ImGui::MenuItem("Save", NULL, false)) {
                     Seriealizer seriealizer(m_Scene.get());
-                    seriealizer.SeriealizeScene("asset/testScene.tso");
+                    seriealizer.SeriealizeScene("asset/testScene.teScene");
+                }
+                
+                if (ImGui::MenuItem("Load", NULL, false)) {
+                    Seriealizer seriealizer(m_Scene.get());
+                    seriealizer.DeseriealizeScene("asset/testScene.teScene");
                 }
 
                 if (ImGui::MenuItem("Close", NULL, false)){
@@ -184,9 +189,10 @@ namespace Tso {
             if (content.x > 0.f && content.y > 0.f && (content.x != m_ViewportSize.x || content.y != m_ViewportSize.y)) {
                 m_ViewportSize = { content.x , content.y };
                 m_FrameBuffer->Resize(uint32_t(m_ViewportSize.x), uint32_t(m_ViewportSize.y));
-                auto& camera = m_CameraEntity.GetComponent<CameraComponent>();
-                if(!camera.FixedAspectRatio)
-                camera.m_Camera.SetViewportSize(m_ViewportSize.x , m_ViewportSize.y);
+                
+//                if(!camera.FixedAspectRatio){
+//                    camera.m_Camera.SetViewportSize(m_ViewportSize.x , m_ViewportSize.y);
+//                }
                         //m_CameraController.OnResize(m_ViewportSize.x, m_ViewportSize.y);
             }
             uint32_t fbId = m_FrameBuffer->GetColorAttachment();

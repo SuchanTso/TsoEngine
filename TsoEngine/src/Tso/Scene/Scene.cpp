@@ -51,16 +51,13 @@ void Scene::OnUpdate(TimeStep ts)
 
     if (mainCamera) {
         Renderer2D::BeginScene(*mainCamera, *mainCameraTransfrom);
-    }
-   
-
-    auto group = m_Registry.view<Renderable , TransformComponent>();
-    for (auto& entity : group) {
-        const auto& [render, trans] = group.get<Renderable, TransformComponent>(entity);
-        auto transform = trans.GetTransform();
         
-        Renderer2D::DrawQuad(transform,render.m_Color);
-        
+        auto group = m_Registry.view<Renderable , TransformComponent>();
+        for (auto& entity : group) {
+            const auto& [render, trans] = group.get<Renderable, TransformComponent>(entity);
+            auto transform = trans.GetTransform();
+            Renderer2D::DrawQuad(transform,render.m_Color);
+        }
     }
 
     

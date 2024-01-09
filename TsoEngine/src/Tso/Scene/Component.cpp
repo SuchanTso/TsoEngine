@@ -34,7 +34,6 @@ Renderable::Renderable(const glm::vec4& color)
 
 void Renderable::Render(const glm::mat4& transfrom)
 {
-    Renderer2D::DrawQuad(transfrom, m_Color);
 }
 
 
