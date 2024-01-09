@@ -7,14 +7,16 @@ namespace Tso {
 	public:
 		Seriealizer() {};
 		Seriealizer(Scene* scene);
-		~Seriealizer() = default;
+        ~Seriealizer() {};
 
 
 		void SeriealizeScene(const std::string& path);
+        
+        bool DeseriealizeScene(const std::string& path);
 
 
 	private:
-		Ref<Scene> m_Scene;
+		Scene* m_Scene;
 	};
 
 }
