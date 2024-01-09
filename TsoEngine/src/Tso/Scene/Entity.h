@@ -39,6 +39,8 @@ namespace Tso {
 			return m_Scene->m_Registry.all_of<T>(m_EntityID);
 		}
 
+		uint32_t GetEntityID() { return (uint32_t)m_EntityID; }
+
 		operator uint32_t() { return (uint32_t)m_EntityID; }
 		bool operator==(Entity& other) {
 			return other.m_EntityID != entt::null && other.m_EntityID == m_EntityID;

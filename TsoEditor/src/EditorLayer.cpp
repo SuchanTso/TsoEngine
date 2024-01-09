@@ -6,6 +6,7 @@
 #include "Tso/Scene/Component.h"
 #include "glm/gtc/type_ptr.hpp"
 #include "Tso/Scene/Entity.h"
+#include "Tso/Scene/Seriealizer.h"
 
 
 namespace Tso {
@@ -144,6 +145,11 @@ namespace Tso {
 
                 ImGui::Separator();
 
+                if (ImGui::MenuItem("Save", NULL, false)) {
+                    Seriealizer seriealizer(m_Scene.get());
+                    seriealizer.SeriealizeScene("asset/testScene.tso");
+                }
+
                 if (ImGui::MenuItem("Close", NULL, false)){
                     dockSpaceOpen = false;
                     Application::Get().OnClose();
@@ -179,6 +185,7 @@ namespace Tso {
                 m_ViewportSize = { content.x , content.y };
                 m_FrameBuffer->Resize(uint32_t(m_ViewportSize.x), uint32_t(m_ViewportSize.y));
                 auto& camera = m_CameraEntity.GetComponent<CameraComponent>();
+                if(!camera.FixedAspectRatio)
                 camera.m_Camera.SetViewportSize(m_ViewportSize.x , m_ViewportSize.y);
                         //m_CameraController.OnResize(m_ViewportSize.x, m_ViewportSize.y);
             }

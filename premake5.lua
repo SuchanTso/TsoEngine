@@ -28,6 +28,7 @@ IncludeDir["yaml_cpp"] = "TsoEngine/third_party/yaml-cpp/include"
 include "TsoEngine/third_party/GLFW"
 include "TsoEngine/third_party/Glad"
 include "TsoEngine/third_party/imgui"
+include "TsoEngine/third_party/yaml-cpp"
 
 
 
@@ -49,7 +50,7 @@ project "TsoEngine"
 		"%{prj.name}/third_party/stb_image/**.cpp",
 		"%{prj.name}/third_party/rapidjson/include/rapidjson/**.h",
 		"%{prj.name}/third_party/entt/entt.hpp",
-		"%{prj.name}/third_party/yaml-cpp/include/**.h"
+		"%{prj.name}/third_party/yaml-cpp/include/yaml-cpp/**.h"
 
 
 
@@ -60,6 +61,7 @@ project "TsoEngine"
 		"GLFW",
 		"Glad",
 		"ImGui",
+		"yaml-cpp",
 		"opengl32.lib"
 	}
 
