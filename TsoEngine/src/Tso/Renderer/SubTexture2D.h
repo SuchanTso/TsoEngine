@@ -24,6 +24,8 @@ public:
     
     std::vector<glm::vec2>& GetTexCoords(){return m_Coords;}
     
+    void RecalculateCoords(const glm::vec2& spriteSize , const glm::vec2& index , const glm::vec2& size);
+    
 private:
     Ref<Texture2D> m_Texture = nullptr;
     std::vector<glm::vec2> m_Coords;

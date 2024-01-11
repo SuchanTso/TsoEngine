@@ -21,6 +21,8 @@ namespace Tso {
 		virtual void Bind(const unsigned int slot = 0)const override;
         
         virtual void SetData(void* data)override;
+        
+        virtual std::string& GetPath()override{return m_TexturePath;}
 
 		virtual bool operator==(const Texture& other)const override {
 			return m_RendererID == ((OpenGLTexture2D&)other).m_RendererID;
@@ -33,6 +35,8 @@ namespace Tso {
 		unsigned int m_RendererID;
         
         GLenum  m_InternalChannel = 0, m_RGB = 0;
+        
+        std::string m_TexturePath = "";
 	};
 
 }

@@ -8,6 +8,8 @@
 #include "Tso/Scene/Entity.h"
 #include "Tso/Scene/Seriealizer.h"
 
+#include <objc/objc-runtime.h>
+
 
 namespace Tso {
     EditorLayer::EditorLayer()
@@ -35,25 +37,7 @@ namespace Tso {
         FrameBufferInfo info = { (uint32_t)m_ViewportSize.x , (uint32_t)m_ViewportSize.y , false };
         m_FrameBuffer = FrameBuffer::Create(info);
 
-        m_TrianglePos = glm::vec3(0.0, 0.0, 0.1);
-
-        m_MoveData.startTime = m_Time;
-        m_MoveData.targetPos = glm::vec2(0.0, 0.0);
-        m_MoveData.originPos = glm::vec2(0.0, 0.0);
-
-        
-
-        /*auto e = m_Scene->CreateEntity("EEEE");
-
-        e.AddComponent<NativeScriptComponent>().Bind<CircleBehavior>();*/
-
-//        auto t = m_Scene->CreateEntity("Static Quad");
-
-//        m_CameraEntity = m_Scene->CreateEntity("MainCamera");
-//        m_CameraEntity.RemoveComponent<Renderable>();
-//        auto& camera = m_CameraEntity.AddComponent<CameraComponent>();
-//        camera.m_Pramiary = true;
-//        m_CameraEntity.AddComponent<NativeScriptComponent>().Bind<Controlable>();
+    
 
 
     }
@@ -139,11 +123,13 @@ namespace Tso {
             {
                 // Disabling fullscreen would allow the window to be moved to the front of other windows,
                 // which we can't undo at the moment without finer window depth/z control.
-                ImGui::MenuItem("Fullscreen", NULL, &opt_fullscreen);
-                ImGui::MenuItem("Padding", NULL, &opt_padding);
-                ImGui::Separator();
 
-                ImGui::Separator();
+                
+                if (ImGui::MenuItem("New", NULL, false)) {
+                    m_Scene.reset();
+                    m_Scene = std::make_shared<Scene>();
+                    m_Panel.SetContext(m_Scene);
+                }
 
                 if (ImGui::MenuItem("Save", NULL, false)) {
                     Seriealizer seriealizer(m_Scene.get());
@@ -151,6 +137,11 @@ namespace Tso {
                 }
                 
                 if (ImGui::MenuItem("Load", NULL, false)) {
+                    if(m_Scene != nullptr){
+                        m_Scene.reset();
+                        m_Scene = std::make_shared<Scene>();
+                        m_Panel.SetContext(m_Scene);
+                    }
                     Seriealizer seriealizer(m_Scene.get());
                     seriealizer.DeseriealizeScene("asset/testScene.teScene");
                 }
@@ -193,7 +184,6 @@ namespace Tso {
 //                if(!camera.FixedAspectRatio){
 //                    camera.m_Camera.SetViewportSize(m_ViewportSize.x , m_ViewportSize.y);
 //                }
-                        //m_CameraController.OnResize(m_ViewportSize.x, m_ViewportSize.y);
             }
             uint32_t fbId = m_FrameBuffer->GetColorAttachment();
 
@@ -206,49 +196,16 @@ namespace Tso {
     }
 
 
-    template<typename T>
-    T EditorLayer::LinearInterpretMove(const float& start, const float& duration, const float& timestamp, const T& pos, const T& target, bool& movable) {
-        if (timestamp > start + duration) {
-            movable = false;
-            return target;
-        }
-        if (!movable) {
-            return pos;
-        }
-        float ratio = (timestamp - start) / duration;
-        T res = (target - pos) * ratio + pos;
-        //    TSO_INFO("moving , start from {0} , duration is {1} , time = {2}" , start , duration , timestamp);
-
-        return res;
-    }
-
 
     void EditorLayer::OnUpdate(TimeStep ts)
     {
 
         Renderer2D::ResetStat();
-        if(m_ViewportFocused){
-            m_CameraController.OnUpdate(ts);
-        }
 
         m_FrameBuffer->Bind();
-//        Renderer2D::BeginScene(m_CameraController.GetCamera());
-        RenderCommand::SetClearColor({ 0.1f, 0.1f, 0.1f, 1.f });
-        RenderCommand::Clear();
+        
         m_Scene->OnUpdate(ts);
         
-
-
-//        for (float x = -5.0f; x < 5.0f; x += 0.5f) {
-//            for (float y = -5.0f; y < 5.0f; y += 0.5f) {
-//                glm::vec4 color = { (x + 5.0) / 10.0 ,0.4 , (y + 5.0) / 10.0 ,1.0 };
-//                Renderer2D::DrawQuad({ x , y , 0.8f}, { 0.45 , 0.45 }, color);
-//            }
-//        }
-        //Renderer2D::DrawQuad({ 0.f , 0.f , 0.8f }, { 0.45f , 0.45f }, { 0.8f , 0.3f , 0.2f , 1.f });
-
-
-        Renderer2D::EndScene();
         m_FrameBuffer->UnBind();
 
         m_Time += ts.GetSecond();

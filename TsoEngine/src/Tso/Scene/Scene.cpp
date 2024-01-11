@@ -26,14 +26,14 @@ void Scene::OnUpdate(TimeStep ts)
     m_Registry.view<NativeScriptComponent>().each([=](auto entity, auto& nsc)
         {
             // TODO: Move to Scene::OnScenePlay
-            if (!nsc.Instance)
+            if (!nsc.Instance && nsc.hasBind)
             {
                 nsc.Instance = nsc.InstantiateScript();
                 nsc.Instance->m_Entity = Entity{ entity, this };
                 nsc.Instance->OnCreate();
             }
-
-            nsc.Instance->OnUpdate(ts);
+            if(nsc.hasBind)
+                nsc.Instance->OnUpdate(ts);
         });
 
     auto view = m_Registry.view<TransformComponent, CameraComponent>();
@@ -49,6 +49,8 @@ void Scene::OnUpdate(TimeStep ts)
         }
     }
 
+    RenderCommand::SetClearColor({ 0.1f, 0.1f, 0.1f, 1.f });
+    RenderCommand::Clear();
     if (mainCamera) {
         Renderer2D::BeginScene(*mainCamera, *mainCameraTransfrom);
         
@@ -56,8 +58,19 @@ void Scene::OnUpdate(TimeStep ts)
         for (auto& entity : group) {
             const auto& [render, trans] = group.get<Renderable, TransformComponent>(entity);
             auto transform = trans.GetTransform();
-            Renderer2D::DrawQuad(transform,render.m_Color);
+            if(render.type == RenderType::PureColor){
+                Renderer2D::DrawQuad(transform,render.m_Color);
+            }
+            else{
+                if(render.isSubtexture){
+                    Renderer2D::DrawQuad(transform,render.subTexture);
+                }
+                else{
+                    Renderer2D::DrawQuad(transform,render.subTexture->GetTexture());
+                }
+            }
         }
+        Renderer2D::EndScene();
     }
 
     

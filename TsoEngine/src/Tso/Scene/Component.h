@@ -4,6 +4,8 @@
 #include "Tso/Core/TimeStep.h"
 #include "ScriptableEntity.h"
 #include "SceneCamera.h"
+#include "Tso/Renderer/Texture.h"
+#include "Tso/Renderer/SubTexture2D.h"
 
 namespace Tso {
 
@@ -43,13 +45,27 @@ namespace Tso {
         glm::mat4 m_Transform = glm::mat4(1.0f);
 	};
 
+
+    enum RenderType {
+        PureColor = 0,
+        Texture = 1
+    };
+
 	struct Renderable  {
+        
 		Renderable() = delete;
 		Renderable(const glm::vec4& color);
 
 		void Render(const glm::mat4& transform);
 
+        RenderType type = PureColor;
+        bool isSubtexture = false;
 		glm::vec4 m_Color = glm::vec4(0.3 , 0.8 , 0.2 , 1.0);
+        Ref<SubTexture2D> subTexture;
+        
+        glm::vec2 spriteSize = {1.0 , 1.0};
+        glm::vec2 textureIndex = {0.0 , 0.0};
+        glm::vec2 textureSize = {1.0 , 1.0};
 	};
 
 	struct TagComponent  {
@@ -69,9 +85,9 @@ namespace Tso {
 	struct NativeScriptComponent {
 
 		ScriptableEntity* Instance = nullptr;
-		std::string test = "null";
 
 		ScriptableEntity* (*InstantiateScript)();
+        bool hasBind = false;
 		//std::function<ScriptableEntity* ()>InstantiateScript;
 		void (*DestroyScript)(NativeScriptComponent*);
 
@@ -79,17 +95,11 @@ namespace Tso {
 		void Bind()
 		{
 			auto lambda = []()->ScriptableEntity* {
-				TSO_INFO("On Bind!"); return static_cast<ScriptableEntity*>(new T());
+				 return static_cast<ScriptableEntity*>(new T());
 				};
 			InstantiateScript = lambda;
-			if (InstantiateScript) {
-				TSO_CORE_INFO("BIiiid not null");
-				test = "not null";
-			}
-			else {
-				TSO_CORE_INFO("BIiiid but null");
-			}
-			DestroyScript = [](NativeScriptComponent* nsc) { delete nsc->Instance; nsc->Instance = nullptr; };
+            DestroyScript = [](NativeScriptComponent* nsc) { delete nsc->Instance; nsc->Instance = nullptr; };
+            hasBind = true;
 		}
 
 	};

@@ -110,14 +110,55 @@ namespace Tso {
 			}
 		}
 
-		if (entity.HasComponent<Renderable>()) {
-			if (ImGui::TreeNodeEx("Renderable", ImGuiTreeNodeFlags_OpenOnArrow)) {
-				auto& comp = entity.GetComponent<Renderable>();
-				ImGui::ColorEdit4("color", glm::value_ptr(comp.m_Color));
-				ImGui::TreePop();
-			}
-		}
-
+        if (entity.HasComponent<Renderable>()) {
+            auto& comp = entity.GetComponent<Renderable>();
+            
+            bool open = ImGui::TreeNodeEx("Renderable", ImGuiTreeNodeFlags_OpenOnArrow);
+            std::string QuadRenderType[2] = { "PureColor" , "Texture" };
+            std::string currentRenderType = QuadRenderType[(int)comp.type];
+            if(open){
+                if (ImGui::BeginCombo("RenderType", currentRenderType.c_str())) {
+                    for (int i = 0; i < 2; i++)
+                    {
+                        bool isSelected = currentRenderType == QuadRenderType[i];
+                        if (ImGui::Selectable(QuadRenderType[i].c_str(), isSelected))
+                        {
+                            currentRenderType = QuadRenderType[i];
+                            comp.type = (RenderType)i;
+                        }
+                        
+                        if (isSelected)
+                            ImGui::SetItemDefaultFocus();
+                    }
+                    
+                    ImGui::EndCombo();
+                }
+                bool removeComponent = false;
+                
+                if(comp.type == RenderType::PureColor){
+                    ImGui::ColorEdit4("color", glm::value_ptr(comp.m_Color));
+                }
+                else if(comp.type == RenderType::Texture){
+                    bool isSubTexture = comp.isSubtexture;
+                    ImGui::Checkbox("isSubtexture", &isSubTexture);
+                    if(isSubTexture){
+                        bool spriteSizeDirty = ImGui::DragFloat2("SpriteSize" , glm::value_ptr(comp.spriteSize) , 1.0f);
+                        bool spriteIndexDirty = ImGui::DragFloat2("SpriteIndex" , glm::value_ptr(comp.textureIndex) , 1.0f);
+                        bool textureSizeDirty = ImGui::DragFloat2("TextureSize" , glm::value_ptr(comp.textureSize) , 1.0f);
+                        if(spriteSizeDirty || spriteIndexDirty || textureSizeDirty){
+                            comp.subTexture->RecalculateCoords(comp.spriteSize, comp.textureIndex, comp.textureSize);
+                        }
+                    }
+                }
+                if (ImGui::MenuItem("Remove component"))
+                    removeComponent = true;
+                ImGui::TreePop();
+                
+                if(removeComponent){
+                    entity.RemoveComponent<Renderable>();
+                }
+            }
+        }
 		if (entity.HasComponent<CameraComponent>()) {
 			if (ImGui::TreeNodeEx("Camera", ImGuiTreeNodeFlags_OpenOnArrow)) {
 				std::string projectionTypeStrings[2] = { "Projection" , "Orthographic" };
@@ -176,6 +217,28 @@ namespace Tso {
 				ImGui::TreePop();
 			}
 		}
+        
+        if (entity.HasComponent<NativeScriptComponent>()) {
+            bool open = ImGui::TreeNodeEx("NativeScript", ImGuiTreeNodeFlags_OpenOnArrow);
+            bool removeComponent = false;
+            
+            if(open){
+                auto& comp = entity.GetComponent<NativeScriptComponent>();
+                
+                if (ImGui::MenuItem("testAddBehavior")){
+                    comp.Bind<Controlable>();
+                }
+                if (ImGui::MenuItem("Remove component"))
+                    removeComponent = true;
+                ImGui::TreePop();
+            }
+            if(removeComponent){
+                entity.RemoveComponent<NativeScriptComponent>();
+            }
+            
+        }
+        
+        
 	}
 
 
