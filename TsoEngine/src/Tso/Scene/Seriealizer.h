@@ -13,10 +13,13 @@ namespace Tso {
 		void SeriealizeScene(const std::string& path);
         
         bool DeseriealizeScene(const std::string& path);
+        
+        Ref<Texture2D> GetTextureByPath(std::string& path);
 
 
 	private:
 		Scene* m_Scene;
+        std::unordered_map<std::string, Ref<Texture2D>> m_TextureCache;
 	};
 
 }

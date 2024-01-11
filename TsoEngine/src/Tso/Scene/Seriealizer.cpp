@@ -4,10 +4,34 @@
 #include "Tso/Scene/Component.h"
 #include <fstream>
 #include "yaml-cpp/yaml.h"
+#include "Tso/Renderer/Texture.h"
 
 
 namespace YAML
 {
+    template<>
+    struct convert<glm::vec2>
+    {
+        static Node encode(const glm::vec2& rhs)
+        {
+            Node node;
+            node.push_back(rhs.x);
+            node.push_back(rhs.y);
+            node.SetStyle(EmitterStyle::Flow);
+            return node;
+        }
+        
+        static bool decode(const Node& node, glm::vec2& rhs)
+        {
+            if (!node.IsSequence() || node.size() != 2)
+                return false;
+            
+            rhs.x = node[0].as<float>();
+            rhs.y = node[1].as<float>();
+            return true;
+        }
+    };
+
     template<>
     struct convert<glm::vec3>
     {
@@ -62,10 +86,17 @@ namespace YAML
 }
 
 namespace Tso {
-    Seriealizer::Seriealizer(Scene* scene)
-        :m_Scene(scene)
-    {
-    }
+Seriealizer::Seriealizer(Scene* scene)
+:m_Scene(scene)
+{
+}
+
+YAML::Emitter& operator<<(YAML::Emitter& out, const glm::vec2& v)
+{
+    out << YAML::Flow;
+    out << YAML::BeginSeq << v.x << v.y << YAML::EndSeq;
+    return out;
+}
 
 YAML::Emitter& operator<<(YAML::Emitter& out, const glm::vec3& v)
 {
@@ -127,7 +158,7 @@ static void SeriealizeEntity(YAML::Emitter& out, Entity& entity)
         out << YAML::Key << "Primary" << YAML::Value << comp.m_Pramiary;
         
         out << YAML::Key << "FixedAspect" << YAML::Value << comp.FixedAspectRatio;
-
+        
         out << YAML::EndMap; // CameramComponent
     }
     
@@ -136,15 +167,27 @@ static void SeriealizeEntity(YAML::Emitter& out, Entity& entity)
         out << YAML::Key << "RenderableComponent";
         out << YAML::BeginMap; // RenderableComponent
         auto& comp = entity.GetComponent<Renderable>();
+        out << YAML::Key << "Type" << YAML::Value << (int)comp.type;
+        
         out << YAML::Key << "Color" << YAML::Value << comp.m_Color;
+        
+        
+        if(comp.subTexture){
+            out << YAML::Key << "TexturePath" << YAML::Value << comp.subTexture->GetTexture()->GetPath();
+            out << YAML::Key << "SubTexture" << YAML::Value << comp.isSubtexture;
+            out << YAML::Key << "SpriteSize" << YAML::Value << comp.spriteSize;
+            out << YAML::Key << "SpriteIndex" << YAML::Value << comp.textureIndex;
+            out << YAML::Key << "TextureSize" << YAML::Value << comp.textureSize;
+            
+        }
         out << YAML::EndMap; // RenderableComponent
     }
     out << YAML::EndMap; // Entity
-
+    
 }
 
 
-	
+
 
 
 void Seriealizer::SeriealizeScene(const std::string& path)
@@ -153,18 +196,18 @@ void Seriealizer::SeriealizeScene(const std::string& path)
     out << YAML::BeginMap;
     out << YAML::Key << "Scene" << YAML::Value << "Untitled";
     out << YAML::Key << "Entities" << YAML::Value << YAML::BeginSeq;
-
+    
     m_Scene->m_Registry.each([&](auto entityID)
-        {
-            Entity entity = { entityID, m_Scene };
-            if (entityID == entt::null)
-                return;
-
-            SeriealizeEntity(out, entity);
-        });
+                             {
+        Entity entity = { entityID, m_Scene };
+        if (entityID == entt::null)
+            return;
+        
+        SeriealizeEntity(out, entity);
+    });
     out << YAML::EndSeq;
     out << YAML::EndMap;
-
+    
     std::ofstream fout(path);
     fout << out.c_str();
 }
@@ -178,16 +221,16 @@ bool Seriealizer::DeseriealizeScene(const std::string& path){
     }
     catch (YAML::ParserException e)
     {
-        TSO_CORE_ERROR("Failed to load .hazel file '{0}'\n     {1}", path, e.what());
+        TSO_CORE_ERROR("Failed to load .teScene file '{0}'\n     {1}", path, e.what());
         return false;
     }
-
+    
     if (!data["Scene"])
         return false;
     
     std::string sceneName = data["Scene"].as<std::string>();
     TSO_CORE_TRACE("Deserializing scene '{0}'", sceneName);
-
+    
     auto entities = data["Entities"];
     if(entities){
         for(auto entity : entities){
@@ -220,15 +263,28 @@ bool Seriealizer::DeseriealizeScene(const std::string& path){
                 camera.SetOrthographicFarClip(cameraComponent["OrthographicFar"] ? cameraComponent["OrthographicFar"].as<float>() : 1.f);
                 cameraComp.m_Pramiary = cameraComponent["Primary"] ? cameraComponent["Primary"].as<bool>() : false;
                 cameraComp.FixedAspectRatio = cameraComponent["FixedAspect"] ? cameraComponent["FixedAspect"].as<bool>() : false;
-
+                
             }
             
             auto renderComponent = entity["RenderableComponent"];
             if(renderComponent){
                 auto& renderComp = deserializedEntity.GetComponent<Renderable>();
                 renderComp.m_Color = renderComponent["Color"] ? renderComponent["Color"].as<glm::vec4>() : glm::vec4(1.0f);
+                renderComp.type = (RenderType)(renderComponent["Type"] ? renderComponent["Type"].as<int>() : 0);
+                renderComp.isSubtexture = renderComponent["SubTexture"] ? renderComponent["SubTexture"].as<bool>() : false;
+                if(renderComponent["TexturePath"]){
+                    auto texturePath = renderComponent["TexturePath"].as<std::string>();
+                    auto texture = GetTextureByPath(texturePath);
+                    glm::vec2 spriteSize = renderComponent["SpriteSize"] ? renderComponent["SpriteSize"].as<glm::vec2>() : glm::vec2(1.0f , 1.0f);
+                    glm::vec2 spriteIndex = renderComponent["SpriteIndex"] ? renderComponent["SpriteIndex"].as<glm::vec2>() : glm::vec2(0.0f , 0.0f);
+                    glm::vec2 texSize = renderComponent["TextureSize"] ? renderComponent["TextureSize"].as<glm::vec2>() : glm::vec2(1.0f , 1.0f);
+                    renderComp.spriteSize = spriteSize;
+                    renderComp.textureIndex = spriteIndex;
+                    renderComp.textureSize = texSize;
+                    renderComp.subTexture = SubTexture2D::CreateByCoord(texture, spriteSize, spriteIndex, texSize);
+                }
             }
-
+            
             
             
         }
@@ -236,6 +292,14 @@ bool Seriealizer::DeseriealizeScene(const std::string& path){
     
     return res;
 }
+
+Ref<Texture2D> Seriealizer::GetTextureByPath(std::string& path){
+    if(m_TextureCache.find(path) == m_TextureCache.end()){
+        m_TextureCache[path] = Texture2D::Create(path);
+    }
+    return m_TextureCache[path];
+}
+
 
 
 	

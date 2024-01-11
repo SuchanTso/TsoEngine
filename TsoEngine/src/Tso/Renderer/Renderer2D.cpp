@@ -187,9 +187,11 @@ void Renderer2D::Flush() {
     for (uint32_t i = 0; i < s_Data.QuadTextureIndex; i++) {
         s_Data.QuadTextureSlots[i]->Bind(i);
     }
-    RenderCommand::DrawIndexed(s_Data.QuadVertextArray, s_Data.QuadIndexCount);
-
-    s_Data.Stat.DrawCalls++;
+    if(s_Data.QuadIndexCount){
+        RenderCommand::DrawIndexed(s_Data.QuadVertextArray, s_Data.QuadIndexCount);
+        
+        s_Data.Stat.DrawCalls++;
+    }
 }
 
 void Renderer2D::FlushAndRest()

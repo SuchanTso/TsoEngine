@@ -28,6 +28,8 @@ namespace Tso {
 		virtual void Bind(const unsigned int slot = 0)const override = 0;
         
         virtual void SetData(void* data) = 0;
+        
+        virtual std::string& GetPath() = 0;
 
 		static Ref<Texture2D> Create(std::string& path);
         
