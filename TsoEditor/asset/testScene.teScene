@@ -1,0 +1,82 @@
+Scene: Untitled
+Entities:
+  - Entity: 4
+    TagComponent:
+      Tag: Spider
+    TransformComponent:
+      Translate: [-5.96999979, -1.66133881, 2.0999999]
+      Rotation: [0, 0, -35.7999992]
+      Scale: [1, 1, 1]
+    RenderableComponent:
+      Type: 1
+      Color: [0.970588207, 1, 0, 1]
+      TexturePath: asset/tilemap_packed.png
+      SubTexture: true
+      SpriteSize: [16, 16]
+      SpriteIndex: [22, 24]
+      TextureSize: [1, 1]
+  - Entity: 3
+    TagComponent:
+      Tag: Character1
+    TransformComponent:
+      Translate: [-2.68662977, 0.727653503, 1.89999998]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    RenderableComponent:
+      Type: 1
+      Color: [0.970588207, 1, 0, 1]
+      TexturePath: asset/tilemap_packed.png
+      SubTexture: true
+      SpriteSize: [16, 16]
+      SpriteIndex: [3, 12]
+      TextureSize: [1, 1]
+  - Entity: 2
+    TagComponent:
+      Tag: test
+    TransformComponent:
+      Translate: [1.41704369, 2.92857027, 1.79999995]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    RenderableComponent:
+      Type: 1
+      Color: [0.970588207, 1, 0, 1]
+      TexturePath: asset/frame1.png
+      SubTexture: true
+      SpriteSize: [538, 551]
+      SpriteIndex: [0, 0]
+      TextureSize: [1, 1]
+  - Entity: 1
+    TagComponent:
+      Tag: axe
+    TransformComponent:
+      Translate: [-3.33562994, 0.735139847, 1.79999995]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    RenderableComponent:
+      Type: 1
+      Color: [0.970588207, 1, 0, 1]
+      TexturePath: asset/tilemap_packed.png
+      SubTexture: true
+      SpriteSize: [16, 16]
+      SpriteIndex: [11, 12]
+      TextureSize: [1, 1]
+  - Entity: 0
+    TagComponent:
+      Tag: MainCamera
+    TransformComponent:
+      Translate: [0, 0, 4]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    CamermaComponent:
+      ProjectionType: 1
+      ProjectionNearClip: 0.00999999978
+      ProjectionFarClip: 1000
+      ProjectionFov: 0.785398185
+      OrthographicNear: 1
+      OrthographicFar: 5
+      OrthographicSize: 10
+      Primary: true
+      FixedAspect: false
+    RenderableComponent:
+      Type: 0
+      Color: [0.600000024, 0.300000012, 0.200000003, 1]
