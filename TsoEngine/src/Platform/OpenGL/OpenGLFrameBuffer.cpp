@@ -25,6 +25,7 @@ namespace Tso {
 	void OpenGLFrameBuffer::Bind()
 	{
 		glBindFramebuffer(GL_FRAMEBUFFER, m_RendererID);
+		glViewport(0, 0, m_FrameInfo.width, m_FrameInfo.height);
 
 	}
 	void OpenGLFrameBuffer::UnBind()

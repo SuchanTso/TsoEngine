@@ -139,9 +139,8 @@ namespace Tso {
                     ImGui::ColorEdit4("color", glm::value_ptr(comp.m_Color));
                 }
                 else if(comp.type == RenderType::Texture){
-                    bool isSubTexture = comp.isSubtexture;
-                    ImGui::Checkbox("isSubtexture", &isSubTexture);
-                    if(isSubTexture){
+                    ImGui::Checkbox("isSubtexture", &comp.isSubtexture);
+                    if(comp.isSubtexture){
                         bool spriteSizeDirty = ImGui::DragFloat2("SpriteSize" , glm::value_ptr(comp.spriteSize) , 1.0f);
                         bool spriteIndexDirty = ImGui::DragFloat2("SpriteIndex" , glm::value_ptr(comp.textureIndex) , 1.0f);
                         bool textureSizeDirty = ImGui::DragFloat2("TextureSize" , glm::value_ptr(comp.textureSize) , 1.0f);

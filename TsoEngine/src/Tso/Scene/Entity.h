@@ -1,6 +1,7 @@
 #pragma once
 #include "Scene.h"
 #include <utility>
+#include "Tso/Core/Log.h"
 
 
 namespace Tso {

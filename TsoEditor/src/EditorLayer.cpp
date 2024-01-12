@@ -8,7 +8,6 @@
 #include "Tso/Scene/Entity.h"
 #include "Tso/Scene/Seriealizer.h"
 
-#include <objc/objc-runtime.h>
 
 
 namespace Tso {
