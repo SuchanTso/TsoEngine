@@ -10,3 +10,7 @@ TsoEngine.sln
 *.ipch
 *.vsidx
 *.db
+.vs/
+*.filters
+*.user
+*.vcxproj

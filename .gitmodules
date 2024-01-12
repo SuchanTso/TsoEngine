@@ -3,7 +3,7 @@
 	url = git@github.com:Zediakense/spdlog.git
 [submodule "TsoEngine/third_party/GLFW"]
 	path = TsoEngine/third_party/GLFW
-	url = git@github.com:TheCherno/glfw.git
+	url = git@github.com:Zediakense/glfw.git
 [submodule "TsoEngine/third_party/imgui"]
 	path = TsoEngine/third_party/imgui
 	url = git@github.com:Zediakense/imgui.git
