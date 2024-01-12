@@ -19,7 +19,7 @@ TransformComponent::TransformComponent(const TransformComponent& transform)
 TransformComponent::TransformComponent(const glm::vec3& pos)
     :m_Translation(pos)
 {
-    TSO_CORE_INFO("get pos = [{0} , {1} , {2}]", pos.x, pos.y, pos.z);
+    //TSO_CORE_INFO("get pos = [{0} , {1} , {2}]", pos.x, pos.y, pos.z);
 }
 
 

@@ -7,13 +7,12 @@
 #include "glm/gtc/type_ptr.hpp"
 #include "Tso/Scene/Entity.h"
 #include "Tso/Scene/Seriealizer.h"
-
+#include "Tso/Utils/PlatformUtils.h"
 
 
 namespace Tso {
     EditorLayer::EditorLayer()
         :Layer("EditorLayer"),
-        m_CameraController(1280.0 / 720, true),
         m_TrianglePos(glm::vec3(0.f))
     {
         m_ShaderLibrary = std::make_shared<ShaderLibrary>();
@@ -130,19 +129,16 @@ namespace Tso {
                     m_Panel.SetContext(m_Scene);
                 }
 
-                if (ImGui::MenuItem("Save", NULL, false)) {
-                    Seriealizer seriealizer(m_Scene.get());
-                    seriealizer.SeriealizeScene("asset/testScene.teScene");
+                if (ImGui::MenuItem("Save", "Ctrl + S")) {
+                    SaveScene();
+                }
+
+                if (ImGui::MenuItem("Save As..", "Ctrl + S")) {
+                    SaveSceneAs();
                 }
                 
-                if (ImGui::MenuItem("Load", NULL, false)) {
-                    if(m_Scene != nullptr){
-                        m_Scene.reset();
-                        m_Scene = std::make_shared<Scene>();
-                        m_Panel.SetContext(m_Scene);
-                    }
-                    Seriealizer seriealizer(m_Scene.get());
-                    seriealizer.DeseriealizeScene("asset/testScene.teScene");
+                if (ImGui::MenuItem("Load", "Ctrl + L")) {
+                    m_ScenePath = LoadScene();
                 }
 
                 if (ImGui::MenuItem("Close", NULL, false)){
@@ -166,8 +162,6 @@ namespace Tso {
             ImGui::Text("QuadsCount : %d ", stat.QuadCount);
             ImGui::Text("QuadVertices : %d", stat.GetTotalVertexCount());
             ImGui::Text("QuadIndices : %d", stat.GetTotalIndexCount());
-
-            ImGui::DragFloat3("ComeraPos", glm::value_ptr(m_CameraController.GetCamera().GetPosition()));
 
             ImGui::End();
 
@@ -209,6 +203,15 @@ namespace Tso {
 
         m_Time += ts.GetSecond();
 
+        if (Input::IsKeyPressed(TSO_KEY_LEFT_CONTROL)) {
+            if (Input::IsKeyPressed(TSO_KEY_L)) {
+                m_ScenePath = LoadScene();
+            }
+            if (Input::IsKeyPressed(TSO_KEY_S)) {
+                SaveScene();
+            }
+        }
+
     }
 
     void EditorLayer::OnEvent(Event& event)
@@ -216,7 +219,6 @@ namespace Tso {
         EventDispatcher dispatcher(event);
         dispatcher.Dispatch<MouseButtonPressedEvent>(BIND_EVENT_FN(EditorLayer::OnMouseButton));
         dispatcher.Dispatch<MouseMovedEvent>(BIND_EVENT_FN(EditorLayer::OnMouseMove));
-        m_CameraController.OnEvent(event);
 
     }
 
@@ -249,6 +251,42 @@ namespace Tso {
         m_MouseY = e.GetY();
 
         return false;
+    }
+
+    std::string EditorLayer::LoadScene()
+    {
+        auto ScenePath = FileDialogs::OpenFile("Tso Scene(*.teScene)\0 * .teScene\0");
+        if (!ScenePath.empty()) {
+            if (m_Scene != nullptr) {
+                m_Scene.reset();
+                m_Scene = std::make_shared<Scene>();
+                m_Panel.SetContext(m_Scene);
+            }
+            Seriealizer seriealizer(m_Scene.get());
+            seriealizer.DeseriealizeScene(ScenePath);
+        }
+        return ScenePath;
+    }
+
+    void EditorLayer::SaveScene()
+    {
+        if (m_ScenePath.empty()) {
+            m_ScenePath = SaveSceneAs();
+        }
+        else {
+            Seriealizer seriealizer(m_Scene.get());
+            seriealizer.SeriealizeScene(m_ScenePath);
+        }
+    }
+
+    std::string EditorLayer::SaveSceneAs()
+    {
+        auto savePath = FileDialogs::SaveFile("Tso Scene(*.teScene)\0 * .teScene\0");
+        if (!savePath.empty()) {
+            Seriealizer seriealizer(m_Scene.get());
+            seriealizer.SeriealizeScene(savePath);
+        }
+        return savePath;
     }
 
 }
