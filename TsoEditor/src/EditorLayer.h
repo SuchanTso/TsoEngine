@@ -31,16 +31,19 @@ namespace Tso {
         virtual void OnEvent(Event& event)override;
 
     private:
-        template<typename T>
-        T LinearInterpretMove(const float& start, const float& duration, const float& timestamp, const T& pos, const T& target, bool& movable);
 
         bool OnMouseButton(MouseButtonPressedEvent& e);
 
         bool OnMouseMove(MouseMovedEvent& e);
 
+        std::string LoadScene();
+
+        void SaveScene();
+
+        std::string SaveSceneAs();
+
     private:
 
-        OrthographicCameraController m_CameraController;
         glm::vec3 m_TrianglePos;
         Ref<Shader> m_Shader;
         Ref<ShaderLibrary> m_ShaderLibrary;
@@ -55,6 +58,7 @@ namespace Tso {
         bool m_LpMovable = false;
         float m_Time = 0.0;
         MovaData m_MoveData;
+        std::string m_ScenePath = "";
 
         float m_MouseX = 0.f, m_MouseY = 0.f;
         bool m_ViewportFocused = false;

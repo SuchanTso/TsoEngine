@@ -211,6 +211,8 @@ namespace Tso {
 						camera.SetOrthographicFarClip(orthoFar);
 
 					ImGui::Checkbox("Fixed Aspect Ratio", &component.FixedAspectRatio);
+                    ImGui::Checkbox("Primary", &component.m_Pramiary);
+
 				}
 
 				ImGui::TreePop();
