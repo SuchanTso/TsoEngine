@@ -3,18 +3,18 @@ workspace "TsoEngine"
     configurations { "Debug", "Release", "Dist" }
 	startproject "TsoEditor"
 
---µ±Ç°Â·¾¶Îªpremake5.luaËùÔÚÂ·¾¶
+--ï¿½ï¿½Ç°Â·ï¿½ï¿½Îªpremake5.luaï¿½ï¿½ï¿½ï¿½Â·ï¿½ï¿½
 --create outputdir macro
 outputdir = "%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}"
 
---Ê¹ÓÃsubmoduleµÄpremake5.luaÎÄ¼þ
+--Ê¹ï¿½ï¿½submoduleï¿½ï¿½premake5.luaï¿½Ä¼ï¿½
 include "TsoEngine/third_party/GLFW"
 include "TsoEngine/third_party/Glad"
 include "TsoEngine/third_party/imgui"
 include "TsoEngine/third_party/yaml-cpp"
 
 project "TsoEngine"
-    location "%{prj.name}" -- ÕâÀïµÄlocationÊÇÉú³ÉµÄvcprojµÄÎ»ÖÃ, ÓëtargetdirºÍobjdir²»Í¬
+    location "%{prj.name}" -- ï¿½ï¿½ï¿½ï¿½ï¿½locationï¿½ï¿½ï¿½ï¿½ï¿½Éµï¿½vcprojï¿½ï¿½Î»ï¿½ï¿½, ï¿½ï¿½targetdirï¿½ï¿½objdirï¿½ï¿½Í¬
     kind "StaticLib"
     language "C++"
 	staticruntime "off"
@@ -39,7 +39,9 @@ project "TsoEngine"
 		"%{prj.name}/third_party/**.hpp",
 		"%{prj.name}/third_party/entt/entt.hpp",
 		"%{prj.name}/third_party/stb_image/**.h",
-		"%{prj.name}/third_party/stb_image/**.cpp"
+		"%{prj.name}/third_party/stb_image/**.cpp",
+		"%{prj.name}/third_party/entt/entt.hpp",
+		"%{prj.name}/third_party/yaml-cpp/include/yaml-cpp/**.h"
 	}
 
 	includedirs
@@ -55,6 +57,14 @@ project "TsoEngine"
 		"%{prj.name}/third_party/entt",
 		"%{prj.name}/third_party/yaml-cpp/include"
 	}
+
+	links{
+		"GLFW",
+		"Glad",
+		"ImGui",
+		"yaml-cpp",
+		"opengl32.lib"
+	}
 	
 	--filter "files:'%{prj.name}'/vendor/imguizmo/ImGuizmo.cpp"
 	--filter "files:Hazel/vendor/imguizmo/ImGuizmo.cpp"
@@ -68,13 +78,28 @@ project "TsoEngine"
 		postbuildcommands
 		{
 		    -- "copy default.config bin\\project.config"
-			-- copy from relative path to ... ×¢ÒâÕâÀïµÄCOPYÇ°ÃæÃ»ÓÐ%
+			-- copy from relative path to ... ×¢ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½COPYÇ°ï¿½ï¿½Ã»ï¿½ï¿½%
 		    ("{COPY} %{cfg.buildtarget.relpath} \"../bin/" ..outputdir.."/Sandbox/\"")
 		}
 
+		filter "system:macosx"
+			cppdialect "C++17"
+			staticruntime "On"
+			systemversion "latest"
+
+			pchheader "src/TPch.h"
+			pchsource "%{prj.name}/src/TPch.cpp"
+
+			defines{
+				"TSO_PLATFORM_MACOSX",
+			}
+
     filter { "configurations:Debug" }
         defines { "TSO_DEBUG"}
-		buildoptions "/MTd"
+		symbols "On"
+		runtime "Debug" -- ï¿½ï¿½ï¿½ï¿½Ê±ï¿½ï¿½ï¿½Óµï¿½dllï¿½ï¿½debugï¿½ï¿½ï¿½Íµï¿½	
+		filter "system:windows"
+			buildoptions "/MTd"
 		-- in VS2019 that is Additional Library Directories
 		--libdirs
 		--{
@@ -90,13 +115,13 @@ project "TsoEngine"
 			--"libmono-static-sgen.lib"
 		--}
 		
-        symbols "On"
-		runtime "Debug" -- ÔËÐÐÊ±Á´½ÓµÄdllÊÇdebugÀàÐÍµÄ	
 
     filter { "configurations:Release"}
-        defines { "TSO_RELEASE"}
-		buildoptions "/MT"
-        optimize "On"
+	defines { "TSO_RELEASE"}
+	optimize "On"
+	runtime "Release" -- ï¿½ï¿½ï¿½ï¿½Ê±ï¿½ï¿½ï¿½Óµï¿½dllï¿½ï¿½releaseï¿½ï¿½ï¿½Íµï¿½
+		filter "system:windows"
+			buildoptions "/MT"
 		-- in VS2019 that is Additional Library Directories
 		--libdirs
 		--{
@@ -112,13 +137,13 @@ project "TsoEngine"
 			--"SPIRV-Tools.lib",
 			--"libmono-static-sgen.lib"
 		--}
-		runtime "Release" -- ÔËÐÐÊ±Á´½ÓµÄdllÊÇreleaseÀàÐÍµÄ
 
 
     filter { "configurations:Dist"}
 		defines { "TSO_DIST"}
-		buildoptions "/MT"
 	    optimize "On"
+		filter "system:windows"
+			buildoptions "/MT"
 
 project "Sandbox"
 	location "%{prj.name}"
@@ -150,20 +175,34 @@ project "Sandbox"
 	    systemversion "latest"
 		 defines { "TSO_PLATFORM_WINDOWS"}
 
+	filter "system:macosx"
+		 defines{
+				 "TSO_PLATFORM_MACOSX"
+		 }
+		 links{
+			 "Cocoa.framework",
+			 "IOKit.framework",
+			 "CoreVideo.framework",
+			 "OpenGL.framework"
+		 }
+
     filter { "configurations:Debug"}
         defines { "DEBUG"}
-		buildoptions "/MTd"
         symbols "On"
+		filter "system:windows"
+			buildoptions "/MTd"
 
     filter { "configurations:Release"}
         defines { "NDEBUG" }
-		buildoptions "/MT"
         optimize "On"
+		filter "system:windows"
+			buildoptions "/MT"
 
     filter { "configurations:Dist"}
 		defines { "NDEBUG"}
-		buildoptions "/MT"
 		optimize "On"
+		filter "system:windows"
+			buildoptions "/MT"
 
 
 project "TsoEditor"
@@ -212,12 +251,26 @@ project "TsoEditor"
 			"Version.lib",
 			"Winmm.lib"
 		}
+
+	filter "system:macosx"
+		defines{
+				"TSO_PLATFORM_MACOSX",
+				"TSO_EDITOR"
+
+		}
+		links{
+			"Cocoa.framework",
+			"IOKit.framework",
+			"CoreVideo.framework",
+			"OpenGL.framework"
+		}
 		
 
     filter { "configurations:Debug"}
         defines { "TSO_DEBUG"}
-		buildoptions "/MTd"
         symbols "On"
+		filter "system:windows"
+			buildoptions "/MTd"
 		
 		--libdirs
 		--{
@@ -232,13 +285,15 @@ project "TsoEditor"
 
     filter { "configurations:Release"}
         defines { "TSO_RELEASE" }
-		buildoptions "/MT"
         optimize "On"
+		filter "system:windows"
+			buildoptions "/MT"
 
     filter { "configurations:Dist"}
 		defines { "TSO_DIST"}
-		buildoptions "/MT"
 		optimize "On"
+		filter "system:windows"
+			buildoptions "/MT"
 
 
 --project "Hazel-ScriptCore"
