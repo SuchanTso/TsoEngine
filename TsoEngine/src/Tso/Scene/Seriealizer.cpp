@@ -182,6 +182,37 @@ static void SeriealizeEntity(YAML::Emitter& out, Entity& entity)
         }
         out << YAML::EndMap; // RenderableComponent
     }
+
+
+    if (entity.HasComponent<Rigidbody2DComponent>())
+    {
+        out << YAML::Key << "Rigidbody2DComponent";
+        out << YAML::BeginMap; // RenderableComponent
+        auto& comp = entity.GetComponent<Rigidbody2DComponent>();
+        out << YAML::Key << "Type" << YAML::Value << (int)comp.Type;
+
+        out << YAML::Key << "FixRotation" << YAML::Value << comp.FixedRotation;
+
+        out << YAML::EndMap; // RenderableComponent
+    }
+
+    if (entity.HasComponent<BoxCollider2DComponent>())
+    {
+        out << YAML::Key << "BoxCollider2DComponent";
+        out << YAML::BeginMap; // RenderableComponent
+        auto& comp = entity.GetComponent<BoxCollider2DComponent>();
+        out << YAML::Key << "Size" << YAML::Value << comp.Size;
+
+        out << YAML::Key << "Offset" << YAML::Value << comp.Offset;
+
+        out << YAML::Key << "Density" << YAML::Value << comp.Density;
+        out << YAML::Key << "Friction" << YAML::Value << comp.Friction;
+        out << YAML::Key << "Restitution" << YAML::Value << comp.Restitution;
+        out << YAML::Key << "RestitutionThreshold" << YAML::Value << comp.RestitutionThreshold;
+
+        out << YAML::EndMap; // RenderableComponent
+    }
+
     out << YAML::EndMap; // Entity
     
 }
@@ -288,6 +319,27 @@ bool Seriealizer::DeseriealizeScene(const std::string& path){
                     renderComp.textureSize = texSize;
                     renderComp.subTexture = SubTexture2D::CreateByCoord(texture, spriteSize, spriteIndex, texSize);
                 }
+            }
+
+            auto RigidBoxComponent = entity["Rigidbody2DComponent"];
+            if (RigidBoxComponent) {
+                auto& rbc = deserializedEntity.AddComponent< Rigidbody2DComponent>();
+                rbc.FixedRotation = RigidBoxComponent["FixedRotation"] ? RigidBoxComponent["FixedRotation"].as<bool>() : false; 
+                rbc.Type = Rigidbody2DComponent::BodyType(RigidBoxComponent["Type"] ? RigidBoxComponent["Type"].as<int>() : 0);
+
+            }
+
+
+            auto box2dcollide = entity["BoxCollider2DComponent"];
+            if (box2dcollide) {
+                auto& rbc = deserializedEntity.AddComponent<BoxCollider2DComponent>();
+                rbc.Density = box2dcollide["Density"] ? box2dcollide["Density"].as<float>() : 1.0f;
+                rbc.Friction = box2dcollide["Friction"] ? box2dcollide["Friction"].as<float>() : 0.5f;
+                rbc.Restitution = box2dcollide["Restitution"] ? box2dcollide["Restitution"].as<float>() : 2.0f;
+                rbc.RestitutionThreshold = box2dcollide["RestitutionThreshold"] ? box2dcollide["RestitutionThreshold"].as<float>() : 0.5f;
+
+                rbc.Size = box2dcollide["Size"] ? box2dcollide["Size"].as<glm::vec2>() : glm::vec2(0.5f , 0.5f);
+                rbc.Offset = box2dcollide["Offset"] ? box2dcollide["Offset"].as<glm::vec2>() : glm::vec2(0.0f, 0.0f);
             }
             
             

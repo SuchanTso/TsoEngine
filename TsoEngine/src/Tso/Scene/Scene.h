@@ -1,6 +1,9 @@
 #pragma once
 #include "entt.hpp"
 #include "Tso/Core/TimeStep.h"
+#include "Tso/Physics/CollideListener.h"
+
+class b2World;
 
 namespace Tso {
 	class Entity;
@@ -16,6 +19,10 @@ namespace Tso {
         
         void DeleteEntity(Entity entity);
 
+		void OnScenePlay();
+
+		void OnSceneStop();
+
 		void OnUpdate(TimeStep ts);
 
 		std::vector<std::string> GetSceneEntityNames();
@@ -26,6 +33,10 @@ namespace Tso {
 		float m_Time = 0.f;
 
 		uint32_t m_EntityCount = 0;
+
+		b2World* m_PhysicWorld = nullptr;
+
+		NativeContactListener* m_PhysicsListener = nullptr;
 
 	};
 

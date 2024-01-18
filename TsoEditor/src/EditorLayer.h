@@ -59,6 +59,7 @@ namespace Tso {
         float m_Time = 0.0;
         MovaData m_MoveData;
         std::string m_ScenePath = "";
+        bool m_StartScene = false;
 
         float m_MouseX = 0.f, m_MouseY = 0.f;
         bool m_ViewportFocused = false;

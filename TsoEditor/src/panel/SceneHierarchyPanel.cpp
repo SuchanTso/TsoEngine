@@ -3,6 +3,7 @@
 #include "Tso/Scene/Component.h"
 #include "glm/gtc/type_ptr.hpp"
 #include "Tso/Scene/SceneCamera.h"
+#include "Tso/Utils/PlatformUtils.h"
 
 namespace Tso {
 	void SceneHierarchyPanel::OnGuiRender()
@@ -73,8 +74,8 @@ namespace Tso {
         {
             DisplayAddComponentEntry<CameraComponent>("Camera");
             DisplayAddComponentEntry<NativeScriptComponent>("NativeScript");
-
-            
+            DisplayAddComponentEntry<Rigidbody2DComponent>("Rigidbody2DComponent");
+            DisplayAddComponentEntry<BoxCollider2DComponent>("BoxCollider2DComponent");
             ImGui::EndPopup();
         }
     
@@ -110,6 +111,52 @@ namespace Tso {
 			}
 		}
 
+		if (entity.HasComponent<Rigidbody2DComponent>()) {
+			if (ImGui::TreeNodeEx("Rigidbody", ImGuiTreeNodeFlags_OpenOnArrow)) {
+				auto& comp = entity.GetComponent<Rigidbody2DComponent>();
+                std::string RigidBodyType[2] = { "Static" , "Dynamic" };
+                std::string currentRigidBodyType = RigidBodyType[(int)comp.Type];
+                if (open) {
+                    if (ImGui::BeginCombo("RigidBodyType", currentRigidBodyType.c_str())) {
+                        for (int i = 0; i < 2; i++)
+                        {
+                            bool isSelected = currentRigidBodyType == RigidBodyType[i];
+                            if (ImGui::Selectable(RigidBodyType[i].c_str(), isSelected))
+                            {
+                                currentRigidBodyType = RigidBodyType[i];
+                                comp.Type = (Rigidbody2DComponent::BodyType)i;
+                            }
+
+                            if (isSelected)
+                                ImGui::SetItemDefaultFocus();
+                        }
+
+                        ImGui::EndCombo();
+                    }
+                    ImGui::Checkbox("FixRotation" , &comp.FixedRotation);
+                }
+
+				ImGui::TreePop();
+			}
+		}
+
+        if (entity.HasComponent<BoxCollider2DComponent>()) {
+            if (ImGui::TreeNodeEx("BoxCollider2D", ImGuiTreeNodeFlags_OpenOnArrow)) {
+                auto& comp = entity.GetComponent<BoxCollider2DComponent>();
+                if (open) {
+                    ImGui::DragFloat2("Size", glm::value_ptr(comp.Size));
+                    ImGui::DragFloat2("Offset", glm::value_ptr(comp.Offset));
+
+                    ImGui::DragFloat("Density" , &comp.Density);
+                    ImGui::DragFloat("Friction", &comp.Friction);
+                    ImGui::DragFloat("Restitution", &comp.Restitution);
+                    ImGui::DragFloat("RestitutionThreshold", &comp.RestitutionThreshold);
+                }
+
+                ImGui::TreePop();
+            }
+        }
+
         if (entity.HasComponent<Renderable>()) {
             auto& comp = entity.GetComponent<Renderable>();
             
@@ -140,6 +187,16 @@ namespace Tso {
                 }
                 else if(comp.type == RenderType::Texture){
                     ImGui::Checkbox("isSubtexture", &comp.isSubtexture);
+                    ImGui::Text("Path:%s", comp.subTexture->GetTexture()->GetPath().c_str());
+                    ImGui::SameLine();
+                    if (ImGui::Button("browse")) {
+                        auto TexturePath = FileDialogs::OpenFile("png (*.png)\0 * .png\0");
+                        if (!TexturePath.empty()) {
+                            auto texture = Texture2D::Create(TexturePath);
+                            comp.subTexture.reset();
+                            comp.subTexture = SubTexture2D::CreateByCoord(texture, comp.spriteSize, comp.textureIndex, comp.textureSize);
+                        }
+                    }
                     if(comp.isSubtexture){
                         bool spriteSizeDirty = ImGui::DragFloat2("SpriteSize" , glm::value_ptr(comp.spriteSize) , 1.0f);
                         bool spriteIndexDirty = ImGui::DragFloat2("SpriteIndex" , glm::value_ptr(comp.textureIndex) , 1.0f);

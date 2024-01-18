@@ -12,6 +12,8 @@ include "TsoEngine/third_party/GLFW"
 include "TsoEngine/third_party/Glad"
 include "TsoEngine/third_party/imgui"
 include "TsoEngine/third_party/yaml-cpp"
+include "TsoEngine/third_party/box2d"
+
 
 project "TsoEngine"
     location "%{prj.name}" -- �����location�����ɵ�vcproj��λ��, ��targetdir��objdir��ͬ
@@ -21,7 +23,7 @@ project "TsoEngine"
 	cppdialect "C++17"
 	targetdir ("bin/" .. outputdir .. "/%{prj.name}") 
 	objdir   ("bin-int/" .. outputdir .. "/%{prj.name}") 
-	links {"GLFW", "opengl32.lib", "Glad", "imgui", "YAML_CPP"}
+	links {"GLFW", "opengl32.lib", "Glad", "imgui", "YAML_CPP" , "Box2D"}
 
     pchheader "TPch.h"
     pchsource "%{prj.name}/src/TPch.cpp"
@@ -55,7 +57,8 @@ project "TsoEngine"
 		"%{prj.name}/third_party/glm",
 		"%{prj.name}/third_party/stb_image",
 		"%{prj.name}/third_party/entt",
-		"%{prj.name}/third_party/yaml-cpp/include"
+		"%{prj.name}/third_party/yaml-cpp/include",
+		"%{prj.name}/third_party/box2d/include"
 	}
 
 	links{
@@ -169,6 +172,8 @@ project "Sandbox"
 		"TsoEngine/third_party/imgui",
 		"TsoEngine/third_party/entt",
 		"TsoEngine/third_party/yaml-cpp/include",
+		"TsoEngine/third_party/box2d/include"
+
 		--"Hazel/vendor/box2D/include"
 	}
 
@@ -234,6 +239,8 @@ project "TsoEditor"
 		"TsoEngine/third_party/imgui",
 		"TsoEngine/third_party/entt",
 		"TsoEngine/third_party/yaml-cpp/include",
+		"TsoEngine/third_party/box2d/include"
+
 		--"Hazel/vendor/imguizmo",
 		--"Hazel/vendor/Mono/include",
 		--"Hazel/vendor/box2D/include"
