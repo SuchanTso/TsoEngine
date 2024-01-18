@@ -93,6 +93,9 @@ project "TsoEngine"
 			defines{
 				"TSO_PLATFORM_MACOSX",
 			}
+			files{
+				"%{prj.name}/src/**.mm"
+			}
 
     filter { "configurations:Debug" }
         defines { "TSO_DEBUG"}

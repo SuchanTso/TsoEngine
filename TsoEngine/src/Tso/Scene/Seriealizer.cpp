@@ -209,7 +209,12 @@ void Seriealizer::SeriealizeScene(const std::string& path)
     out << YAML::EndMap;
     
     std::ofstream fout(path);
-    fout << out.c_str();
+    if(fout){
+        fout << out.c_str();
+    }
+    else{
+        TSO_CORE_ERROR("unable to save path = {0}" , path.c_str());
+    }
 }
 
 bool Seriealizer::DeseriealizeScene(const std::string& path){
