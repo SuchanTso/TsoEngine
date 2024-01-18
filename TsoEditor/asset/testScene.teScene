@@ -4,8 +4,8 @@ Entities:
     TagComponent:
       Tag: Spider
     TransformComponent:
-      Translate: [-5.96999979, -1.66133881, 2.0999999]
-      Rotation: [0, 0, -35.7999992]
+      Translate: [0.100763321, -1.54299259, 2.0999999]
+      Rotation: [0, 0, 0.000276606355]
       Scale: [1, 1, 1]
     RenderableComponent:
       Type: 1
@@ -13,8 +13,18 @@ Entities:
       TexturePath: asset/tilemap_packed.png
       SubTexture: true
       SpriteSize: [16, 16]
-      SpriteIndex: [22, 24]
+      SpriteIndex: [12, 24]
       TextureSize: [1, 1]
+    Rigidbody2DComponent:
+      Type: 1
+      FixRotation: false
+    BoxCollider2DComponent:
+      Size: [0.5, 0.5]
+      Offset: [0, 0]
+      Density: 1
+      Friction: 0.5
+      Restitution: 0
+      RestitutionThreshold: 0.5
   - Entity: 3
     TagComponent:
       Tag: Character1
@@ -25,32 +35,37 @@ Entities:
     RenderableComponent:
       Type: 1
       Color: [0.970588207, 1, 0, 1]
-      TexturePath: asset/tilemap_packed.png
+      TexturePath: C:\my\Code\projects\graph_c++inVs\TsoEngine\TsoEditor\asset\tilemap_packed.png
       SubTexture: true
       SpriteSize: [16, 16]
       SpriteIndex: [3, 12]
       TextureSize: [1, 1]
   - Entity: 2
     TagComponent:
-      Tag: test
+      Tag: ground
     TransformComponent:
-      Translate: [1.41704369, 2.92857027, 1.79999995]
+      Translate: [0, -2.36192703, 0.899999976]
       Rotation: [0, 0, 0]
-      Scale: [1, 1, 1]
+      Scale: [13.8000002, 0.600000024, 1]
     RenderableComponent:
-      Type: 1
-      Color: [0.970588207, 1, 0, 1]
-      TexturePath: asset/frame1.png
-      SubTexture: true
-      SpriteSize: [538, 551]
-      SpriteIndex: [0, 0]
-      TextureSize: [1, 1]
+      Type: 0
+      Color: [0.600000024, 0.300000012, 0.200000003, 1]
+    Rigidbody2DComponent:
+      Type: 0
+      FixRotation: false
+    BoxCollider2DComponent:
+      Size: [0.5, 0.5]
+      Offset: [0, 0]
+      Density: 1
+      Friction: 0.5
+      Restitution: 0
+      RestitutionThreshold: 0.5
   - Entity: 1
     TagComponent:
       Tag: axe
     TransformComponent:
-      Translate: [-3.33562994, 0.735139847, 1.79999995]
-      Rotation: [0, 0, 0]
+      Translate: [3.21857524, -3.18340611, 1.79999995]
+      Rotation: [0, 0, -0.00448071305]
       Scale: [1, 1, 1]
     RenderableComponent:
       Type: 1

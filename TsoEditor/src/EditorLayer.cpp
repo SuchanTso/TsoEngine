@@ -163,6 +163,18 @@ namespace Tso {
             ImGui::Text("QuadVertices : %d", stat.GetTotalVertexCount());
             ImGui::Text("QuadIndices : %d", stat.GetTotalIndexCount());
 
+            if (ImGui::Button("Play")) {
+                m_StartScene = !m_StartScene;
+                if (m_StartScene) {
+                    m_Scene->OnScenePlay();
+                }
+                else {
+                    m_Scene->OnSceneStop();
+                }
+            }
+            ImGui::SameLine();
+            ImGui::Text("%s", m_StartScene ? "play" : "stop");
+
             ImGui::End();
 
             ImGui::Begin("Viewport");
@@ -211,6 +223,16 @@ namespace Tso {
                 SaveScene();
             }
         }
+
+        /*if (Input::IsKeyPressed(TSO_KEY_SPACE)) {
+            m_StartScene = !m_StartScene;
+            if (m_StartScene) {
+                m_Scene->OnScenePlay();
+            }
+            else {
+                m_Scene->OnSceneStop();
+            }
+        }*/
 
     }
 

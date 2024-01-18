@@ -2,6 +2,12 @@
 #include "ScriptableEntity.h"
 #include "Component.h"
 #include "Tso/Core/Input.h"
+
+#include "box2d/b2_world.h"
+#include "box2d/b2_body.h"
+#include "box2d/b2_fixture.h"
+#include "box2d/b2_polygon_shape.h"
+#include "box2d/b2_circle_shape.h"
 namespace Tso {
 
 
@@ -21,18 +27,30 @@ namespace Tso {
 	{
 		auto& transform = GetComponent<TransformComponent>();
 		auto& pos = transform.GetPos();
-		if (Input::IsKeyPressed(TSO_KEY_W)) {
-			pos.y += m_MoveSpeed * ts;
+		if (HasComponent<Rigidbody2DComponent>()) {
+			auto& rigidc = GetComponent<Rigidbody2DComponent>();
+			if (rigidc.RuntimeBody) {
+				b2Body* body = (b2Body*)rigidc.RuntimeBody;
+				
+				if (Input::IsKeyPressed(TSO_KEY_W)) {
+					body->SetLinearVelocity({ 0.0f , 2.0f });
+				}
+
+				if (Input::IsKeyPressed(TSO_KEY_S)) {
+					body->SetLinearVelocity({ 0.0f , -2.0f });
+				}
+				if (Input::IsKeyPressed(TSO_KEY_A)) {
+					body->SetLinearVelocity({ -2.0f , 0.0f });
+				}
+				
+				if (Input::IsKeyPressed(TSO_KEY_D)) {
+					body->SetLinearVelocity({ 2.0f , 0.0f });
+				}
+				
+			}
 		}
-		if (Input::IsKeyPressed(TSO_KEY_S)) {
-			pos.y -= m_MoveSpeed * ts;
-		}
-		if (Input::IsKeyPressed(TSO_KEY_A)) {
-			pos.x -= m_MoveSpeed * ts;
-		}
-		if (Input::IsKeyPressed(TSO_KEY_D)) {
-			pos.x += m_MoveSpeed * ts;
-		}
+		
+		
 	}
 
 }

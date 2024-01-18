@@ -14,11 +14,18 @@ namespace Tso {
 			return m_Entity.GetComponent<T>();
 		}
 
+		template<typename T>
+		bool HasComponent() {
+			return m_Entity.HasComponent<T>();
+		}
+
 		virtual void OnCreate(){}
 
 		virtual void OnUpdate(const TimeStep& ts){}
 
 		virtual void OnDestroy(){}
+
+		virtual void OnCollide() { TSO_CORE_INFO("entity get collide!!"); }
 
 
 	private:
