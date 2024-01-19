@@ -67,14 +67,6 @@ project "TsoEngine"
 
 	}
 
-	-- links{
-	-- 	"GLFW",
-	-- 	"Glad",
-	-- 	"ImGui",
-	-- 	"yaml-cpp",
-	-- 	"opengl32.lib",
-	-- 	"masfgen-atlas-gen"
-	-- }
 	
 	--filter "files:'%{prj.name}'/vendor/imguizmo/ImGuizmo.cpp"
 	--filter "files:Hazel/vendor/imguizmo/ImGuizmo.cpp"
