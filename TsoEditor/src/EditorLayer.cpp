@@ -215,14 +215,6 @@ namespace Tso {
 
         m_Time += ts.GetSecond();
 
-        if (Input::IsKeyPressed(TSO_KEY_LEFT_CONTROL)) {
-            if (Input::IsKeyPressed(TSO_KEY_L)) {
-                m_ScenePath = LoadScene();
-            }
-            if (Input::IsKeyPressed(TSO_KEY_S)) {
-                SaveScene();
-            }
-        }
 
         /*if (Input::IsKeyPressed(TSO_KEY_SPACE)) {
             m_StartScene = !m_StartScene;

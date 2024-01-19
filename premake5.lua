@@ -74,7 +74,7 @@ project "TsoEngine"
 	--filter "files:**.cpp"
 	--flags { "NoPCH" }
 
-	filter { "system:windows" }
+	filter  "system:windows" 
 	    systemversion "latest"
 		defines {"TSO_PLATFORM_WINDOWS", "GLFW_INCLUDE_NONE", "TSO_ENABLE_ASSERTS"}
 		
@@ -85,49 +85,53 @@ project "TsoEngine"
 		    ("{COPY} %{cfg.buildtarget.relpath} \"../bin/" ..outputdir.."/Sandbox/\"")
 		}
 
-		filter "system:macosx"
-			cppdialect "C++17"
-			staticruntime "On"
-			systemversion "latest"
 
-			pchheader "src/TPch.h"
-			pchsource "%{prj.name}/src/TPch.cpp"
 
-			defines{
-				"TSO_PLATFORM_MACOSX",
-			}
-			files{
-				"%{prj.name}/src/**.mm"
-			}
+	filter "system:macosx"
+		cppdialect "C++17"
+		staticruntime "On"
+		systemversion "latest"
 
-    filter { "configurations:Debug" }
-        defines { "TSO_DEBUG"}
-		symbols "On"
-		runtime "Debug" -- ����ʱ���ӵ�dll��debug���͵�	
-		filter "system:windows"
-			buildoptions "/MTd"
-		-- in VS2019 that is Additional Library Directories
-		--libdirs
-		--{
-		--	"%{VULKAN_SDK}/Lib",
-		--	"%{prj.name}/vendor/Mono/lib/Debug"
-		--}
+		pchheader "src/TPch.h"
+		pchsource "%{prj.name}/src/TPch.cpp"
+
+		defines{
+			"TSO_PLATFORM_MACOSX",
+		}
+		files{
+			"%{prj.name}/src/**.mm"
+		}
+
+		filter { "configurations:Debug" }
+			defines { "TSO_DEBUG"}
+			symbols "On"
+			runtime "Debug" -- ����ʱ���ӵ�dll��debug���͵�	
+			if _ACTION == "vs2022" then
+				buildoptions "/MTd"
+			end
+			-- in VS2019 that is Additional Library Directories
+			--libdirs
+			--{
+			--	"%{VULKAN_SDK}/Lib",
+			--	"%{prj.name}/vendor/Mono/lib/Debug"
+			--}
+			
+			--links
+			--{
+				--"spirv-cross-cored.lib",
+				--"spirv-cross-glsld.lib",
+				--"SPIRV-Toolsd.lib",
+				--"libmono-static-sgen.lib"
+			--}
 		
-		--links
-		--{
-			--"spirv-cross-cored.lib",
-			--"spirv-cross-glsld.lib",
-			--"SPIRV-Toolsd.lib",
-			--"libmono-static-sgen.lib"
-		--}
-		
 
-    filter { "configurations:Release"}
-	defines { "TSO_RELEASE"}
-	optimize "On"
-	runtime "Release" -- ����ʱ���ӵ�dll��release���͵�
-		filter "system:windows"
+		filter { "configurations:Release"}
+			defines { "TSO_RELEASE"}
+			optimize "On"
+			runtime "Release" -- ����ʱ���ӵ�dll��release���͵�
+		if _ACTION == "vs2022" then
 			buildoptions "/MT"
+		end
 		-- in VS2019 that is Additional Library Directories
 		--libdirs
 		--{
@@ -145,11 +149,12 @@ project "TsoEngine"
 		--}
 
 
-    filter { "configurations:Dist"}
-		defines { "TSO_DIST"}
-	    optimize "On"
-		filter "system:windows"
+		filter { "configurations:Dist"}
+			defines { "TSO_DIST"}
+			optimize "On"
+		if _ACTION == "vs2022" then
 			buildoptions "/MT"
+		end
 
 project "Sandbox"
 	location "%{prj.name}"
@@ -179,14 +184,15 @@ project "Sandbox"
 
 	links { "TsoEngine" }
 
-    filter { "system:Windows" }
+    filter  "system:windows" 
 	    systemversion "latest"
-		 defines { "TSO_PLATFORM_WINDOWS"}
+		defines { "TSO_PLATFORM_WINDOWS"}
+
+		
+
 
 	filter "system:macosx"
-		 defines{
-				 "TSO_PLATFORM_MACOSX"
-		 }
+		 defines{"TSO_PLATFORM_MACOSX"}
 		 links{
 			 "Cocoa.framework",
 			 "IOKit.framework",
@@ -194,23 +200,26 @@ project "Sandbox"
 			 "OpenGL.framework"
 		 }
 
-    filter { "configurations:Debug"}
-        defines { "DEBUG"}
-        symbols "On"
-		filter "system:windows"
-			buildoptions "/MTd"
+	filter { "configurations:Debug"}
+		 defines { "DEBUG"}
+		 symbols "On"
+		 if _ACTION == "vs2022" then
+			 buildoptions "/MTd"
+		 end
 
-    filter { "configurations:Release"}
-        defines { "NDEBUG" }
-        optimize "On"
-		filter "system:windows"
-			buildoptions "/MT"
+	filter { "configurations:Release"}
+		 defines { "NDEBUG" }
+		 optimize "On"
+		 if _ACTION == "vs2022" then
+			 buildoptions "/MT"
+		 end
 
-    filter { "configurations:Dist"}
-		defines { "NDEBUG"}
-		optimize "On"
-		filter "system:windows"
-			buildoptions "/MT"
+	filter { "configurations:Dist"}
+		 defines { "NDEBUG"}
+		 optimize "On"
+		 if _ACTION == "vs2022" then
+			 buildoptions "/MT"
+		 end
 
 
 project "TsoEditor"
@@ -249,7 +258,7 @@ project "TsoEditor"
 	links { "TsoEngine" }
 	
 
-    filter { "system:Windows" }
+    filter  "system:windows" 
 	    systemversion "latest"
 		 defines { "TSO_PLATFORM_WINDOWS"}
 		 			
@@ -261,6 +270,8 @@ project "TsoEditor"
 			"Version.lib",
 			"Winmm.lib"
 		}
+
+		
 
 	filter "system:macosx"
 		defines{
@@ -276,34 +287,26 @@ project "TsoEditor"
 		}
 		
 
-    filter { "configurations:Debug"}
-        defines { "TSO_DEBUG"}
-        symbols "On"
-		filter "system:windows"
+	filter { "configurations:Debug"}
+		defines { "DEBUG"}
+		symbols "On"
+		if _ACTION == "vs2022" then
 			buildoptions "/MTd"
-		
-		--libdirs
-		--{
-		--	"%{VULKAN_SDK}/Lib"
-		--}
-		
-		--links
-		--{
-		--	"shaderc_sharedd.lib"
-		--}
-		
+		end
 
-    filter { "configurations:Release"}
-        defines { "TSO_RELEASE" }
-        optimize "On"
-		filter "system:windows"
-			buildoptions "/MT"
-
-    filter { "configurations:Dist"}
-		defines { "TSO_DIST"}
+	filter { "configurations:Release"}
+		defines { "NDEBUG" }
 		optimize "On"
-		filter "system:windows"
+		if _ACTION == "vs2022" then
 			buildoptions "/MT"
+		end
+
+	filter { "configurations:Dist"}
+		defines { "NDEBUG"}
+		optimize "On"
+		if _ACTION == "vs2022" then
+			buildoptions "/MT"
+		end
 
 
 --project "Hazel-ScriptCore"

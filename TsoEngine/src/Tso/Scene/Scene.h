@@ -25,7 +25,7 @@ namespace Tso {
 
 		void OnUpdate(TimeStep ts);
 
-		std::vector<std::string> GetSceneEntityNames();
+		
 
 	private:
 		entt::registry m_Registry;

@@ -35,7 +35,7 @@ Entities:
     RenderableComponent:
       Type: 1
       Color: [0.970588207, 1, 0, 1]
-      TexturePath: C:\my\Code\projects\graph_c++inVs\TsoEngine\TsoEditor\asset\tilemap_packed.png
+      TexturePath: asset/tilemap_packed.png
       SubTexture: true
       SpriteSize: [16, 16]
       SpriteIndex: [3, 12]

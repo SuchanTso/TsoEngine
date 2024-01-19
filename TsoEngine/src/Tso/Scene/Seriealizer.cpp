@@ -5,6 +5,8 @@
 #include <fstream>
 #include "yaml-cpp/yaml.h"
 #include "Tso/Renderer/Texture.h"
+#include <filesystem>
+
 
 
 namespace YAML
@@ -173,7 +175,13 @@ static void SeriealizeEntity(YAML::Emitter& out, Entity& entity)
         
         
         if(comp.subTexture){
-            out << YAML::Key << "TexturePath" << YAML::Value << comp.subTexture->GetTexture()->GetPath();
+            std::filesystem::path currentFilePath = std::filesystem::current_path();
+            std::filesystem::path texturePath = comp.subTexture->GetTexture()->GetPath();
+            if(!texturePath.is_absolute()){
+                texturePath = std::filesystem::absolute(texturePath);
+            }
+            
+            out << YAML::Key << "TexturePath" << YAML::Value << std::filesystem::relative(texturePath, currentFilePath).string();
             out << YAML::Key << "SubTexture" << YAML::Value << comp.isSubtexture;
             out << YAML::Key << "SpriteSize" << YAML::Value << comp.spriteSize;
             out << YAML::Key << "SpriteIndex" << YAML::Value << comp.textureIndex;
