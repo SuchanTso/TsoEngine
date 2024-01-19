@@ -65,7 +65,7 @@ project "TsoEngine"
 		"GLFW",
 		"Glad",
 		"ImGui",
-		"yaml-cpp",
+		"YAML_CPP",
 		"opengl32.lib"
 	}
 	
