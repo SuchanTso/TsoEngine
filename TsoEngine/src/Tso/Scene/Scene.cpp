@@ -127,7 +127,7 @@ void Scene::DeleteEntity(Entity entity){
 
 void Scene::OnScenePlay()
 {
-    m_PhysicWorld = new b2World({ 0.0f , 0.f});
+    m_PhysicWorld = new b2World({ 0.0f , -9.8f});
     m_PhysicsListener = new NativeContactListener();
 
     //NativeBehavior registry
@@ -191,19 +191,6 @@ void Scene::OnSceneStop()
 }
 
 
-std::vector<std::string> Scene::GetSceneEntityNames()
-{
-    std::vector<std::string> res(m_EntityCount);
-    int i = 0;
-    auto view = m_Registry.view<TagComponent>();
-    for (auto& e : view) {
-        if (i >= m_EntityCount) {
-            break;
-        }
-        res[i++] = view.get<TagComponent>(e).GetTagName();
-    }
-    return res;
-}
 
 
 
