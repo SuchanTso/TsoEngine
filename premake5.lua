@@ -13,6 +13,7 @@ include "TsoEngine/third_party/Glad"
 include "TsoEngine/third_party/imgui"
 include "TsoEngine/third_party/yaml-cpp"
 include "TsoEngine/third_party/box2d"
+include "TsoEngine/third_party/msdf-atlas-gen"
 
 
 project "TsoEngine"
@@ -23,7 +24,7 @@ project "TsoEngine"
 	cppdialect "C++17"
 	targetdir ("bin/" .. outputdir .. "/%{prj.name}") 
 	objdir   ("bin-int/" .. outputdir .. "/%{prj.name}") 
-	links {"GLFW", "opengl32.lib", "Glad", "imgui", "YAML_CPP" , "Box2D"}
+	links {"GLFW", "opengl32.lib", "Glad", "imgui", "YAML_CPP" , "Box2D","msdf-atlas-gen"}
 
     pchheader "TPch.h"
     pchsource "%{prj.name}/src/TPch.cpp"
@@ -46,7 +47,7 @@ project "TsoEngine"
 		"%{prj.name}/third_party/yaml-cpp/include/yaml-cpp/**.h"
 	}
 
-	includedirs
+	externalincludedirs
 	{
 		"%{prj.name}/third_party/spdlog/include",
 		"%{prj.name}/src",
@@ -58,16 +59,21 @@ project "TsoEngine"
 		"%{prj.name}/third_party/stb_image",
 		"%{prj.name}/third_party/entt",
 		"%{prj.name}/third_party/yaml-cpp/include",
-		"%{prj.name}/third_party/box2d/include"
+		"%{prj.name}/third_party/box2d/include",
+		"%{prj.name}/third_party/msdf-atlas-gen/msdfgen/include",
+		"%{prj.name}/third_party/msdf-atlas-gen/msdf-atlas-gen",
+		"%{prj.name}/third_party/msdf-atlas-gen/msdfgen"
+
 	}
 
-	links{
-		"GLFW",
-		"Glad",
-		"ImGui",
-		"yaml-cpp",
-		"opengl32.lib"
-	}
+	-- links{
+	-- 	"GLFW",
+	-- 	"Glad",
+	-- 	"ImGui",
+	-- 	"yaml-cpp",
+	-- 	"opengl32.lib",
+	-- 	"masfgen-atlas-gen"
+	-- }
 	
 	--filter "files:'%{prj.name}'/vendor/imguizmo/ImGuizmo.cpp"
 	--filter "files:Hazel/vendor/imguizmo/ImGuizmo.cpp"
@@ -168,7 +174,7 @@ project "Sandbox"
     
 	files { "%{prj.name}/src/**.h", "%{prj.name}/src/**.cpp"}
 
-    includedirs
+    externalincludedirs
 	{
         "TsoEngine/third_party/spdlog/include",
 		"TsoEngine/src",
@@ -177,7 +183,11 @@ project "Sandbox"
 		"TsoEngine/third_party/imgui",
 		"TsoEngine/third_party/entt",
 		"TsoEngine/third_party/yaml-cpp/include",
-		"TsoEngine/third_party/box2d/include"
+		"TsoEngine/third_party/box2d/include",
+		"TsoEngine/third_party/msdf-atlas-gen/msfgen/include",
+		"TsoEngine/third_party/msdf-atlas-gen/msdf-atlas-gen",
+		"TsoEngine/third_party/msdf-atlas-gen/msdfgen"
+
 
 		--"Hazel/vendor/box2D/include"
 	}
@@ -239,7 +249,7 @@ project "TsoEditor"
 		"YAML_CPP_STATIC_DEFINE",
 	}
 
-    includedirs
+    externalincludedirs
 	{
         "TsoEngine/third_party/spdlog/include",
 		"TsoEngine/src",
@@ -248,7 +258,12 @@ project "TsoEditor"
 		"TsoEngine/third_party/imgui",
 		"TsoEngine/third_party/entt",
 		"TsoEngine/third_party/yaml-cpp/include",
-		"TsoEngine/third_party/box2d/include"
+		"TsoEngine/third_party/box2d/include",
+		"TsoEngine/third_party/msdf-atlas-gen/msdfgen/include",
+		"TsoEngine/third_party/msdf-atlas-gen/msdf-atlas-gen",
+		"TsoEngine/third_party/msdf-atlas-gen/msdfgen"
+
+
 
 		--"Hazel/vendor/imguizmo",
 		--"Hazel/vendor/Mono/include",

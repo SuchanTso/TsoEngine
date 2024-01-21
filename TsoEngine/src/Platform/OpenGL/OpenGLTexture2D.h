@@ -11,6 +11,9 @@ namespace Tso {
 		OpenGLTexture2D(const std::string& path);
         
         OpenGLTexture2D(const int& width , const int& height);
+        
+        OpenGLTexture2D(const TextureSpecification& spec);
+
 
 		~OpenGLTexture2D();
 
@@ -20,13 +23,20 @@ namespace Tso {
 
 		virtual void Bind(const unsigned int slot = 0)const override;
         
-        virtual void SetData(void* data)override;
+        virtual void SetData(void* data , const uint32_t& size)override;
         
         virtual std::string& GetPath()override{return m_TexturePath;}
 
 		virtual bool operator==(const Texture& other)const override {
 			return m_RendererID == ((OpenGLTexture2D&)other).m_RendererID;
 		}
+        
+         virtual uint32_t GetTextureID()override{
+            return m_RendererID;
+        }
+        
+    private:
+        void Invalidate(void* data);
 
 	private:
 
@@ -37,6 +47,8 @@ namespace Tso {
         GLenum  m_InternalChannel = 0, m_RGB = 0;
         
         std::string m_TexturePath = "";
+        
+        bool m_GenMipmap = false;
 	};
 
 }

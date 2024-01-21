@@ -19,6 +19,7 @@
 #include <queue>
 #include <unordered_map>
 #include <unordered_set>
+#include <filesystem>
 #include "glm/glm.hpp"
 
 #include "Tso/Core/Keycode.h"

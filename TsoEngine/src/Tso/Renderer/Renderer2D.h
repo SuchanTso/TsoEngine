@@ -17,6 +17,7 @@
 #include "Tso/Scene/SceneCamera.h"
 
 namespace Tso {
+class Font;
 
 class Renderer2D{
 public:
@@ -35,6 +36,7 @@ public:
     static void DrawQuad(const glm::vec3& position , const float& rotation , const glm::vec2& scale , const glm::vec4& color);
     
     static void DrawQuad(const glm::mat4& transform , const glm::vec4& color);
+    static void DrawString(const Ref<Font> font , const glm::mat4& transform , const std::string& text);
     
     static void DrawQuad(const glm::vec2& position , const glm::vec2& scale , Ref<Texture2D> texture);
     static void DrawQuad(const glm::vec3& position , const glm::vec2& scale , Ref<Texture2D> texture);

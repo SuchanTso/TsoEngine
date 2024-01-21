@@ -7,12 +7,13 @@ class b2World;
 
 namespace Tso {
 	class Entity;
+class Font;
 	class Scene {
 		friend class Entity;
 		friend class SceneHierarchyPanel;
 		friend class Seriealizer;
 	public:
-		Scene() = default;
+		Scene();
 		~Scene() {}
 
 		Entity CreateEntity(const std::string& name = "");
@@ -37,6 +38,8 @@ namespace Tso {
 		b2World* m_PhysicWorld = nullptr;
 
 		NativeContactListener* m_PhysicsListener = nullptr;
+        
+        Ref<Font> m_Font;//temp
 
 	};
 
