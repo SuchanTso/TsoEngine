@@ -19,3 +19,6 @@
 [submodule "TsoEngine/third_party/box2d"]
 	path = TsoEngine/third_party/box2d
 	url = git@github.com:Zediakense/box2d.git
+[submodule "TsoEngine/third_party/msdf-atlas-gen"]
+	path = TsoEngine/third_party/msdf-atlas-gen
+	url = git@github.com:Zediakense/msdf-atlas-gen.git

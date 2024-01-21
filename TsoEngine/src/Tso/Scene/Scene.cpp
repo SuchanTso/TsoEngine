@@ -8,6 +8,7 @@
 #include "box2d/b2_fixture.h"
 #include "box2d/b2_polygon_shape.h"
 #include "box2d/b2_circle_shape.h"
+#include "Font.h"
 
 namespace Utils {
     b2BodyType Rigidbody2DTypeToBox2DBody(Tso::Rigidbody2DComponent::BodyType bodyType)
@@ -26,6 +27,12 @@ namespace Utils {
 
 
 namespace Tso {
+
+Scene::Scene(){
+    if(!m_Font){
+        m_Font = std::make_shared<Font>("asset/Aa灵感黑55J.ttf");
+    }
+}
 
 
 Entity Scene::CreateEntity(const std::string& name){
@@ -115,6 +122,11 @@ void Scene::OnUpdate(TimeStep ts)
                 }
             }
         }
+        
+        if(m_Font){
+            Renderer2D::DrawString(m_Font, glm::mat4(1.0f), "SuchanTso");
+        }
+        
         Renderer2D::EndScene();
     }
 
