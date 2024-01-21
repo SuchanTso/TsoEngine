@@ -16,6 +16,7 @@ include "TsoEngine/third_party/box2d"
 include "TsoEngine/third_party/msdf-atlas-gen"
 
 
+
 project "TsoEngine"
     location "%{prj.name}" -- �����location�����ɵ�vcproj��λ��, ��targetdir��objdir��ͬ
     kind "StaticLib"
@@ -45,7 +46,9 @@ project "TsoEngine"
 		"%{prj.name}/third_party/stb_image/**.h",
 		"%{prj.name}/third_party/stb_image/**.cpp",
 		"%{prj.name}/third_party/entt/entt.hpp",
-		"%{prj.name}/third_party/yaml-cpp/include/yaml-cpp/**.h"
+		"%{prj.name}/third_party/yaml-cpp/include/yaml-cpp/**.h",
+		"%{prj.name}/third_party/mono/include/**.h"
+
 	}
 
 	externalincludedirs
@@ -64,6 +67,7 @@ project "TsoEngine"
 		"%{prj.name}/third_party/msdf-atlas-gen/msdfgen/include",
 		"%{prj.name}/third_party/msdf-atlas-gen/msdf-atlas-gen",
 		"%{prj.name}/third_party/msdf-atlas-gen/msdfgen"
+		"%{prj.name}/third_party/mono/include"
 
 	}
 
@@ -109,19 +113,19 @@ project "TsoEngine"
 				buildoptions "/MTd"
 			end
 			-- in VS2019 that is Additional Library Directories
-			--libdirs
-			--{
+			libdirs
+			{
 			--	"%{VULKAN_SDK}/Lib",
-			--	"%{prj.name}/vendor/Mono/lib/Debug"
-			--}
+				"%{prj.name}/third_party/mono/lib/Debug"
+			}
 			
-			--links
-			--{
+			links
+			{
 				--"spirv-cross-cored.lib",
 				--"spirv-cross-glsld.lib",
 				--"SPIRV-Toolsd.lib",
-				--"libmono-static-sgen.lib"
-			--}
+				"libmono-static-sgen.lib"
+			}
 		
 
 		filter { "configurations:Release"}
@@ -132,20 +136,20 @@ project "TsoEngine"
 			buildoptions "/MT"
 		end
 		-- in VS2019 that is Additional Library Directories
-		--libdirs
-		--{
+		libdirs
+		{
 		--	"%{VULKAN_SDK}/Lib",
-		--	"%{prj.name}/vendor/Mono/lib/Release"
-		--}
+			"%{prj.name}/third_party/mono/lib/Release"
+		}
 		
-		--links
-		--{
+		links
+		{
 			--"shaderc_shared.lib",
 			--"spirv-cross-core.lib",
 			--"spirv-cross-glsl.lib",
 			--"SPIRV-Tools.lib",
-			--"libmono-static-sgen.lib"
-		--}
+			"libmono-static-sgen.lib"
+		}
 
 
 		filter { "configurations:Dist"}
@@ -180,6 +184,7 @@ project "Sandbox"
 		"TsoEngine/third_party/msdf-atlas-gen/msfgen/include",
 		"TsoEngine/third_party/msdf-atlas-gen/msdf-atlas-gen",
 		"TsoEngine/third_party/msdf-atlas-gen/msdfgen"
+		"TsoEngine/third_party/mono/include"
 
 
 		--"Hazel/vendor/box2D/include"
@@ -256,7 +261,7 @@ project "TsoEditor"
 		"TsoEngine/third_party/msdf-atlas-gen/msdfgen/include",
 		"TsoEngine/third_party/msdf-atlas-gen/msdf-atlas-gen",
 		"TsoEngine/third_party/msdf-atlas-gen/msdfgen"
-
+		"TsoEngine/third_party/mono/include"
 
 
 		--"Hazel/vendor/imguizmo",
@@ -318,16 +323,16 @@ project "TsoEditor"
 		end
 
 
---project "Hazel-ScriptCore"
-	--location "%{prj.name}"
-	--kind "SharedLib"
-	--language "C#"
-	--dotnetframework "4.7.2"
+project "TsoEngine-ScriptCore"
+	location "%{prj.name}"
+	kind "SharedLib"
+	language "C#"
+	dotnetframework "4.8"
 	
-	--targetdir ("%{prj.name}/Build")
-	--objdir ("%{prj.name}/Intermediates")
+	targetdir ("%{prj.name}/Build")
+	objdir ("%{prj.name}/Intermediates")
 
-	--files 
-	--{
-	--	"%{prj.name}/Scripts/**.cs"
-	--}
+	files 
+	{
+		"%{prj.name}/Scripts/**.cs"
+	}
