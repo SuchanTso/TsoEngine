@@ -15,6 +15,7 @@ include "TsoEngine/third_party/yaml-cpp"
 include "TsoEngine/third_party/box2d"
 
 
+
 project "TsoEngine"
     location "%{prj.name}" -- �����location�����ɵ�vcproj��λ��, ��targetdir��objdir��ͬ
     kind "StaticLib"
@@ -43,7 +44,9 @@ project "TsoEngine"
 		"%{prj.name}/third_party/stb_image/**.h",
 		"%{prj.name}/third_party/stb_image/**.cpp",
 		"%{prj.name}/third_party/entt/entt.hpp",
-		"%{prj.name}/third_party/yaml-cpp/include/yaml-cpp/**.h"
+		"%{prj.name}/third_party/yaml-cpp/include/yaml-cpp/**.h",
+		"%{prj.name}/third_party/mono/include/**.h"
+
 	}
 
 	includedirs
@@ -58,7 +61,9 @@ project "TsoEngine"
 		"%{prj.name}/third_party/stb_image",
 		"%{prj.name}/third_party/entt",
 		"%{prj.name}/third_party/yaml-cpp/include",
-		"%{prj.name}/third_party/box2d/include"
+		"%{prj.name}/third_party/box2d/include",
+		"%{prj.name}/third_party/mono/include"
+
 	}
 
 	links{
@@ -110,19 +115,19 @@ project "TsoEngine"
 				buildoptions "/MTd"
 			end
 			-- in VS2019 that is Additional Library Directories
-			--libdirs
-			--{
+			libdirs
+			{
 			--	"%{VULKAN_SDK}/Lib",
-			--	"%{prj.name}/vendor/Mono/lib/Debug"
-			--}
+				"%{prj.name}/third_party/mono/lib/Debug"
+			}
 			
-			--links
-			--{
+			links
+			{
 				--"spirv-cross-cored.lib",
 				--"spirv-cross-glsld.lib",
 				--"SPIRV-Toolsd.lib",
-				--"libmono-static-sgen.lib"
-			--}
+				"libmono-static-sgen.lib"
+			}
 		
 
 		filter { "configurations:Release"}
@@ -133,20 +138,20 @@ project "TsoEngine"
 			buildoptions "/MT"
 		end
 		-- in VS2019 that is Additional Library Directories
-		--libdirs
-		--{
+		libdirs
+		{
 		--	"%{VULKAN_SDK}/Lib",
-		--	"%{prj.name}/vendor/Mono/lib/Release"
-		--}
+			"%{prj.name}/third_party/mono/lib/Release"
+		}
 		
-		--links
-		--{
+		links
+		{
 			--"shaderc_shared.lib",
 			--"spirv-cross-core.lib",
 			--"spirv-cross-glsl.lib",
 			--"SPIRV-Tools.lib",
-			--"libmono-static-sgen.lib"
-		--}
+			"libmono-static-sgen.lib"
+		}
 
 
 		filter { "configurations:Dist"}
@@ -177,7 +182,9 @@ project "Sandbox"
 		"TsoEngine/third_party/imgui",
 		"TsoEngine/third_party/entt",
 		"TsoEngine/third_party/yaml-cpp/include",
-		"TsoEngine/third_party/box2d/include"
+		"TsoEngine/third_party/box2d/include",
+		"TsoEngine/third_party/mono/include"
+
 
 		--"Hazel/vendor/box2D/include"
 	}
@@ -248,7 +255,9 @@ project "TsoEditor"
 		"TsoEngine/third_party/imgui",
 		"TsoEngine/third_party/entt",
 		"TsoEngine/third_party/yaml-cpp/include",
-		"TsoEngine/third_party/box2d/include"
+		"TsoEngine/third_party/box2d/include",
+		"TsoEngine/third_party/mono/include"
+
 
 		--"Hazel/vendor/imguizmo",
 		--"Hazel/vendor/Mono/include",
@@ -309,16 +318,16 @@ project "TsoEditor"
 		end
 
 
---project "Hazel-ScriptCore"
-	--location "%{prj.name}"
-	--kind "SharedLib"
-	--language "C#"
-	--dotnetframework "4.7.2"
+project "TsoEngine-ScriptCore"
+	location "%{prj.name}"
+	kind "SharedLib"
+	language "C#"
+	dotnetframework "4.8"
 	
-	--targetdir ("%{prj.name}/Build")
-	--objdir ("%{prj.name}/Intermediates")
+	targetdir ("%{prj.name}/Build")
+	objdir ("%{prj.name}/Intermediates")
 
-	--files 
-	--{
-	--	"%{prj.name}/Scripts/**.cs"
-	--}
+	files 
+	{
+		"%{prj.name}/Scripts/**.cs"
+	}
