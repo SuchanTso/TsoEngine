@@ -8,6 +8,7 @@
 #include "Tso/Scene/Entity.h"
 #include "Tso/Scene/Seriealizer.h"
 #include "Tso/Utils/PlatformUtils.h"
+#include "Tso/Scripting/Scripting.h"
 
 
 namespace Tso {
@@ -39,8 +40,9 @@ namespace Tso {
         //{ (uint32_t)m_ViewportSize.x , (uint32_t)m_ViewportSize.y , false };
         m_FrameBuffer = FrameBuffer::Create(info);
 
-    
-
+        Scripting script;
+        script.LoadCSharpAssembly("Scripts/test.cs");
+        int a = 0;
 
     }
 
