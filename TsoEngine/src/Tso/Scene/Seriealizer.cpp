@@ -8,6 +8,18 @@
 #include <filesystem>
 
 
+namespace Utils{
+static std::string GetCurrentRelativePath(const std::string& filePath){
+    std::filesystem::path currentFilePath = std::filesystem::current_path();
+    std::filesystem::path path(filePath);
+    if(!path.is_absolute()){
+        path = std::filesystem::absolute(path);
+    }
+    return std::filesystem::relative(path, currentFilePath).string();
+}
+    
+};
+
 
 namespace YAML
 {
@@ -220,6 +232,21 @@ static void SeriealizeEntity(YAML::Emitter& out, Entity& entity)
 
         out << YAML::EndMap; // RenderableComponent
     }
+    
+    if (entity.HasComponent<TextComponent>())
+    {
+        out << YAML::Key << "TextComponent";
+        out << YAML::BeginMap; // TextComponent
+        auto& comp = entity.GetComponent<TextComponent>();
+        out << YAML::Key << "FontPath" << YAML::Value << Utils::GetCurrentRelativePath(comp.FontPath);
+
+        out << YAML::Key << "LineSpacing" << YAML::Value << comp.textParam.LineSpacing;
+
+        out << YAML::Key << "CharacterSpacing" << YAML::Value << comp.textParam.CharacterSpacing;
+        out << YAML::Key << "Text" << YAML::Value << comp.Text;
+
+        out << YAML::EndMap; // RenderableComponent
+    }
 
     out << YAML::EndMap; // Entity
     
@@ -312,7 +339,7 @@ bool Seriealizer::DeseriealizeScene(const std::string& path){
             
             auto renderComponent = entity["RenderableComponent"];
             if(renderComponent){
-                auto& renderComp = deserializedEntity.GetComponent<Renderable>();
+                auto& renderComp = deserializedEntity.AddComponent<Renderable>(glm::vec4(0.8f , 0.3f , 0.2f , 1.0f));
                 renderComp.m_Color = renderComponent["Color"] ? renderComponent["Color"].as<glm::vec4>() : glm::vec4(1.0f);
                 renderComp.type = (RenderType)(renderComponent["Type"] ? renderComponent["Type"].as<int>() : 0);
                 renderComp.isSubtexture = renderComponent["SubTexture"] ? renderComponent["SubTexture"].as<bool>() : false;
@@ -348,6 +375,18 @@ bool Seriealizer::DeseriealizeScene(const std::string& path){
 
                 rbc.Size = box2dcollide["Size"] ? box2dcollide["Size"].as<glm::vec2>() : glm::vec2(0.5f , 0.5f);
                 rbc.Offset = box2dcollide["Offset"] ? box2dcollide["Offset"].as<glm::vec2>() : glm::vec2(0.0f, 0.0f);
+            }
+            
+            auto textComponent = entity["TextComponent"];
+            if(textComponent){
+                auto& textc = deserializedEntity.AddComponent<TextComponent>();
+                textc.FontPath = textComponent["FontPath"] ? textComponent["FontPath"].as<std::string>() : "";
+                textc.Text  = textComponent["Text"] ? textComponent["Text"].as<std::string>() : "";
+                textc.textParam.LineSpacing = textComponent["LineSpacing"] ? textComponent["LineSpacing"].as<float>() : 0.0f;
+                textc.textParam.CharacterSpacing = textComponent["CharacterSpacing"] ? textComponent["CharacterSpacing"].as<float>() : 0.0f;
+                if(!textc.FontPath.empty()){
+                    textc.TextFont = std::make_shared<Font>(std::filesystem::path(textc.FontPath));
+                }
             }
             
             

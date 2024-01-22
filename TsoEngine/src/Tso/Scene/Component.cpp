@@ -44,4 +44,19 @@ TagComponent::TagComponent(const std::string& name)
 
 }
 
+TextComponent::TextComponent(const std::string& fontPath)
+:FontPath(fontPath)
+{
+    TextFont = std::make_shared<Font>(std::filesystem::path(fontPath));
+
+    
+}
+
+TextComponent::TextComponent()
+{
+    
+
+    
+}
+
 }

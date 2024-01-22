@@ -29,9 +29,7 @@ namespace Utils {
 namespace Tso {
 
 Scene::Scene(){
-    if(!m_Font){
-        m_Font = std::make_shared<Font>("asset/Aa灵感黑55J.ttf");
-    }
+    
 }
 
 
@@ -40,7 +38,6 @@ Entity Scene::CreateEntity(const std::string& name){
     std::string entityName = name.length() > 0 ? name : ("blankEntity" + std::to_string(m_EntityCount));
     Entity res = Entity(entityID , this , name);
     res.AddComponent<TransformComponent>(glm::vec3(0.0 , 0.0 , 0.9));
-    res.AddComponent<Renderable>(glm::vec4(0.6f, 0.3f, 0.2f, 1.0f));
     res.AddComponent<TagComponent>(entityName);
     m_EntityCount++;
     return res;
@@ -123,8 +120,12 @@ void Scene::OnUpdate(TimeStep ts)
             }
         }
         
-        if(m_Font){
-            Renderer2D::DrawString(m_Font, glm::mat4(1.0f), "SuchanTso");
+        auto textGroup = m_Registry.view<TransformComponent, TextComponent>();
+        for(auto& e : textGroup){
+            const auto& [transComp , textComp] = textGroup.get<TransformComponent, TextComponent>(e);
+            if(textComp.TextFont && textComp.Text.length() > 0){
+                Renderer2D::DrawString(textComp.TextFont, transComp.GetTransform(), textComp.Text , textComp.textParam);
+            }
         }
         
         Renderer2D::EndScene();

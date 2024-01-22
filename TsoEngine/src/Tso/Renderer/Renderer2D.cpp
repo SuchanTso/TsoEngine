@@ -9,6 +9,7 @@
 #include "Renderer2D.h"
 #include "glm/gtc/matrix_transform.hpp"
 #include "Font.h"
+#include "Tso/Scene/Component.h"
 
 namespace Tso{
 
@@ -470,7 +471,7 @@ void Renderer2D::DrawQuad(const glm::vec3& position , const float& rotation , co
 
 //text
 
-void Renderer2D::DrawString(const Ref<Font> font , const glm::mat4& transform , const std::string& text){
+void Renderer2D::DrawString(const Ref<Font> font , const glm::mat4& transform , const std::string& text ,const TextParam& textParam){
     const auto& fontGeometry = font->GetMSDFData()->FontGeometry;
     const auto& metrics = fontGeometry.getMetrics();
     Ref<Texture2D> fontAtlas = font->GetAtlasTexture();
@@ -482,8 +483,8 @@ void Renderer2D::DrawString(const Ref<Font> font , const glm::mat4& transform , 
     
     const float spaceGlyphAdvance = fontGeometry.getGlyph(' ')->getAdvance();
     
-    float lineSpacing = 0.0;//temp
-    float characterSpacing = 0.0;//temp
+    float lineSpacing = textParam.LineSpacing;
+    float characterSpacing = textParam.CharacterSpacing;
     
     for(size_t i = 0 ; i < text.length() ; i++){
         
@@ -494,7 +495,7 @@ void Renderer2D::DrawString(const Ref<Font> font , const glm::mat4& transform , 
         
         if(character == '\n'){
             x = 0;
-            y -= fsScale * metrics.lineHeight ;
+            y -= fsScale * metrics.lineHeight + lineSpacing;
             continue;
         }
         if(character == ' '){
