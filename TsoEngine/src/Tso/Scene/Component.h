@@ -6,6 +6,8 @@
 #include "SceneCamera.h"
 #include "Tso/Renderer/Texture.h"
 #include "Tso/Renderer/SubTexture2D.h"
+#include "Tso/Renderer/Font.h"
+
 
 namespace Tso {
 
@@ -154,6 +156,23 @@ namespace Tso {
 		BoxCollider2DComponent() = default;
 		BoxCollider2DComponent(const BoxCollider2DComponent&) = default;
 	};
+
+
+
+    struct TextParam{
+        float CharacterSpacing = 0.0;
+        float LineSpacing = 0.0;
+    };
+
+    struct TextComponent{
+        TextComponent();
+        TextComponent(const std::string& fontPath);
+        std::string Text = "";
+        std::string FontPath = "";
+        Ref<Font> TextFont = nullptr;
+        TextParam textParam;
+
+    };
 
 	
 

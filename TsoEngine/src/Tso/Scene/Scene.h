@@ -39,7 +39,6 @@ class Font;
 
 		NativeContactListener* m_PhysicsListener = nullptr;
         
-        Ref<Font> m_Font;//temp
 
 	};
 

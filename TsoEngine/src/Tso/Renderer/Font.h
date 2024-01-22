@@ -12,6 +12,7 @@
 #include "msdfgen-ext.h"
 #include "FontGeometry.h"
 #include "GlyphGeometry.h"
+#include <filesystem>
 
 
 namespace Tso {
