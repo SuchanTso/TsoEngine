@@ -13,7 +13,7 @@ struct TextureSpecification{
     int Width = 1;
     int Height = 1;
     ImageFormat Format = ImageFormat::RGBA8;
-    bool GenerateMips = false;
+    bool GenerateMips = true;
 };
 
 	class Texture {
