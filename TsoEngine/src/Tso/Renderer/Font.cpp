@@ -7,9 +7,6 @@
 #include "TPch.h"
 #include "Font.h"
 
-#ifdef TSO_PLATFORM_WINDOWS
-#undef INFINITE
-#endif
 
 
 
@@ -90,7 +87,7 @@ Font::Font(const std::filesystem::path& fontPath)
     atlasPacker.setScale(emSize);
     
     int remaining = atlasPacker.pack(m_Data->Glyphs.data(), (int)m_Data->Glyphs.size());//将拿到的字形放入纹理图集里，remain表示没放入的字形数
-    TSO_CORE_ASSERT(remaining == 0);
+    TSO_CORE_ASSERT(remaining == 0 , "");
     
     int width, height;
     atlasPacker.getDimensions(width, height);

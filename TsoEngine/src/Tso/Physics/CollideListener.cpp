@@ -7,7 +7,7 @@
 #include "TPch.h"
 #include "CollideListener.h"
 #include "box2d/b2_contact.h"
-#include "Component.h"
+#include "Tso/Scene/Component.h"
 
 namespace Tso{
 

@@ -1,6 +1,7 @@
-#ifdef TSO_PLATFORM_WINDOWS
 
 #include "TPch.h"
+#ifdef TSO_PLATFORM_WINDOWS
+
 #include "Tso/Utils/PlatformUtils.h"
 #include "Tso/Core/Application.h"
 
