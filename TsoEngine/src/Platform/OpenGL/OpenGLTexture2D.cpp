@@ -10,7 +10,7 @@ static GLenum ConvertImageFormatToInternalGLFormat(const ImageFormat& iamgeForma
         case ImageFormat::RGB8:return GL_RGB8;
         case ImageFormat::RGBA8:return GL_RGBA8;
             
-        TSO_CORE_ASSERT("unsupport ImageFormat");
+        TSO_CORE_ASSERT(false , "unsupport ImageFormat");
     }
 }
 
@@ -19,7 +19,7 @@ static GLenum ConvertImageFormatToGLFormat(const ImageFormat& iamgeFormat){
         case ImageFormat::RGB8:return GL_RGB;
         case ImageFormat::RGBA8:return GL_RGBA;
             
-        TSO_CORE_ASSERT("unsupport ImageFormat");
+        TSO_CORE_ASSERT(false , "unsupport ImageFormat");
     }
 }
 
@@ -59,7 +59,7 @@ OpenGLTexture2D::OpenGLTexture2D(const int& width , const int& height){
     m_Width = width;
     m_Height = height;
     
-    m_InternalChannel = GL_RGB8, m_RGB = GL_RGB;
+    m_InternalChannel = GL_RGBA8, m_RGB = GL_RGBA;
 }
 
 OpenGLTexture2D::OpenGLTexture2D(const TextureSpecification& spec){
@@ -123,7 +123,7 @@ void OpenGLTexture2D::Invalidate(void* data){
 void OpenGLTexture2D::SetData(void *data , const uint32_t& size){
     
     uint32_t bpp = m_RGB == GL_RGBA ? 4 : 3;
-    TSO_CORE_ASSERT(size == m_width * m_Height * bpp, "incomplete size of texture!");
+    TSO_CORE_ASSERT(size == m_Width * m_Height * bpp, "incomplete size of texture!");
     Invalidate(data);
 }
 

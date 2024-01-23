@@ -48,7 +48,7 @@ float median(float r, float g, float b) {
 }
 
 void main(){
-    color =  texture(u_Textures[int(v_TexIndex)] , v_TexCoord) * v_Color;
+    //color =  texture(u_Textures[int(v_TexIndex)] , v_TexCoord) * v_Color;
     //color = vec4(v_TexIndex , 0.0 , 0.0 ,1.0);
 
     const vec4 bgColor = vec4(0.0, 0.0, 0.0, 1.0);
@@ -57,4 +57,6 @@ void main(){
     float screenPxDistance = screenPxRange()*(sd - 0.5);
     float opacity = clamp(screenPxDistance + 0.5, 0.0, 1.0);
     color = mix(bgColor, v_Color, opacity);
+    if(opacity == 0.0)
+        discard;
 }

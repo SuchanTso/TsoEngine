@@ -7,7 +7,7 @@ class b2World;
 
 namespace Tso {
 	class Entity;
-class Font;
+	class Font;
 	class Scene {
 		friend class Entity;
 		friend class SceneHierarchyPanel;

@@ -8,7 +8,7 @@
 #include "box2d/b2_fixture.h"
 #include "box2d/b2_polygon_shape.h"
 #include "box2d/b2_circle_shape.h"
-#include "Font.h"
+#include "Tso/Renderer/Font.h"
 
 namespace Utils {
     b2BodyType Rigidbody2DTypeToBox2DBody(Tso::Rigidbody2DComponent::BodyType bodyType)
