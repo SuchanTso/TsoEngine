@@ -4,6 +4,8 @@
 #include "glm/gtc/type_ptr.hpp"
 #include "Tso/Scene/SceneCamera.h"
 #include "Tso/Utils/PlatformUtils.h"
+#include "Tso/Renderer/Font.h"
+#include "Tso/Scene/ScriptableEntity.h"
 
 namespace Tso {
 	void SceneHierarchyPanel::OnGuiRender()
@@ -76,6 +78,7 @@ namespace Tso {
             DisplayAddComponentEntry<NativeScriptComponent>("NativeScript");
             DisplayAddComponentEntry<Rigidbody2DComponent>("Rigidbody2DComponent");
             DisplayAddComponentEntry<BoxCollider2DComponent>("BoxCollider2DComponent");
+            DisplayAddComponentEntry<TextComponent>("TextComponent");
             ImGui::EndPopup();
         }
     
@@ -151,6 +154,40 @@ namespace Tso {
                     ImGui::DragFloat("Friction", &comp.Friction);
                     ImGui::DragFloat("Restitution", &comp.Restitution);
                     ImGui::DragFloat("RestitutionThreshold", &comp.RestitutionThreshold);
+                }
+
+                ImGui::TreePop();
+            }
+        }
+        
+        
+        if(entity.HasComponent<TextComponent>()){
+            if (ImGui::TreeNodeEx("Text", ImGuiTreeNodeFlags_OpenOnArrow)) {
+                auto& comp = entity.GetComponent<TextComponent>();
+                if (open) {
+                    char buff[256];
+                    
+                    strcpy(buff, comp.Text.c_str());
+                    ImGui::LogText("%s", comp.Text.c_str());
+                    if(ImGui::InputTextMultiline("TextContent", buff, sizeof(buff))){
+                        comp.Text = buff;
+                    }
+                    ImGui::DragFloat("linaSpacing", &comp.textParam.LineSpacing , 0.1f , -5.0f ,100.0f);
+                    ImGui::DragFloat("CharaterSpacing", &comp.textParam.CharacterSpacing , 0.1f , -5.0f ,100.0f);
+
+                    if(ImGui::Button("browse:")){
+                        auto fontPath = FileDialogs::OpenFile("ttf (*.ttf)\0 * .ttf\0");
+                        if(!fontPath.empty()){
+                            comp.FontPath = fontPath;
+                            comp.TextFont.reset();
+                            comp.TextFont = std::make_shared<Font>(fontPath);
+                        }
+                    }
+                    ImGui::SameLine();
+                    if(!comp.FontPath.empty()){
+                        ImGui::Text("%s", comp.FontPath.c_str());
+                    }
+
                 }
 
                 ImGui::TreePop();
