@@ -115,7 +115,8 @@ void Scene::OnUpdate(TimeStep ts)
                     Renderer2D::DrawQuad(transform,render.subTexture);
                 }
                 else{
-                    Renderer2D::DrawQuad(transform,render.subTexture->GetTexture());
+                    if(render.subTexture && render.subTexture->GetTexture())
+                        Renderer2D::DrawQuad(transform,render.subTexture->GetTexture());
                 }
             }
         }

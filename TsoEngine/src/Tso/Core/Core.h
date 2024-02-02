@@ -24,8 +24,14 @@
 
 
 #ifdef TSO_ENABLE_ASSERTS
-#define TSO_ASSERT(x, ...) {if(!(x)){TSO_ERROR("Assertion Failed: {0}",__VA_ARGS__); __debugbreak();}}
-#define TSO_CORE_ASSERT(x, ...){if(!(x)){TSO_CORE_ERROR("Assertion Failed: {0}",__VA_ARGS__); __debugbreak();}}
+    #ifdef TSO_PLATFORM_WINDOWS
+        #define TSO_ASSERT(x, ...) {if(!(x)){TSO_ERROR("Assertion Failed: {0}",__VA_ARGS__); __debugbreak();}}
+        #define TSO_CORE_ASSERT(x, ...){if(!(x)){TSO_CORE_ERROR("Assertion Failed: {0}",__VA_ARGS__); __debugbreak();}}
+    #elif defined TSO_PLATFORM_MACOSX
+        #define TSO_ASSERT(x, ...) {if(!(x)){TSO_ERROR("Assertion Failed: {0}",__VA_ARGS__); __builtin_trap();}}
+        #define TSO_CORE_ASSERT(x, ...){if(!(x)){TSO_CORE_ERROR("Assertion Failed: {0}",__VA_ARGS__); __builtin_trap();}}
+    #else
+    #endif
 #else
 #define TSO_ASSERT(x, ...) 
 #define TSO_CORE_ASSERT(x, ...) 
@@ -42,6 +48,16 @@ namespace Tso {
 	template<typename T>
 	using Scope = std::unique_ptr<T>;
 
+    template<typename T , typename... Arg>
+    constexpr Scope<T> CreateScope(Arg&& ...arg){
+        return std::make_unique<T>(std::forward<Arg>(arg)...);
+    }
+
 	template<typename T>
 	using Ref = std::shared_ptr<T>;
+
+    template<typename T , typename... Arg>
+    constexpr Ref<T> CreateRef(Arg&& ...arg){
+        return std::make_shared<T>(std::forward<Arg>(arg)...);
+    }
 }
