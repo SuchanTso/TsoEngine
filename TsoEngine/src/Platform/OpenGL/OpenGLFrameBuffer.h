@@ -17,7 +17,7 @@ namespace Tso {
         virtual void Resize(const uint32_t& width , const uint32_t& height) override;
 
 
-		virtual uint32_t GetColorAttachment()const override { return m_ColorAttachMent; }
+		virtual uint32_t GetColorAttachment(const uint32_t& index = 0)const override {TSO_CORE_ASSERT(index < m_ColorAttachMents.size(),"invalid index") return m_ColorAttachMents[index]; }
 		virtual uint32_t GetDepthAttachment()const override { return m_DepthAttachMent; }
 
 	private:
@@ -28,7 +28,7 @@ namespace Tso {
 		FrameBufferInfo m_FrameInfo;
 
 		uint32_t m_RendererID = 0;
-		uint32_t m_ColorAttachMent = 0;
+		std::vector<uint32_t> m_ColorAttachMents;
 		uint32_t m_DepthAttachMent = 0;
 
 

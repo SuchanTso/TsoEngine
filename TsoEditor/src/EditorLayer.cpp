@@ -32,7 +32,11 @@ namespace Tso {
         m_subTexture = SubTexture2D::CreateByCoord(m_TileTexture, { 16.0 , 16.0 }, { 2.0 , 3.0 }, { 1.0 , 1.0 });
         m_sub1 = SubTexture2D::CreateByCoord(m_TileTexture, { 16.0 , 16.0 }, { 6.0 , 0.0 }, { 1.0 , 1.0 });
 
-        FrameBufferInfo info = { (uint32_t)m_ViewportSize.x , (uint32_t)m_ViewportSize.y , false };
+        FrameBufferInfo info ;
+        info.width = (uint32_t)m_ViewportSize.x;
+        info.height = (uint32_t)m_ViewportSize.y;
+        info.format = {RGBA8 , RGBA8 , DEPTH24_STENCIL8};
+        //{ (uint32_t)m_ViewportSize.x , (uint32_t)m_ViewportSize.y , false };
         m_FrameBuffer = FrameBuffer::Create(info);
 
     
@@ -190,7 +194,7 @@ namespace Tso {
 //                    camera.m_Camera.SetViewportSize(m_ViewportSize.x , m_ViewportSize.y);
 //                }
             }
-            uint32_t fbId = m_FrameBuffer->GetColorAttachment();
+            uint32_t fbId = m_FrameBuffer->GetColorAttachment(1);
 
             ImGui::Image((void*)fbId, ImVec2{ m_ViewportSize.x , m_ViewportSize.y },ImVec2{ 0, 1 }, ImVec2{ 1, 0 });
 
