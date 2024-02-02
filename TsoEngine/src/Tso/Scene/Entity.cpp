@@ -12,5 +12,9 @@ Entity::Entity(const entt::entity& entityId, Scene* scene, const std::string& na
 	{
 	}
 
+uint64_t Entity::GetUUID(){
+    return GetComponent<IDComponent>().ID;
+}
+
 
 }

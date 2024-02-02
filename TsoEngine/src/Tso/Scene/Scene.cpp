@@ -34,12 +34,16 @@ Scene::Scene(){
 
 
 Entity Scene::CreateEntity(const std::string& name){
+    return CreateEntityWithID(UUID() , name);
+}
+
+Entity Scene::CreateEntityWithID(const UUID& uuid , const std::string& name){
     entt::entity entityID = m_Registry.create();
-    std::string entityName = name.length() > 0 ? name : ("blankEntity" + std::to_string(m_EntityCount));
+    std::string entityName = name.length() > 0 ? name : ("blankEntity");
     Entity res = Entity(entityID , this , name);
     res.AddComponent<TransformComponent>(glm::vec3(0.0 , 0.0 , 0.9));
+    res.AddComponent<IDComponent>(uuid);
     res.AddComponent<TagComponent>(entityName);
-    m_EntityCount++;
     return res;
 }
 

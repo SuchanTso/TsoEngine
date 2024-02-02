@@ -128,7 +128,7 @@ YAML::Emitter& operator<<(YAML::Emitter& out, const glm::vec4& v)
 static void SeriealizeEntity(YAML::Emitter& out, Entity& entity)
 {
     out << YAML::BeginMap; // Entity
-    out << YAML::Key << "Entity" << YAML::Value << entity.GetEntityID();
+    out << YAML::Key << "Entity" << YAML::Value << entity.GetUUID();
 
     if (entity.HasComponent<TagComponent>())
     {
@@ -311,7 +311,8 @@ bool Seriealizer::DeseriealizeScene(const std::string& path){
             if(tagComponent){
                 name = tagComponent["Tag"].as<std::string>();
             }
-            Entity deserializedEntity = m_Scene->CreateEntity(name);
+            uint64_t uuid = entity["Entity"].as<uint64_t>();
+            Entity deserializedEntity = m_Scene->CreateEntityWithID(uuid , name);
             auto transformComponent = entity["TransformComponent"];
             if(transformComponent){
                 auto& transform = deserializedEntity.GetComponent<TransformComponent>();
