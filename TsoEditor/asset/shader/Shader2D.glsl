@@ -31,6 +31,7 @@ void main(){
 #version 330 core
            
 layout(location = 0) out vec4 color;
+layout(location = 1) out vec4 o_color;
 in vec3 v_Position;
 in vec2 v_TexCoord;
 in vec4 v_Color;
@@ -42,5 +43,5 @@ uniform sampler2D u_Textures[32];
 
 void main(){
     color =  texture(u_Textures[int(v_TexIndex)] , v_TexCoord) * v_Color;
-    //color = vec4(v_TexIndex , 0.0 , 0.0 ,1.0);
+    o_color = vec4(0.8, 0.3 , 0.2 ,1.0);
 }
