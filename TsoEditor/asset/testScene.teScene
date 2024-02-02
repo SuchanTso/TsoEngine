@@ -1,17 +1,18 @@
 Scene: Untitled
 Entities:
-  - Entity: 5
+  - Entity: 10748675652273437046
     TagComponent:
-      Tag: Empty Entity
+      Tag: text
     TransformComponent:
       Translate: [0, 0, 0.899999976]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     TextComponent:
+      FontPath: asset/Aa灵感黑55J.ttf
+      LineSpacing: 0
+      CharacterSpacing: 0
       Text: SuchanTso
-      FontPath: asset\KoseFontP-SC.ttf
-      
-  - Entity: 4
+  - Entity: 12466988385138157507
     TagComponent:
       Tag: MainCamera
     TransformComponent:
@@ -31,22 +32,22 @@ Entities:
     RenderableComponent:
       Type: 0
       Color: [0.600000024, 0.300000012, 0.200000003, 1]
-  - Entity: 3
+  - Entity: 3237235218851866537
     TagComponent:
       Tag: axe
     TransformComponent:
-      Translate: [3.21857524, -3.18340611, 1.79999995]
+      Translate: [0.46850723, -0.883459687, 1.79999995]
       Rotation: [0, 0, -0.00448071305]
       Scale: [1, 1, 1]
     RenderableComponent:
       Type: 1
       Color: [0.970588207, 1, 0, 1]
-      TexturePath: asset\tilemap_packed.png
+      TexturePath: asset/tilemap_packed.png
       SubTexture: true
       SpriteSize: [16, 16]
       SpriteIndex: [11, 12]
       TextureSize: [1, 1]
-  - Entity: 2
+  - Entity: 17936673958020440578
     TagComponent:
       Tag: ground
     TransformComponent:
@@ -66,7 +67,7 @@ Entities:
       Friction: 0.5
       Restitution: 0
       RestitutionThreshold: 0.5
-  - Entity: 1
+  - Entity: 9573343038727609951
     TagComponent:
       Tag: Character1
     TransformComponent:
@@ -76,12 +77,12 @@ Entities:
     RenderableComponent:
       Type: 1
       Color: [0.970588207, 1, 0, 1]
-      TexturePath: asset\tilemap_packed.png
+      TexturePath: asset/tilemap_packed.png
       SubTexture: true
       SpriteSize: [16, 16]
       SpriteIndex: [3, 12]
       TextureSize: [1, 1]
-  - Entity: 0
+  - Entity: 8580527708488816232
     TagComponent:
       Tag: Spider
     TransformComponent:
@@ -91,7 +92,7 @@ Entities:
     RenderableComponent:
       Type: 1
       Color: [0.970588207, 1, 0, 1]
-      TexturePath: asset\tilemap_packed.png
+      TexturePath: asset/tilemap_packed.png
       SubTexture: true
       SpriteSize: [16, 16]
       SpriteIndex: [12, 24]
@@ -106,3 +107,18 @@ Entities:
       Friction: 0.5
       Restitution: 0
       RestitutionThreshold: 0.5
+  - Entity: 12809050572003689832
+    TagComponent:
+      Tag: Empty Entity
+    TransformComponent:
+      Translate: [-4.5, 0, 0.899999976]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    RenderableComponent:
+      Type: 1
+      Color: [0.300000012, 0.800000012, 0.200000003, 1]
+      TexturePath: ../../../TsoEditor/asset/tilemap_packed.png
+      SubTexture: true
+      SpriteSize: [16, 16]
+      SpriteIndex: [11, 4]
+      TextureSize: [1, 1]

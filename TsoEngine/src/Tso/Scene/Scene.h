@@ -2,6 +2,7 @@
 #include "entt.hpp"
 #include "Tso/Core/TimeStep.h"
 #include "Tso/Physics/CollideListener.h"
+#include "Tso/Core/UUID.h"
 
 class b2World;
 
@@ -17,6 +18,8 @@ namespace Tso {
 		~Scene() {}
 
 		Entity CreateEntity(const std::string& name = "");
+        
+        Entity CreateEntityWithID(const UUID& uuid , const std::string& name = "");
         
         void DeleteEntity(Entity entity);
 

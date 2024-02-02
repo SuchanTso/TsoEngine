@@ -7,6 +7,7 @@
 #include "Tso/Renderer/Texture.h"
 #include "Tso/Renderer/SubTexture2D.h"
 #include "Tso/Renderer/Font.h"
+#include "Tso/Core/UUID.h"
 
 
 namespace Tso {
@@ -80,6 +81,13 @@ namespace Tso {
 		std::string m_Name = "";
 	};
 
+    struct IDComponent{
+        IDComponent() = default;
+        IDComponent(const UUID& uuid):ID(uuid){}
+        IDComponent(const IDComponent& other) = default;
+        UUID ID;
+    };
+
 
 
 	class ScriptableEntity;
@@ -102,7 +110,12 @@ namespace Tso {
 			InstantiateScript = lambda;
             DestroyScript = [](NativeScriptComponent* nsc) { delete nsc->Instance; nsc->Instance = nullptr; };
             hasBind = true;
-		}
+        }
+        
+        void UnBind(){
+            DestroyScript(this);
+            hasBind = false;
+        }
 
 	};
 
