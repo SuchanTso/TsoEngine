@@ -55,7 +55,7 @@ namespace Tso {
 
 	struct Renderable  {
         
-		Renderable() = delete;
+		Renderable() = default;
 		Renderable(const glm::vec4& color);
 
 		void Render(const glm::mat4& transform);

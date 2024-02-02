@@ -32,7 +32,8 @@ project "TsoEngine"
 	defines
 	{
 	    "_CRT_SECURE_NO_WARNINGS", 
-		"YAML_CPP_STATIC_DEFINE"
+		"YAML_CPP_STATIC_DEFINE",
+		"TSO_ENABLE_ASSERTS"
 	}
 	
 	files
@@ -82,7 +83,7 @@ project "TsoEngine"
 
 	filter  "system:windows" 
 	    systemversion "latest"
-		defines {"TSO_PLATFORM_WINDOWS", "GLFW_INCLUDE_NONE", "TSO_ENABLE_ASSERTS"}
+		defines {"TSO_PLATFORM_WINDOWS", "GLFW_INCLUDE_NONE"}
 		
 		postbuildcommands
 		{
@@ -247,6 +248,7 @@ project "TsoEditor"
 	defines
 	{
 		"YAML_CPP_STATIC_DEFINE",
+		"TSO_ENABLE_ASSERTS"
 	}
 
     externalincludedirs

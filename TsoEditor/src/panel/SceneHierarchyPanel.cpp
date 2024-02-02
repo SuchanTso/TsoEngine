@@ -74,6 +74,7 @@ namespace Tso {
         
         if (ImGui::BeginPopup("AddComponent"))
         {
+            DisplayAddComponentEntry<Renderable>("Renderable");
             DisplayAddComponentEntry<CameraComponent>("Camera");
             DisplayAddComponentEntry<NativeScriptComponent>("NativeScript");
             DisplayAddComponentEntry<Rigidbody2DComponent>("Rigidbody2DComponent");
@@ -224,7 +225,8 @@ namespace Tso {
                 }
                 else if(comp.type == RenderType::Texture){
                     ImGui::Checkbox("isSubtexture", &comp.isSubtexture);
-                    ImGui::Text("Path:%s", comp.subTexture->GetTexture()->GetPath().c_str());
+                    
+                    ImGui::Text("Path:%s",comp.subTexture ? comp.subTexture->GetTexture()->GetPath().c_str() : "");
                     ImGui::SameLine();
                     if (ImGui::Button("browse")) {
                         auto TexturePath = FileDialogs::OpenFile("png (*.png)\0 * .png\0");
@@ -317,12 +319,26 @@ namespace Tso {
             bool open = ImGui::TreeNodeEx("NativeScript", ImGuiTreeNodeFlags_OpenOnArrow);
             bool removeComponent = false;
             
+            auto& nsc = entity.GetComponent<NativeScriptComponent>();
+            if(nsc.hasBind && nsc.Instance){
+                nsc.Instance->OnGUI();
+            }
+            
             if(open){
-                auto& comp = entity.GetComponent<NativeScriptComponent>();
-                
-                if (ImGui::MenuItem("testAddBehavior")){
-                    comp.Bind<Controlable>();
+                if(!nsc.hasBind){
+                    if (ImGui::Button("Add Behavior"))
+                        ImGui::OpenPopup("AddBehavior");
+                    
+                    if (ImGui::BeginPopup("AddBehavior"))
+                    {
+                        BindNativeScriptBehavior<Controlable>("Controlable");
+                        BindNativeScriptBehavior<CircleBehavior>("CircleBehavior");
+                        
+                        ImGui::EndPopup();
+                    }
+                    
                 }
+                
                 if (ImGui::MenuItem("Remove component"))
                     removeComponent = true;
                 ImGui::TreePop();
