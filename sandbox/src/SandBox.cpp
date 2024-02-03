@@ -12,7 +12,6 @@
 #include <unistd.h>
 #endif
 #include "Tso/Renderer/OrthographicCameraController.h"
-#include "rapidjson/document.h"
 #include "SandBox2D.h"
 #include "BigWealth/BigWealthGameLayer.h"
 

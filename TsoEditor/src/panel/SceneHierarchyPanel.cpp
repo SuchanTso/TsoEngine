@@ -6,6 +6,7 @@
 #include "Tso/Utils/PlatformUtils.h"
 #include "Tso/Renderer/Font.h"
 #include "Tso/Scene/ScriptableEntity.h"
+#include "Tso/Scripting/ScriptingEngine.h"
 
 namespace Tso {
 	void SceneHierarchyPanel::OnGuiRender()
@@ -76,6 +77,7 @@ namespace Tso {
         {
             DisplayAddComponentEntry<Renderable>("Renderable");
             DisplayAddComponentEntry<CameraComponent>("Camera");
+            DisplayAddComponentEntry<ScriptComponent>("Script");
             DisplayAddComponentEntry<NativeScriptComponent>("NativeScript");
             DisplayAddComponentEntry<Rigidbody2DComponent>("Rigidbody2DComponent");
             DisplayAddComponentEntry<BoxCollider2DComponent>("BoxCollider2DComponent");
@@ -320,9 +322,9 @@ namespace Tso {
             bool removeComponent = false;
             
             auto& nsc = entity.GetComponent<NativeScriptComponent>();
-            if(nsc.hasBind && nsc.Instance){
-                nsc.Instance->OnGUI();
-            }
+            //if(nsc.hasBind && nsc.Instance){
+                //nsc.Instance->OnGUI();
+            //}
             
             if(open){
                 if(!nsc.hasBind){
@@ -331,8 +333,8 @@ namespace Tso {
                     
                     if (ImGui::BeginPopup("AddBehavior"))
                     {
-                        BindNativeScriptBehavior<Controlable>("Controlable");
-                        BindNativeScriptBehavior<CircleBehavior>("CircleBehavior");
+                       // BindNativeScriptBehavior<Controlable>("Controlable");
+                       // BindNativeScriptBehavior<CircleBehavior>("CircleBehavior");
                         
                         ImGui::EndPopup();
                     }
@@ -346,6 +348,31 @@ namespace Tso {
             if(removeComponent){
                 entity.RemoveComponent<NativeScriptComponent>();
             }
+            
+        }
+
+        if (entity.HasComponent<ScriptComponent>()) {
+
+            auto& comp = entity.GetComponent<ScriptComponent>();
+
+            auto& className = comp.ClassName;
+            char buff[256];
+
+            strcpy(buff, className.c_str());
+
+
+            bool classExist = ScriptingEngine::EntityClassExists(comp.ClassName);
+            if (!classExist) {
+                ImGui::PushStyleColor(0, { 0.8 , 0.3 , 0.2 , 1.0 });
+            }
+
+            if (ImGui::InputText("ScriptClass", buff, sizeof(buff))) {
+                comp.ClassName = buff;
+            }
+            if (!classExist) {
+                ImGui::PopStyleColor();
+            }
+
             
         }
         
