@@ -3,6 +3,8 @@
 #include "Entity.h"
 #include "Component.h"
 #include "Tso/Renderer/Renderer2D.h"
+#include "Tso/Scripting/ScriptingEngine.h"
+
 #include "box2d/b2_world.h"
 #include "box2d/b2_body.h"
 #include "box2d/b2_fixture.h"
@@ -49,46 +51,54 @@ Entity Scene::CreateEntityWithID(const UUID& uuid , const std::string& name){
 
 void Scene::OnUpdate(TimeStep ts)
 {
-    m_Time += ts.GetSecond();
+    if (!m_Pause) {
+        m_Time += ts.GetSecond();
 
-    m_Registry.view<NativeScriptComponent>().each([=](auto entity, auto& nsc)
-        {
-            // TODO: Move to Scene::OnScenePlay
-            if (!nsc.Instance && nsc.hasBind)
+        //update script
+
+        m_Registry.view<ScriptComponent>().each([=](auto entity, auto& sc) {
+            Entity e = { entity, this };
+            ScriptingEngine::OnUpdateEntity(e, ts);
+            });
+
+        m_Registry.view<NativeScriptComponent>().each([=](auto entity, auto& nsc)
             {
-                nsc.Instance = nsc.InstantiateScript();
-                nsc.Instance->m_Entity = Entity{ entity, this };
-                nsc.Instance->OnCreate();
+                // TODO: Move to Scene::OnScenePlay
+                if (!nsc.Instance && nsc.hasBind)
+                {
+                    nsc.Instance = nsc.InstantiateScript();
+                    nsc.Instance->m_Entity = Entity{ entity, this };
+                    nsc.Instance->OnCreate();
+                }
+                if (nsc.hasBind)
+                    nsc.Instance->OnUpdate(ts);
+            });
+
+
+        if (m_PhysicWorld) {
+            const int32_t velocityIterations = 6;
+            const int32_t positionIterations = 2;
+            m_PhysicWorld->Step(ts, velocityIterations, positionIterations);
+
+            // Retrieve transform from Box2D
+            auto view = m_Registry.view<Rigidbody2DComponent>();
+            for (auto e : view)
+            {
+                Entity entity = { e, this };
+                auto& transform = entity.GetComponent<TransformComponent>();
+                auto& rb2d = entity.GetComponent<Rigidbody2DComponent>();
+
+                b2Body* body = (b2Body*)rb2d.RuntimeBody;
+
+                const auto& position = body->GetPosition();
+                transform.m_Translation.x = position.x;
+                transform.m_Translation.y = position.y;
+                transform.m_Rotation.z = body->GetAngle();
+
+
             }
-            if(nsc.hasBind)
-                nsc.Instance->OnUpdate(ts);
-        });
-
-
-    if(m_PhysicWorld){
-        const int32_t velocityIterations = 6;
-        const int32_t positionIterations = 2;
-        m_PhysicWorld->Step(ts, velocityIterations, positionIterations);
-
-        // Retrieve transform from Box2D
-        auto view = m_Registry.view<Rigidbody2DComponent>();
-        for (auto e : view)
-        {
-            Entity entity = { e, this };
-            auto& transform = entity.GetComponent<TransformComponent>();
-            auto& rb2d = entity.GetComponent<Rigidbody2DComponent>();
-
-            b2Body* body = (b2Body*)rb2d.RuntimeBody;
-            
-            const auto& position = body->GetPosition();
-            transform.m_Translation.x = position.x;
-            transform.m_Translation.y = position.y;
-            transform.m_Rotation.z = body->GetAngle();
-
-            
         }
     }
-
     auto view = m_Registry.view<TransformComponent, CameraComponent>();
     SceneCamera* mainCamera = nullptr;
     glm::mat4* mainCameraTransfrom = nullptr;
@@ -145,6 +155,14 @@ void Scene::DeleteEntity(Entity entity){
 
 void Scene::OnScenePlay()
 {
+
+    auto& sView = m_Registry.view<ScriptComponent>();
+    for (auto e : sView) {
+        Entity entity = { e , this };
+        //std::string className = entity.GetComponent<ScriptComponent>().ClassName;
+        ScriptingEngine::OnCreateEntity(entity);
+    }
+
     m_PhysicWorld = new b2World({ 0.0f , -9.8f});
     m_PhysicsListener = new NativeContactListener();
 
@@ -193,6 +211,7 @@ void Scene::OnScenePlay()
 
         
     }
+    m_Pause = false;
 }
 
 void Scene::OnSceneStop()
@@ -205,7 +224,7 @@ void Scene::OnSceneStop()
         delete m_PhysicsListener;
         m_PhysicsListener = nullptr;
     }
-
+    m_Pause = true;
 }
 
 

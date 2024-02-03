@@ -42,5 +42,5 @@
 
 
 #ifdef TSO_PLATFORM_WINDOWS
-    #include <Windows.h>
+    #include <windows.h>
 #endif

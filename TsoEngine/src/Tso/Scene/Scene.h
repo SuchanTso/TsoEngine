@@ -43,6 +43,8 @@ namespace Tso {
 		NativeContactListener* m_PhysicsListener = nullptr;
         
 
+		bool m_Pause = true;
+
 	};
 
 
