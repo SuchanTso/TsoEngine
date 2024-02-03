@@ -206,7 +206,7 @@ namespace Tso {
 //                    camera.m_Camera.SetViewportSize(m_ViewportSize.x , m_ViewportSize.y);
 //                }
             }
-            uint32_t fbId = m_FrameBuffer->GetColorAttachment(1);
+            uint32_t fbId = m_FrameBuffer->GetColorAttachment(0);
 
             ImGui::Image((void*)fbId, ImVec2{ m_ViewportSize.x , m_ViewportSize.y },ImVec2{ 0, 1 }, ImVec2{ 1, 0 });
 
