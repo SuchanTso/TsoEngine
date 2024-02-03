@@ -129,6 +129,17 @@ static void SeriealizeEntity(YAML::Emitter& out, Entity& entity)
         out << YAML::EndMap; // TagComponent
     }
 
+    if (entity.HasComponent<ScriptComponent>())
+    {
+        out << YAML::Key << "ScriptComponent";
+        out << YAML::BeginMap; // TagComponent
+
+        auto& className = entity.GetComponent<ScriptComponent>().ClassName;
+        out << YAML::Key << "className" << YAML::Value << className.c_str();
+
+        out << YAML::EndMap; // TagComponent
+    }
+
     if (entity.HasComponent<TransformComponent>())
     {
         out << YAML::Key << "TransformComponent";
@@ -291,6 +302,12 @@ bool Seriealizer::DeseriealizeScene(const std::string& path){
                 transform.SetPos(transformComponent["Translate"] ? transformComponent["Translate"].as<glm::vec3>() : glm::vec3(0.0f));
                 transform.SetRotate(transformComponent["Rotation"] ? transformComponent["Rotation"].as<glm::vec3>() : glm::vec3(0.0f));
                 transform.SetScale(transformComponent["Scale"] ? transformComponent["Scale"].as<glm::vec3>() : glm::vec3(1.0f));
+            }
+
+            auto scriptComponent = entity["ScriptComponent"];
+            if (scriptComponent) {
+                auto& sc = deserializedEntity.AddComponent<ScriptComponent>();
+                sc.ClassName = scriptComponent["className"] ? scriptComponent["className"].as<std::string>() : "";
             }
             
             auto cameraComponent = entity["CamermaComponent"];

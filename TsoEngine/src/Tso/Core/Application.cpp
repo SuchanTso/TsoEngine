@@ -2,6 +2,7 @@
 #include "Application.h"
 #include "GLFW/glfw3.h"
 #include "Tso/Renderer/Renderer.h"
+#include "Tso/Scripting/ScriptingEngine.h"
 
 //temp
 // 
@@ -17,7 +18,7 @@ namespace Tso {
 		m_Window->SetEventCallback(BIND_EVENT_FN(Application::OnEvent));
 
         RenderCommand::Init();
-        
+        ScriptingEngine::Init();
         m_ImGuiLayer = new ImGuiLayer;
         m_LayerStack.PushOverlay(m_ImGuiLayer);
 
@@ -105,6 +106,7 @@ namespace Tso {
 
 			m_Window->OnUpdate();
 		}
+        ScriptingEngine::ShutDown();
 	}
 
 bool Application::OnWindowClosed(const WindowCloseEvent &e){

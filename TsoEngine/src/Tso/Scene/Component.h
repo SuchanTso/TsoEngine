@@ -104,6 +104,13 @@ namespace Tso {
 
 	};
 
+	struct ScriptComponent {
+		ScriptComponent() = default;
+		ScriptComponent(ScriptComponent& sc) = default;
+
+		std::string ClassName = "";
+	};
+
 
 	struct CameraComponent{
 		CameraComponent(){}
@@ -115,14 +122,6 @@ namespace Tso {
     
 	};
 
-	struct Animation {
-		Animation() {}
-
-		int x_range = 2;
-		int y_range = 2;
-
-
-	};
 
 	struct Rigidbody2DComponent
 	{

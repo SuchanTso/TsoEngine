@@ -8,10 +8,14 @@
 #include "Tso/Scene/Entity.h"
 #include "Tso/Scene/Seriealizer.h"
 #include "Tso/Utils/PlatformUtils.h"
-#include "Tso/Scripting/Scripting.h"
 
 
 namespace Tso {
+
+    static void PrintFunc() {
+        TSO_CORE_INFO("hello world from c++ by c#");
+    }
+
     EditorLayer::EditorLayer()
         :Layer("EditorLayer"),
         m_TrianglePos(glm::vec3(0.f))
@@ -36,10 +40,16 @@ namespace Tso {
         FrameBufferInfo info = { (uint32_t)m_ViewportSize.x , (uint32_t)m_ViewportSize.y , false };
         m_FrameBuffer = FrameBuffer::Create(info);
 
-        Scripting script;
-        script.LoadCSharpAssembly("Scripts/test.cs");
-        int a = 0;
+        //Scripting script;
+        //auto test = script.LoadCSharpAssembly("../TsoEngine-ScriptCore/Build/TsoEngine-ScriptCore.dll");
+        ////script.PrintAssemblyTypes(test);
+        //MonoClass* p2 = script.GetClassInAssembly(test, "MyNamespace", "Program");
+        //MonoObject* objP = script.CreateInstance(p2);
+        //mono_add_internal_call("MyNamespace.Program::PrintString", &PrintFunc);
 
+        //script.CallMethod(p2, objP, "PrintFloatVar");
+
+        
     }
 
 

@@ -4,6 +4,7 @@
 #include "glm/gtc/type_ptr.hpp"
 #include "Tso/Scene/SceneCamera.h"
 #include "Tso/Utils/PlatformUtils.h"
+#include "Tso/Scripting/ScriptingEngine.h"
 
 namespace Tso {
 	void SceneHierarchyPanel::OnGuiRender()
@@ -73,6 +74,7 @@ namespace Tso {
         if (ImGui::BeginPopup("AddComponent"))
         {
             DisplayAddComponentEntry<CameraComponent>("Camera");
+            DisplayAddComponentEntry<ScriptComponent>("Script");
             DisplayAddComponentEntry<NativeScriptComponent>("NativeScript");
             DisplayAddComponentEntry<Rigidbody2DComponent>("Rigidbody2DComponent");
             DisplayAddComponentEntry<BoxCollider2DComponent>("BoxCollider2DComponent");
@@ -293,6 +295,31 @@ namespace Tso {
             if(removeComponent){
                 entity.RemoveComponent<NativeScriptComponent>();
             }
+            
+        }
+
+        if (entity.HasComponent<ScriptComponent>()) {
+
+            auto& comp = entity.GetComponent<ScriptComponent>();
+
+            auto& className = comp.ClassName;
+            char buff[256];
+
+            strcpy(buff, className.c_str());
+
+
+            bool classExist = ScriptingEngine::EntityClassExists(comp.ClassName);
+            if (!classExist) {
+                ImGui::PushStyleColor(0, { 0.8 , 0.3 , 0.2 , 1.0 });
+            }
+
+            if (ImGui::InputText("ScriptClass", buff, sizeof(buff))) {
+                comp.ClassName = buff;
+            }
+            if (!classExist) {
+                ImGui::PopStyleColor();
+            }
+
             
         }
         
