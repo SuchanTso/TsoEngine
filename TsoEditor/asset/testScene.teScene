@@ -8,7 +8,7 @@ Entities:
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     TextComponent:
-      FontPath: asset/Aa灵感黑55J.ttf
+      FontPath: asset/KoseFontP-SC.ttf
       LineSpacing: 0
       CharacterSpacing: 0
       Text: SuchanTso

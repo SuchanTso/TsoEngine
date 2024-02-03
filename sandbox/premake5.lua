@@ -19,7 +19,10 @@ project "Sandbox"
 		"%{wks.location}/TsoEngine/third_party/entt",
 		"%{wks.location}/TsoEngine/third_party/yaml-cpp/include",
 		"%{wks.location}/TsoEngine/third_party/box2d/include",
-		"%{wks.location}/TsoEngine/third_party/mono/include"
+		"%{wks.location}/TsoEngine/third_party/mono/include",
+		"%{wks.location}/TsoEngine/third_party/msdf-atlas-gen/msfgen/include",
+		"%{wks.location}/TsoEngine/third_party/msdf-atlas-gen/msdf-atlas-gen",
+		"%{wks.location}/TsoEngine/third_party/msdf-atlas-gen/msdfgen"
 
 
 		--"Hazel/vendor/box2D/include"

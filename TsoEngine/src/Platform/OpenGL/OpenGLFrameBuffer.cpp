@@ -118,7 +118,7 @@ void OpenGLFrameBuffer::Invalidate()
         else{
             uint32_t colorAttachment = 0;
 #ifdef TSO_PLATFORM_WINDOWS
-            glCreateTextures(GL_TEXTURE_2D, 1, &m_ColorAttachMent);
+            glCreateTextures(GL_TEXTURE_2D, 1, &colorAttachment);
 #else
             glGenTextures(1, &colorAttachment);
 #endif

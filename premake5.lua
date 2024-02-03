@@ -11,6 +11,7 @@ include "TsoEngine/third_party/Glad"
 include "TsoEngine/third_party/imgui"
 include "TsoEngine/third_party/yaml-cpp"
 include "TsoEngine/third_party/box2d"
+include "TsoEngine/third_party/msdf-atlas-gen"
 group ""
 
 
@@ -27,4 +28,3 @@ group ""
 group "Misc"
 include "Sandbox"
 group ""
->>>>>>> 45c5b93 (fet：script engine)

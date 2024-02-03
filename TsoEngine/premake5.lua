@@ -6,7 +6,7 @@ project "TsoEngine"
 	targetdir ("../bin/" .. outputdir .. "/%{prj.name}") 
 	objdir   ("../bin-int/" .. outputdir .. "/%{prj.name}") 
 	links {"GLFW", "opengl32.lib", "Glad", "imgui", "YAML_CPP" , "Box2D" ,
-	"third_party/mono/lib/Debug/mono-2.0-sgen.lib"
+	"third_party/mono/lib/Debug/mono-2.0-sgen.lib","msdf-atlas-gen"
 
 	}
 	
@@ -46,7 +46,10 @@ project "TsoEngine"
 		"third_party/entt",
 		"third_party/yaml-cpp/include",
 		"third_party/box2d/include",
-		"third_party/mono/include"
+		"third_party/mono/include",
+		"third_party/msdf-atlas-gen/msdfgen/include",
+		"third_party/msdf-atlas-gen/msdf-atlas-gen",
+		"third_party/msdf-atlas-gen/msdfgen"
 
 	}
 
