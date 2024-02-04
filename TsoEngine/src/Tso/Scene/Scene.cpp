@@ -112,15 +112,15 @@ void Scene::OnUpdate(TimeStep ts)
             const auto& [render, trans] = group.get<Renderable, TransformComponent>(entity);
             auto transform = trans.GetTransform();
             if(render.type == RenderType::PureColor){
-                Renderer2D::DrawQuad(transform,render.m_Color);
+                Renderer2D::DrawQuad(transform,render.m_Color , (int)entity);
             }
             else{
                 if(render.isSubtexture){
-                    Renderer2D::DrawQuad(transform,render.subTexture);
+                    Renderer2D::DrawQuad(transform,render.subTexture , (int)entity);
                 }
                 else{
                     if(render.subTexture && render.subTexture->GetTexture())
-                        Renderer2D::DrawQuad(transform,render.subTexture->GetTexture());
+                        Renderer2D::DrawQuad(transform,render.subTexture->GetTexture() , (int)entity);
                 }
             }
         }
@@ -129,7 +129,7 @@ void Scene::OnUpdate(TimeStep ts)
         for(auto& e : textGroup){
             const auto& [transComp , textComp] = textGroup.get<TransformComponent, TextComponent>(e);
             if(textComp.TextFont && textComp.Text.length() > 0){
-                Renderer2D::DrawString(textComp.TextFont, transComp.GetTransform(), textComp.Text , textComp.textParam);
+                Renderer2D::DrawString(textComp.TextFont, transComp.GetTransform(), textComp.Text , textComp.textParam , (int)e);
             }
         }
         

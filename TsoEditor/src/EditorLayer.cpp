@@ -27,15 +27,10 @@ namespace Tso {
         std::string tileMap = "asset/tilemap_packed.png";
 
 
-        m_Texture = Texture2D::Create(lp);
-        m_TileTexture = Texture2D::Create(tileMap);
-        m_subTexture = SubTexture2D::CreateByCoord(m_TileTexture, { 16.0 , 16.0 }, { 2.0 , 3.0 }, { 1.0 , 1.0 });
-        m_sub1 = SubTexture2D::CreateByCoord(m_TileTexture, { 16.0 , 16.0 }, { 6.0 , 0.0 }, { 1.0 , 1.0 });
-
         FrameBufferInfo info ;
         info.width = (uint32_t)m_ViewportSize.x;
         info.height = (uint32_t)m_ViewportSize.y;
-        info.format = {RGBA8 , RGBA8 , DEPTH24_STENCIL8};
+        info.format = {RGBA8 , RED_INTEGER , DEPTH24_STENCIL8};
         //{ (uint32_t)m_ViewportSize.x , (uint32_t)m_ViewportSize.y , false };
         m_FrameBuffer = FrameBuffer::Create(info);
 
@@ -180,9 +175,19 @@ namespace Tso {
             ImGui::Text("%s", m_StartScene ? "play" : "stop");
 
             ImGui::End();
+    
+            
 
             ImGui::Begin("Viewport");
+    
+            auto viewportMinRegion = ImGui::GetWindowContentRegionMin();
+            auto viewportMaxRegion = ImGui::GetWindowContentRegionMax();
+            auto viewportOffset = ImGui::GetWindowPos();
+            m_ViewportBounds[0] = { viewportMinRegion.x + viewportOffset.x, viewportMinRegion.y + viewportOffset.y };
+            m_ViewportBounds[1] = { viewportMaxRegion.x + viewportOffset.x, viewportMaxRegion.y + viewportOffset.y };
+            
             m_ViewportFocused = ImGui::IsWindowFocused();
+            m_ViewportHovered = ImGui::IsWindowHovered();
             Application::Get().GetGUILayer()->BlockEvents(!m_ViewportFocused);
 
             auto content = ImGui::GetContentRegionAvail();
@@ -194,7 +199,7 @@ namespace Tso {
 //                    camera.m_Camera.SetViewportSize(m_ViewportSize.x , m_ViewportSize.y);
 //                }
             }
-            uint32_t fbId = m_FrameBuffer->GetColorAttachment(1);
+            uint32_t fbId = m_FrameBuffer->GetColorAttachment(0);
 
             ImGui::Image((void*)fbId, ImVec2{ m_ViewportSize.x , m_ViewportSize.y },ImVec2{ 0, 1 }, ImVec2{ 1, 0 });
 
@@ -213,12 +218,28 @@ namespace Tso {
 
         m_FrameBuffer->Bind();
         
+        m_FrameBuffer->ClearAttachment(1, -1);
+        
         m_Scene->OnUpdate(ts);
         
-        m_FrameBuffer->UnBind();
 
         m_Time += ts.GetSecond();
+        
+        auto [mx , my] = ImGui::GetMousePos();
+        mx -= m_ViewportBounds[0].x ;
+        my -= m_ViewportBounds[0].y;
+        
+        glm::vec2 viewportSize = m_ViewportBounds[1] - m_ViewportBounds[0];
+        my = viewportSize.y - my;
+        int mouseX = (int)mx;
+        int mouseY = (int)my;
+        if(m_ViewportFocused && mouseX > 0 && mouseY > 0 && m_Scene){
+            int pixelData = m_FrameBuffer->ReadOnePixel(1, mouseX, mouseY);
+//            TSO_CORE_INFO("read pixel = {}" , pixelData);
+            m_HoveredEntity = pixelData == -1 ? Entity() : Entity((entt::entity)pixelData , m_Scene.get());
+        }
 
+        m_FrameBuffer->UnBind();
 
         /*if (Input::IsKeyPressed(TSO_KEY_SPACE)) {
             m_StartScene = !m_StartScene;
@@ -243,21 +264,12 @@ namespace Tso {
     bool EditorLayer::OnMouseButton(MouseButtonPressedEvent& e) {
 
         if (e.GetButton() == TSO_MOUSE_BUTTON_1) {
-
-            float width = 1280.f, height = 720.f;
-
-            float asp = width / height;
-
-            float targetX = m_MouseX / width * asp * 4 - 2 * asp;
-            float targetY = m_MouseY / height * asp * 2 - asp;
-            //TSO_INFO("mouse position = ({0} , {1}) , and caled pos = ({2} , {3})", m_MouseX, m_MouseY, targetX, targetY);
-
-
-            m_MoveData.startTime = m_Time;
-            m_MoveData.targetPos = glm::vec2(targetX, -targetY);
-            m_MoveData.originPos = m_TrianglePos;
-            m_LpMovable = true;
-            return true;
+            if(m_ViewportFocused && m_ViewportHovered){
+                //pick entity
+                m_Panel.SetSelectedEntity(m_HoveredEntity);
+                return true;
+            }
+            
         }
         return false;
     }

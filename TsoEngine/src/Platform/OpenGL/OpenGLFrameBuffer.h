@@ -3,6 +3,12 @@
 #include "Tso/Renderer/FrameBuffer.h"
 
 namespace Tso {
+struct AttachmentSpec{
+    uint32_t _renderID = 0;
+    FrameBufferFormat _format = RGBA8;
+};
+
+
 	class OpenGLFrameBuffer : public FrameBuffer {
 	public:
 		OpenGLFrameBuffer(){}
@@ -19,6 +25,12 @@ namespace Tso {
 
 		virtual uint32_t GetColorAttachment(const uint32_t& index = 0)const override {TSO_CORE_ASSERT(index < m_ColorAttachMents.size(),"invalid index") return m_ColorAttachMents[index]; }
 		virtual uint32_t GetDepthAttachment()const override { return m_DepthAttachMent; }
+        
+        virtual int ReadOnePixel(const int& attachmentIndex , const int& x , const int& y) override;
+        
+        virtual void ClearAttachment(const int& attachmentIndex , const int& value) override;
+
+
 
 	private:
 		void Invalidate();
@@ -29,7 +41,9 @@ namespace Tso {
 
 		uint32_t m_RendererID = 0;
 		std::vector<uint32_t> m_ColorAttachMents;
+        std::vector<FrameBufferFormat> m_ColorAttachmentSpec;
 		uint32_t m_DepthAttachMent = 0;
+        FrameBufferFormat m_DepthAttachmentSpec = DEPTH24_STENCIL8;
 
 
 
