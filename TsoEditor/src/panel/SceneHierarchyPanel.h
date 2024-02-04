@@ -16,6 +16,7 @@ namespace Tso {
         void DisplayAddComponentEntry(const std::string& entryName);
 
 		void OnGuiRender();
+        void SetSelectedEntity(const Entity& entity){m_SelectedEntity = entity;}
 	private:
 		void DrwaEntityNode(Entity& entity);
 		void DrawComponents(Entity& entity);

@@ -4,9 +4,13 @@
 namespace Tso {
 
 enum FrameBufferFormat{
-    RGBA8 = 0,
-    RGB8  = 1,
-    DEPTH24_STENCIL8 = 2,
+    
+    RGBA8 = 1,
+    RGB8  = 2,
+    RED_INTEGER = 3,
+    
+    
+    DEPTH24_STENCIL8 = 4,
 };
 
 
@@ -31,6 +35,10 @@ enum FrameBufferFormat{
 
 		virtual uint32_t GetColorAttachment(const uint32_t& index = 0)const = 0;
 		virtual uint32_t GetDepthAttachment()const = 0;
+        
+        virtual int ReadOnePixel(const int& attachmentIndex , const int& x , const int& y) = 0;
+        
+        virtual void ClearAttachment(const int& attachmentIndex , const int& value) = 0;
 
 
 	};

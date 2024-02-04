@@ -9,6 +9,7 @@ static GLenum ConvertColorFormatToGLInternalFormat(const FrameBufferFormat& fram
     switch (framebufferFormat) {
         case RGBA8 : return GL_RGBA8;
         case RGB8  : return GL_RGB8;
+        case RED_INTEGER: return GL_R32I;
             
         default:
             TSO_CORE_ASSERT(false , "{} format is not supported now" , framebufferFormat);
@@ -20,6 +21,8 @@ static GLenum ConvertColorFormatToGLFormat(const FrameBufferFormat& framebufferF
     switch (framebufferFormat) {
         case RGBA8 : return GL_RGBA;
         case RGB8  : return GL_RGB;
+        case RED_INTEGER: return GL_RED_INTEGER;
+
             
         default:
             TSO_CORE_ASSERT(false , "{} format is not supported now" , framebufferFormat);
@@ -31,6 +34,7 @@ static bool isDepthAttachment(const FrameBufferFormat& framebufferFormat){
     switch (framebufferFormat) {
         case RGBA8 :
         case RGB8  : return false;
+        case RED_INTEGER : return false;
         case DEPTH24_STENCIL8:return true;
             
         default:
@@ -113,6 +117,7 @@ void OpenGLFrameBuffer::Invalidate()
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
             
             glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_TEXTURE_2D, m_DepthAttachMent, 0);
+            m_DepthAttachmentSpec = m_FrameInfo.format[i];
         }
         
         else{
@@ -134,6 +139,7 @@ void OpenGLFrameBuffer::Invalidate()
             glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + offset, GL_TEXTURE_2D, colorAttachment, 0);
             
             m_ColorAttachMents.push_back(colorAttachment);
+            m_ColorAttachmentSpec.push_back(m_FrameInfo.format[i]);
         }
         
     }
@@ -157,4 +163,29 @@ void OpenGLFrameBuffer::Invalidate()
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 	}
+
+
+
+int OpenGLFrameBuffer::ReadOnePixel(const int& attachmentIndex , const int& x , const int& y){
+    TSO_CORE_ASSERT(attachmentIndex < m_ColorAttachMents.size(),"invalid attachment index");
+    glReadBuffer(GL_COLOR_ATTACHMENT0 + attachmentIndex);
+    int pixelData;
+    glReadPixels(x, y, 1, 1, GL_RED_INTEGER, GL_INT, &pixelData);
+    return pixelData;
+}
+
+void OpenGLFrameBuffer::ClearAttachment(const int& attachmentIndex , const int& value){
+    TSO_CORE_ASSERT(attachmentIndex < m_ColorAttachMents.size(),"invalid attachment index");
+    
+#ifdef TSO_PLATFORM_WINDOWS
+    auto& spec = m_ColorAttachmentSpec[attachmentIndex];
+    glClearTexImage(m_ColorAttachMents[attachmentIndex] , 0 , ConvertColorFormatToGLFormat(spec) , GL_INT , &v);
+#else
+    //to be implement in macOS
+    GLint values[4] = {value};
+    //    glClearBufferiv(GL_COLOR, m_ColorAttachmentSpec[attachmentIndex] , values);
+#endif
+}
+
+
 }

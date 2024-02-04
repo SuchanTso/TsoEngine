@@ -32,19 +32,19 @@ public:
 
     static void Flush();
     
-    static void DrawQuad(const glm::vec2& position , const glm::vec2& scale , const glm::vec4& color);
-    static void DrawQuad(const glm::vec3& position , const glm::vec2& scale , const glm::vec4& color);
-    static void DrawQuad(const glm::vec3& position , const float& rotation , const glm::vec2& scale , const glm::vec4& color);
+    static void DrawQuad(const glm::vec2& position , const glm::vec2& scale , const glm::vec4& color , const int& entityID);
+    static void DrawQuad(const glm::vec3& position , const glm::vec2& scale , const glm::vec4& color , const int& entityID);
+    static void DrawQuad(const glm::vec3& position , const float& rotation , const glm::vec2& scale , const glm::vec4& color , const int& entityID);
     
-    static void DrawQuad(const glm::mat4& transform , const glm::vec4& color);
-    static void DrawString(const Ref<Font> font , const glm::mat4& transform , const std::string& text , const TextParam& textParam);
+    static void DrawQuad(const glm::mat4& transform , const glm::vec4& color , const int& entityID);
+    static void DrawString(const Ref<Font> font , const glm::mat4& transform , const std::string& text , const TextParam& textParam , const int& entityID);
     
-    static void DrawQuad(const glm::vec2& position , const glm::vec2& scale , Ref<Texture2D> texture);
-    static void DrawQuad(const glm::vec3& position , const glm::vec2& scale , Ref<Texture2D> texture);
-    static void DrawQuad(const glm::vec3& position , const float& rotation , const glm::vec2& scale , Ref<Texture2D> texture);
-    static void DrawQuad(const glm::vec3& position , const float& rotation , const glm::vec2& scale , Ref<SubTexture2D> subTexture);
-    static void DrawQuad(const glm::mat4& transform , Ref<Texture2D> texture);
-    static void DrawQuad(const glm::mat4& transform , Ref<SubTexture2D> subTexture);
+    static void DrawQuad(const glm::vec2& position , const glm::vec2& scale , Ref<Texture2D> texture , const int& entityID);
+    static void DrawQuad(const glm::vec3& position , const glm::vec2& scale , Ref<Texture2D> texture , const int& entityID);
+    static void DrawQuad(const glm::vec3& position , const float& rotation , const glm::vec2& scale , Ref<Texture2D> texture , const int& entityID);
+    static void DrawQuad(const glm::vec3& position , const float& rotation , const glm::vec2& scale , Ref<SubTexture2D> subTexture , const int& entityID);
+    static void DrawQuad(const glm::mat4& transform , Ref<Texture2D> texture , const int& entityID);
+    static void DrawQuad(const glm::mat4& transform , Ref<SubTexture2D> subTexture , const int& entityID);
 
 
     struct Statistics {
