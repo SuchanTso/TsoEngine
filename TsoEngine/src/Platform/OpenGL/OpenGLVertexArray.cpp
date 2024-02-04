@@ -54,14 +54,44 @@ namespace Tso {
 		uint32_t index = 0;
 		const auto& layout = vertexBuffer->GetLayout();
 		for (auto& element : layout) {
-			glEnableVertexAttribArray(index);
-			glVertexAttribPointer(index,
-				element.GetComponentCount(),
-				ConvertShaderDataType2OpenGLType(element.Type),
-				element.Normalized ? GL_TRUE : GL_FALSE,
-				layout.GetStride(),
-				(const void*)element.Offset);
-			index++;
+            
+            switch (element.Type) {
+                case Tso::ShaderDataType::Float:
+                case Tso::ShaderDataType::Float2:
+                case Tso::ShaderDataType::Float3:
+                case Tso::ShaderDataType::Float4:
+                {
+                    glEnableVertexAttribArray(index);
+                    glVertexAttribPointer(index,
+                                          element.GetComponentCount(),
+                                          ConvertShaderDataType2OpenGLType(element.Type),
+                                          element.Normalized ? GL_TRUE : GL_FALSE,
+                                          layout.GetStride(),
+                                          (const void*)element.Offset);
+                    index++;
+                    break;
+                }
+                case Tso::ShaderDataType::Int:
+                case Tso::ShaderDataType::Int2:
+                case Tso::ShaderDataType::Int3:
+                case Tso::ShaderDataType::Int4:
+                case Tso::ShaderDataType::Bool:
+                {
+                    glEnableVertexAttribArray(index);
+                    glVertexAttribIPointer(index,
+                        element.GetComponentCount(),
+                        ConvertShaderDataType2OpenGLType(element.Type),
+                        layout.GetStride(),
+                        (const void*)element.Offset);
+                    index++;
+                    break;
+                }
+                default:
+                    TSO_CORE_ASSERT(false , "unknown shaderDataType");
+                    break;
+            }
+            
+			
 		}
 		m_VertexBuffers.push_back(vertexBuffer);
 

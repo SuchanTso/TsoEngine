@@ -53,6 +53,7 @@ namespace Tso {
         Ref<Scene>      m_Scene;
         SceneHierarchyPanel m_Panel;
         Entity m_CameraEntity;
+        Entity m_HoveredEntity;
 
         float m_MoveSpeed = 1.0f;
         bool m_LpMovable = false;
@@ -63,6 +64,8 @@ namespace Tso {
 
         float m_MouseX = 0.f, m_MouseY = 0.f;
         bool m_ViewportFocused = false;
+        bool m_ViewportHovered = false;
+        glm::vec2 m_ViewportBounds[2];
 
 
         glm::vec2 m_ViewportSize = { 720.0 , 1280.0 };

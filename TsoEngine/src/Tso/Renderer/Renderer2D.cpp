@@ -18,12 +18,14 @@ struct QuadVertex {
     glm::vec2 texCoord;
     glm::vec4 color;
     float textureIndex;
+    int entityID;
 };
 
 struct TextVertex{
     glm::vec3 postion;
     glm::vec2 texCoord;
     glm::vec4 color;
+    int entityID;
 };
 
     
@@ -98,7 +100,8 @@ void Renderer2D::Init(Ref<Shader> quadShader){
             {Tso::ShaderDataType::Float3 , "a_Position"},
             {Tso::ShaderDataType::Float2 , "a_TexCoord"},
             {Tso::ShaderDataType::Float4 , "a_Color"},
-            {Tso::ShaderDataType::Float  , "a_TexIndex"}
+            {Tso::ShaderDataType::Float  , "a_TexIndex"},
+            {Tso::ShaderDataType::Int  , "a_EntityID"}
 
 
         };
@@ -114,7 +117,8 @@ void Renderer2D::Init(Ref<Shader> quadShader){
         Tso::BufferLayout layout = {
             {Tso::ShaderDataType::Float3 , "a_Position"},
             {Tso::ShaderDataType::Float2 , "a_TexCoord"},
-            {Tso::ShaderDataType::Float4 , "a_Color"}
+            {Tso::ShaderDataType::Float4 , "a_Color"},
+            {Tso::ShaderDataType::Int  , "a_EntityID"}
         };
         s_Data.TextVertexBuffer->SetLayout(layout);
     }
@@ -273,7 +277,7 @@ void Renderer2D::FlushAndRest()
 
 
 
-void Renderer2D::DrawQuad(const glm::vec3& position , const float& rotation , const glm::vec2& scale , const glm::vec4& color){
+void Renderer2D::DrawQuad(const glm::vec3& position , const float& rotation , const glm::vec2& scale , const glm::vec4& color , const int& entityID){
     s_Data.QuadShader->Bind();
 
     if (s_Data.QuadIndexCount >= Renderer2DData::maxIndices) {
@@ -283,34 +287,38 @@ void Renderer2D::DrawQuad(const glm::vec3& position , const float& rotation , co
     glm::mat4 transform = glm::translate(glm::mat4(1.0), position) * glm::rotate(glm::mat4(1.0), glm::radians(rotation), glm::vec3(0.0, 0.0, 1.0))
         * glm::scale(glm::mat4(1.0), glm::vec3(scale, 1.0f));
 
-    DrawQuad(transform , color);
+    DrawQuad(transform , color , entityID);
 }
 
-void Renderer2D::DrawQuad(const glm::mat4& transform, const glm::vec4& color){
+void Renderer2D::DrawQuad(const glm::mat4& transform, const glm::vec4& color , const int& entityID){
     
     const float textureIndex = 0.0f;//white texture
     s_Data.QuadVertexBufferPtr->postion = transform * s_Data.quadVertices[0];
     s_Data.QuadVertexBufferPtr->color = color;
     s_Data.QuadVertexBufferPtr->textureIndex = textureIndex;
     s_Data.QuadVertexBufferPtr->texCoord = { 0.0f , 0.0f };
+    s_Data.QuadVertexBufferPtr->entityID = entityID;
     s_Data.QuadVertexBufferPtr++;
 
     s_Data.QuadVertexBufferPtr->postion = transform * s_Data.quadVertices[1];
     s_Data.QuadVertexBufferPtr->color = color;
     s_Data.QuadVertexBufferPtr->textureIndex = textureIndex;
     s_Data.QuadVertexBufferPtr->texCoord = { 1.0f , 0.0f };
+    s_Data.QuadVertexBufferPtr->entityID = entityID;
     s_Data.QuadVertexBufferPtr++;
 
     s_Data.QuadVertexBufferPtr->postion = transform * s_Data.quadVertices[2];
     s_Data.QuadVertexBufferPtr->color = color;
     s_Data.QuadVertexBufferPtr->textureIndex = textureIndex;
     s_Data.QuadVertexBufferPtr->texCoord = { 1.0f , 1.0f };
+    s_Data.QuadVertexBufferPtr->entityID = entityID;
     s_Data.QuadVertexBufferPtr++;
 
     s_Data.QuadVertexBufferPtr->postion = transform * s_Data.quadVertices[3];
     s_Data.QuadVertexBufferPtr->color = color;
     s_Data.QuadVertexBufferPtr->textureIndex = textureIndex;
     s_Data.QuadVertexBufferPtr->texCoord = { 0.0f , 1.0f };
+    s_Data.QuadVertexBufferPtr->entityID = entityID;
     s_Data.QuadVertexBufferPtr++;
     
     s_Data.QuadIndexCount += 6;
@@ -319,28 +327,28 @@ void Renderer2D::DrawQuad(const glm::mat4& transform, const glm::vec4& color){
     
 }
 
-void Renderer2D::DrawQuad(const glm::vec2& position , const glm::vec2& scale , const glm::vec4& color){
+void Renderer2D::DrawQuad(const glm::vec2& position , const glm::vec2& scale , const glm::vec4& color , const int& entityID){
     
-    DrawQuad(glm::vec3(position , 0.f), 0.f, scale, color);
+    DrawQuad(glm::vec3(position , 0.f), 0.f, scale, color , entityID);
     
 }
-void Renderer2D::DrawQuad(const glm::vec3& position , const glm::vec2& scale , const glm::vec4& color){
-    DrawQuad(position, 0.f, scale, color);
+void Renderer2D::DrawQuad(const glm::vec3& position , const glm::vec2& scale , const glm::vec4& color , const int& entityID){
+    DrawQuad(position, 0.f, scale, color , entityID);
 
 }
 
-void Renderer2D::DrawQuad(const glm::vec2& position, const glm::vec2& scale, Ref<Texture2D> texture)
+void Renderer2D::DrawQuad(const glm::vec2& position, const glm::vec2& scale, Ref<Texture2D> texture , const int& entityID)
 {
-    DrawQuad({position , 0.0} , 0.0 , scale ,texture);
+    DrawQuad({position , 0.0} , 0.0 , scale ,texture , entityID);
 }
 
-void Renderer2D::DrawQuad(const glm::vec3& position, const glm::vec2& scale, Ref<Texture2D> texture)
+void Renderer2D::DrawQuad(const glm::vec3& position, const glm::vec2& scale, Ref<Texture2D> texture , const int& entityID)
 {
-    DrawQuad( position , 0.0, scale, texture);
+    DrawQuad( position , 0.0, scale, texture , entityID);
 
 }
 
-void Renderer2D::DrawQuad(const glm::mat4& transform , Ref<Texture2D> texture){
+void Renderer2D::DrawQuad(const glm::mat4& transform , Ref<Texture2D> texture , const int& entityID){
     if (s_Data.QuadIndexCount >= Renderer2DData::maxIndices) {
         FlushAndRest();
     }
@@ -368,24 +376,28 @@ void Renderer2D::DrawQuad(const glm::mat4& transform , Ref<Texture2D> texture){
     s_Data.QuadVertexBufferPtr->color = color;
     s_Data.QuadVertexBufferPtr->textureIndex = textureIndex;
     s_Data.QuadVertexBufferPtr->texCoord = { 0.0f , 0.0f };
+    s_Data.QuadVertexBufferPtr->entityID = entityID;
     s_Data.QuadVertexBufferPtr++;
 
     s_Data.QuadVertexBufferPtr->postion = transform * s_Data.quadVertices[1];
     s_Data.QuadVertexBufferPtr->color = color;
     s_Data.QuadVertexBufferPtr->textureIndex = textureIndex;
     s_Data.QuadVertexBufferPtr->texCoord = { 1.0f , 0.0f };
+    s_Data.QuadVertexBufferPtr->entityID = entityID;
     s_Data.QuadVertexBufferPtr++;
 
     s_Data.QuadVertexBufferPtr->postion = transform * s_Data.quadVertices[2];
     s_Data.QuadVertexBufferPtr->color = color;
     s_Data.QuadVertexBufferPtr->textureIndex = textureIndex;
     s_Data.QuadVertexBufferPtr->texCoord = { 1.0f , 1.0f };
+    s_Data.QuadVertexBufferPtr->entityID = entityID;
     s_Data.QuadVertexBufferPtr++;
 
     s_Data.QuadVertexBufferPtr->postion = transform * s_Data.quadVertices[3];
     s_Data.QuadVertexBufferPtr->color = color;
     s_Data.QuadVertexBufferPtr->textureIndex = textureIndex;
     s_Data.QuadVertexBufferPtr->texCoord = { 0.0f , 1.0f };
+    s_Data.QuadVertexBufferPtr->entityID = entityID;
     s_Data.QuadVertexBufferPtr++;
 
     s_Data.QuadIndexCount += 6;
@@ -394,17 +406,17 @@ void Renderer2D::DrawQuad(const glm::mat4& transform , Ref<Texture2D> texture){
 }
 
 
-void Renderer2D::DrawQuad(const glm::vec3& position , const float& rotation , const glm::vec2& scale , Ref<Texture2D> texture){
+void Renderer2D::DrawQuad(const glm::vec3& position , const float& rotation , const glm::vec2& scale , Ref<Texture2D> texture , const int& entityID){
 
     
 
     glm::mat4 transform = glm::translate(glm::mat4(1.0), position) * glm::rotate(glm::mat4(1.0), glm::radians(rotation), glm::vec3(0.0, 0.0, 1.0))
         * glm::scale(glm::mat4(1.0), glm::vec3(scale, 1.0f));
     
-    DrawQuad(transform , texture);
+    DrawQuad(transform , texture , entityID);
 }
 
-void Renderer2D::DrawQuad(const glm::mat4& transform , Ref<SubTexture2D> subTexture){
+void Renderer2D::DrawQuad(const glm::mat4& transform , Ref<SubTexture2D> subTexture , const int& entityID){
     if (s_Data.QuadIndexCount >= Renderer2DData::maxIndices) {
         FlushAndRest();
     }
@@ -436,24 +448,28 @@ void Renderer2D::DrawQuad(const glm::mat4& transform , Ref<SubTexture2D> subText
     s_Data.QuadVertexBufferPtr->color = color;
     s_Data.QuadVertexBufferPtr->textureIndex = textureIndex;
     s_Data.QuadVertexBufferPtr->texCoord = texCoord[0];
+    s_Data.QuadVertexBufferPtr->entityID = entityID;
     s_Data.QuadVertexBufferPtr++;
 
     s_Data.QuadVertexBufferPtr->postion = transform * s_Data.quadVertices[1];
     s_Data.QuadVertexBufferPtr->color = color;
     s_Data.QuadVertexBufferPtr->textureIndex = textureIndex;
     s_Data.QuadVertexBufferPtr->texCoord = texCoord[1];
+    s_Data.QuadVertexBufferPtr->entityID = entityID;
     s_Data.QuadVertexBufferPtr++;
 
     s_Data.QuadVertexBufferPtr->postion = transform * s_Data.quadVertices[2];
     s_Data.QuadVertexBufferPtr->color = color;
     s_Data.QuadVertexBufferPtr->textureIndex = textureIndex;
     s_Data.QuadVertexBufferPtr->texCoord = texCoord[2];
+    s_Data.QuadVertexBufferPtr->entityID = entityID;
     s_Data.QuadVertexBufferPtr++;
 
     s_Data.QuadVertexBufferPtr->postion = transform * s_Data.quadVertices[3];
     s_Data.QuadVertexBufferPtr->color = color;
     s_Data.QuadVertexBufferPtr->textureIndex = textureIndex;
     s_Data.QuadVertexBufferPtr->texCoord = texCoord[3];
+    s_Data.QuadVertexBufferPtr->entityID = entityID;
     s_Data.QuadVertexBufferPtr++;
 
     s_Data.QuadIndexCount += 6;
@@ -461,17 +477,17 @@ void Renderer2D::DrawQuad(const glm::mat4& transform , Ref<SubTexture2D> subText
     s_Data.Stat.QuadCount++;
 }
 
-void Renderer2D::DrawQuad(const glm::vec3& position , const float& rotation , const glm::vec2& scale , Ref<SubTexture2D> subTexture){
+void Renderer2D::DrawQuad(const glm::vec3& position , const float& rotation , const glm::vec2& scale , Ref<SubTexture2D> subTexture , const int& entityID){
 
     glm::mat4 transform = glm::translate(glm::mat4(1.0), position) * glm::rotate(glm::mat4(1.0), glm::radians(rotation), glm::vec3(0.0, 0.0, 1.0))
         * glm::scale(glm::mat4(1.0), glm::vec3(scale, 1.0f));
 
-    DrawQuad(transform , subTexture);
+    DrawQuad(transform , subTexture , entityID);
 }
 
 //text
 
-void Renderer2D::DrawString(const Ref<Font> font , const glm::mat4& transform , const std::string& text ,const TextParam& textParam){
+void Renderer2D::DrawString(const Ref<Font> font , const glm::mat4& transform , const std::string& text ,const TextParam& textParam , const int& entityID){
     const auto& fontGeometry = font->GetMSDFData()->FontGeometry;
     const auto& metrics = fontGeometry.getMetrics();
     Ref<Texture2D> fontAtlas = font->GetAtlasTexture();
@@ -545,21 +561,25 @@ void Renderer2D::DrawString(const Ref<Font> font , const glm::mat4& transform , 
         s_Data.TextVertexBufferPtr->postion = transform * glm::vec4(quadMin , 0.0f , 1.0f);
         s_Data.TextVertexBufferPtr->color = glm::vec4(1.0);
         s_Data.TextVertexBufferPtr->texCoord = texCoordMin;
+        s_Data.TextVertexBufferPtr->entityID = entityID;
         s_Data.TextVertexBufferPtr++;
         
         s_Data.TextVertexBufferPtr->postion = transform * glm::vec4(quadMin.x , quadMax.y , 0.0f , 1.0f);
         s_Data.TextVertexBufferPtr->color = glm::vec4(1.0);
         s_Data.TextVertexBufferPtr->texCoord = {texCoordMin.x , texCoordMax.y};
+        s_Data.TextVertexBufferPtr->entityID = entityID;
         s_Data.TextVertexBufferPtr++;
         
         s_Data.TextVertexBufferPtr->postion = transform * glm::vec4(quadMax , 0.0f , 1.0f);
         s_Data.TextVertexBufferPtr->color = glm::vec4(1.0);
         s_Data.TextVertexBufferPtr->texCoord = texCoordMax;
+        s_Data.TextVertexBufferPtr->entityID = entityID;
         s_Data.TextVertexBufferPtr++;
         
         s_Data.TextVertexBufferPtr->postion = transform * glm::vec4(quadMax.x , quadMin.y , 0.0f , 1.0f);
         s_Data.TextVertexBufferPtr->color = glm::vec4(1.0);
         s_Data.TextVertexBufferPtr->texCoord = {texCoordMax.x , texCoordMin.y};
+        s_Data.TextVertexBufferPtr->entityID = entityID;
         s_Data.TextVertexBufferPtr++;
 
         s_Data.TextIndexCount += 6;
