@@ -15,6 +15,10 @@ namespace Tso
 
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
         extern public static void GetTranslation(ulong uuid , out Vector3 translation);
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        extern public static void SetTranslation(ulong uuid, Vector3 translation);
 
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        extern public static bool IsKeyPressed(Keycode keycode);
     }
 }
