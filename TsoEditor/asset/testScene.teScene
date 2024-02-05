@@ -1,75 +1,5 @@
 Scene: Untitled
 Entities:
-  - Entity: 1
-    TagComponent:
-      Tag: Character1
-    TransformComponent:
-      Translate: [-2.68662977, 0.727653503, 1.89999998]
-      Rotation: [0, 0, 0]
-      Scale: [1, 1, 1]
-    RenderableComponent:
-      Type: 1
-      Color: [0.970588207, 1, 0, 1]
-      TexturePath: asset\tilemap_packed.png
-      SubTexture: true
-      SpriteSize: [16, 16]
-      SpriteIndex: [3, 12]
-      TextureSize: [1, 1]
-  - Entity: 2
-    TagComponent:
-      Tag: ground
-    TransformComponent:
-      Translate: [0, -2.36192703, 0.899999976]
-      Rotation: [0, 0, 0]
-      Scale: [13.8000002, 0.600000024, 1]
-    RenderableComponent:
-      Type: 0
-      Color: [0.600000024, 0.300000012, 0.200000003, 1]
-    Rigidbody2DComponent:
-      Type: 0
-      FixRotation: false
-    BoxCollider2DComponent:
-      Size: [0.5, 0.5]
-      Offset: [0, 0]
-      Density: 1
-      Friction: 0.5
-      Restitution: 0
-      RestitutionThreshold: 0.5
-  - Entity: 3
-    TagComponent:
-      Tag: axe
-    TransformComponent:
-      Translate: [3.21857524, -3.18340611, 1.79999995]
-      Rotation: [0, 0, -0.00448071305]
-      Scale: [1, 1, 1]
-    RenderableComponent:
-      Type: 1
-      Color: [0.970588207, 1, 0, 1]
-      TexturePath: asset\tilemap_packed.png
-      SubTexture: true
-      SpriteSize: [16, 16]
-      SpriteIndex: [11, 12]
-      TextureSize: [1, 1]
-  - Entity: 8580527708488816232
-    TagComponent:
-      Tag: MainCamera
-    TransformComponent:
-      Translate: [0, 0, 4]
-      Rotation: [0, 0, 0]
-      Scale: [1, 1, 1]
-    CamermaComponent:
-      ProjectionType: 1
-      ProjectionNearClip: 0.00999999978
-      ProjectionFarClip: 1000
-      ProjectionFov: 0.785398185
-      OrthographicNear: 1
-      OrthographicFar: 5
-      OrthographicSize: 10
-      Primary: true
-      FixedAspect: false
-    RenderableComponent:
-      Type: 0
-      Color: [0.600000024, 0.300000012, 0.200000003, 1]
   - Entity: 9573343038727609951
     TagComponent:
       Tag: Character1
@@ -105,14 +35,14 @@ Entities:
       Friction: 0.5
       Restitution: 0
       RestitutionThreshold: 0.5
-  - Entity: 0
+  - Entity: 17936673958020442578
     TagComponent:
       Tag: Spider
     ScriptComponent:
       className: Tso.Player
     TransformComponent:
-      Translate: [0.100763321, -1.54299259, 2.0999999]
-      Rotation: [0, 0, 0.000276606588]
+      Translate: [0.100780554, -1.54299259, 2.0999999]
+      Rotation: [0, 0, 0.000276606414]
       Scale: [1, 1, 1]
     RenderableComponent:
       Type: 1

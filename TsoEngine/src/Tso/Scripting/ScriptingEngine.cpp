@@ -175,9 +175,7 @@ namespace Utils {
 		ScriptGlue::RegisterFunctions();
 	}
 
-	void ScriptingEngine::OnUpdateEntity(Entity entity, Timestep ts)
-	{
-	}
+
 
 	void ScriptingEngine::InitMono()
 	{
@@ -258,7 +256,7 @@ namespace Utils {
 
 	Scene* ScriptingEngine::GetSceneContext()
 	{
-		return s_Data->SceneContext;;
+		return s_Data->SceneContext;
 	}
 
 	void ScriptingEngine::OnUpdateEntity(Entity entity, TimeStep ts)
@@ -369,6 +367,11 @@ namespace Utils {
 		s_Data->SceneContext = context;
 	}
 
+	void ScriptingEngine::OnSceneStop()
+	{
+		s_Data->SceneContext = nullptr;
+	}
+
 	ScriptClass::ScriptClass(const std::string& classNamespace, const std::string& className, bool isCore)
 		: m_ClassNamespace(classNamespace), m_ClassName(className)
 	{
@@ -448,8 +451,5 @@ namespace Utils {
 		return true;
 	}
 
-	ScriptClass::ScriptInstance(Ref<ScriptClass> scriptClass, Entity entity)
-	{
-	}
 
 }

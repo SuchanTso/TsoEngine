@@ -8,6 +8,11 @@ namespace Tso
 {
     public class Entity
     {
+
+        public Entity() { }
+
+        public Entity(ulong uuid){ UUID = uuid; Console.WriteLine("ur father has made uuid done"); }
+
         public void Test()
         {
             Console.WriteLine("hello world from Entity class");
@@ -17,6 +22,6 @@ namespace Tso
 
         public virtual void OnUpdate(float ts) { }
 
-        internal ulong UUID { get; set; }
+        protected ulong UUID { get; set; }
     }
 }
