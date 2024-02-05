@@ -11,5 +11,10 @@ namespace Tso
     {
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
         extern public static void NativeLOG(string msg);
+
+
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        extern public static void GetTranslation(ulong uuid , out Vector3 translation);
+
     }
 }

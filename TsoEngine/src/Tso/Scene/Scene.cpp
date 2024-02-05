@@ -46,7 +46,19 @@ Entity Scene::CreateEntityWithID(const UUID& uuid , const std::string& name){
     res.AddComponent<TransformComponent>(glm::vec3(0.0 , 0.0 , 0.9));
     res.AddComponent<IDComponent>(uuid);
     res.AddComponent<TagComponent>(entityName);
+    m_EntityMap[uuid] = (uint32_t)entityID;
     return res;
+}
+
+Entity Scene::GetEntityByUUID(const UUID& uuid)
+{
+    if (m_EntityMap.find((uint64_t)uuid) != m_EntityMap.end()) {
+        return { (entt::entity)m_EntityMap.at(uuid), this };
+    }
+    else {
+        TSO_CORE_ERROR("cannot find entity keeps uuid({}) in this scene", uuid);
+    }
+    return Entity();
 }
 
 void Scene::OnUpdate(TimeStep ts)
@@ -150,11 +162,15 @@ void Scene::OnUpdate(TimeStep ts)
 }
 
 void Scene::DeleteEntity(Entity entity){
+    TSO_CORE_ASSERT(m_EntityMap.find(entity.GetUUID()) != m_EntityMap.end(), "cannot find entity , maybe an invalid scene");
+    m_EntityMap.erase(entity.GetUUID());
     m_Registry.destroy(entity);
+
 }
 
 void Scene::OnScenePlay()
 {
+    ScriptingEngine::OnScenePlay(this);
 
     auto& sView = m_Registry.view<ScriptComponent>();
     for (auto e : sView) {
@@ -224,6 +240,7 @@ void Scene::OnSceneStop()
         delete m_PhysicsListener;
         m_PhysicsListener = nullptr;
     }
+    ScriptingEngine::OnSceneStop();
     m_Pause = true;
 }
 

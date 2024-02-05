@@ -1,5 +1,11 @@
 #include "TPch.h"
 #include "ScriptGlue.h"
+#include "ScriptingEngine.h"
+
+#include "glm/glm.hpp"
+#include "Tso/Core/UUID.h"
+#include "Tso/Scene/Scene.h"
+#include "Tso/Scene/Component.h"
 
 #include "mono/jit/jit.h"
 #include "mono/metadata/tabledefs.h"
@@ -28,8 +34,18 @@ namespace Tso {
 		TSO_CORE_INFO("{}", str.c_str());
 	}
 
+	static void GetTranslation(UUID uuid , glm::vec3* res) {
+		Scene* scene = ScriptingEngine::GetSceneContext();
+		Entity e = scene->GetEntityByUUID(uuid);
+		auto& transform = e.GetComponent<TransformComponent>();
+		*res = transform.m_Translation;
+	}
+
 	void ScriptGlue::RegisterFunctions() {
 		TSO_ADD_INTERNAL_FUNC(NativeLOG);
+
+		TSO_ADD_INTERNAL_FUNC(GetTranslation);
+
 	}
 
 }

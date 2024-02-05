@@ -69,8 +69,11 @@ namespace Tso {
 		static void Init();
 		static void ShutDown();
 		static bool EntityClassExists(const std::string& className);
+		static void OnScenePlay(Scene* context);
+		static void OnSceneStop();
 		static void OnCreateEntity(Entity entity);
 		static void OnUpdateEntity(Entity entity, TimeStep ts);
+		static Scene* GetSceneContext();
 
 
 

@@ -20,6 +20,8 @@ namespace Tso {
 		Entity CreateEntity(const std::string& name = "");
         
         Entity CreateEntityWithID(const UUID& uuid , const std::string& name = "");
+
+		Entity GetEntityByUUID(const UUID& uuid);
         
         void DeleteEntity(Entity entity);
 
@@ -42,6 +44,7 @@ namespace Tso {
 
 		NativeContactListener* m_PhysicsListener = nullptr;
         
+		std::unordered_map<uint64_t, uint32_t> m_EntityMap;
 
 		bool m_Pause = true;
 
