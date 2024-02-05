@@ -41,10 +41,26 @@ namespace Tso {
 		*res = transform.m_Translation;
 	}
 
+	static void SetTranslation(UUID uuid, glm::vec3* res) {
+		Scene* scene = ScriptingEngine::GetSceneContext();
+		Entity e = scene->GetEntityByUUID(uuid);
+		auto& transform = e.GetComponent<TransformComponent>();
+		transform.m_Translation = *res;
+	}
+
+	static bool IsKeyPressed(int keycode) {
+		return Input::IsKeyPressed(keycode);
+	}
+
 	void ScriptGlue::RegisterFunctions() {
 		TSO_ADD_INTERNAL_FUNC(NativeLOG);
 
 		TSO_ADD_INTERNAL_FUNC(GetTranslation);
+		TSO_ADD_INTERNAL_FUNC(SetTranslation);
+
+
+		TSO_ADD_INTERNAL_FUNC(IsKeyPressed);
+
 
 	}
 

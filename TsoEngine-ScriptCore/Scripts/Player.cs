@@ -21,16 +21,34 @@ namespace Tso
 
         public override void  OnCreate()
         {
-            InternalCalls.NativeLOG("Tso log from c# ");
-            
-            Vector3 translation = new Vector3();
-            InternalCalls.GetTranslation(UUID, out translation);
-            Console.WriteLine($"translation = {translation.x} , {translation.y} , {translation.z}");
+            InternalCalls.GetTranslation(UUID, out m_Tranlation);
         }
 
         public override void OnUpdate(float ts)
         {
-            
+            if (InternalCalls.IsKeyPressed(Keycode.TSO_KEY_D))
+            {
+                m_Tranlation.x += m_Vecloty * ts;
+            }
+            else if (InternalCalls.IsKeyPressed(Keycode.TSO_KEY_A))
+            {
+                m_Tranlation.x -= m_Vecloty * ts;
+
+            }
+            if (InternalCalls.IsKeyPressed(Keycode.TSO_KEY_W))
+            {
+                m_Tranlation.y += m_Vecloty * ts;
+            }
+            else if (InternalCalls.IsKeyPressed(Keycode.TSO_KEY_S))
+            {
+                m_Tranlation.y -= m_Vecloty * ts;
+            }
+
+            InternalCalls.SetTranslation(UUID, m_Tranlation);
+
         }
+
+        internal Vector3 m_Tranlation = new Vector3();
+        internal float m_Vecloty = 1.0f;
     }
 }
