@@ -179,7 +179,7 @@ void OpenGLFrameBuffer::ClearAttachment(const int& attachmentIndex , const int& 
     
 #ifdef TSO_PLATFORM_WINDOWS
     auto& spec = m_ColorAttachmentSpec[attachmentIndex];
-    glClearTexImage(m_ColorAttachMents[attachmentIndex] , 0 , ConvertColorFormatToGLFormat(spec) , GL_INT , &v);
+    glClearTexImage(m_ColorAttachMents[attachmentIndex] , 0 , ConvertColorFormatToGLFormat(spec) , GL_INT , &value);
 #else
     //to be implement in macOS
     GLint values[4] = {value};
