@@ -38,6 +38,8 @@ namespace Tso {
 
         std::string LoadScene();
 
+        void CopyEntity(const Entity& entity);
+
         void SaveScene();
 
         std::string SaveSceneAs();
@@ -54,6 +56,7 @@ namespace Tso {
         SceneHierarchyPanel m_Panel;
         Entity m_CameraEntity;
         Entity m_HoveredEntity;
+        Entity m_CopyEntity;
 
         float m_MoveSpeed = 1.0f;
         bool m_LpMovable = false;

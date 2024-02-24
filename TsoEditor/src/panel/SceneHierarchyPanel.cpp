@@ -15,8 +15,21 @@ namespace Tso {
 
 		m_Context->m_Registry.each([&](auto entity) {
 			Entity e( entity , m_Context.get() );
-			DrwaEntityNode(e);
+            if (e.GetParent() == nullptr) {
+                DrwaEntityNode(e);
+            }
 			});
+
+        if (m_DeletedEntity.m_EntityID != entt::null) {
+            //delete entity
+            auto parent = m_DeletedEntity.GetParent();
+            if (parent) {
+                parent->RemoveChild(m_DeletedEntity);
+            }
+            m_Context->DeleteEntity(m_DeletedEntity);
+            m_DeletedEntity = { entt::null , nullptr };
+        }
+        
         
         if(m_SelectedEntity.m_EntityID == entt::null){
             if (ImGui::BeginPopupContextWindow(0, 1))
@@ -38,6 +51,8 @@ namespace Tso {
 			DrawComponents(m_SelectedEntity);
 		}
 		ImGui::End();
+
+        
 	}
 	void SceneHierarchyPanel::DrwaEntityNode(Entity& entity)
 	{
@@ -49,9 +64,17 @@ namespace Tso {
 			m_SelectedEntity = entity;
 		}
         
+        
         bool entityDeleted = false;
         if (ImGui::BeginPopupContextItem())
         {
+            
+            if (ImGui::MenuItem("Add Child Entity")) {
+                auto newEntity = m_Context->CreateEntity("Empty Entity");
+                entity.AddChild(newEntity);
+                
+            }
+                
             if (ImGui::MenuItem("Delete Entity"))
                 entityDeleted = true;
 
@@ -59,12 +82,20 @@ namespace Tso {
         }
 
 		if (opened) {
+            for (auto& child : entity.GetChildren()) {
+                DrwaEntityNode(*child.second);
+            }
 			ImGui::TreePop();
 		}
         if(entityDeleted){
+            m_DeletedEntity = entity;
+            /*auto parent = entity.GetParent();
+            if (parent) {
+                parent->RemoveChild(entity);
+            }
             m_Context->DeleteEntity(entity);
             if (m_SelectedEntity == entity)
-                m_SelectedEntity = Entity{entt::null , m_Context.get()};
+                m_SelectedEntity = Entity{entt::null , m_Context.get()};*/
         }
 	}
 	void SceneHierarchyPanel::DrawComponents(Entity& entity)
@@ -335,7 +366,8 @@ namespace Tso {
                     {
                        // BindNativeScriptBehavior<Controlable>("Controlable");
                        // BindNativeScriptBehavior<CircleBehavior>("CircleBehavior");
-                        
+                        nsc.Bind<CircleBehavior>();
+                        TSO_CORE_INFO("add circle");
                         ImGui::EndPopup();
                     }
                     

@@ -2,6 +2,7 @@
 #include "Scene.h"
 #include <utility>
 #include "Tso/Core/Log.h"
+#include "glm/glm.hpp"
 
 
 namespace Tso {
@@ -16,6 +17,15 @@ namespace Tso {
         T& AddComponent(Arg&& ...arg){
 			return m_Scene->m_Registry.emplace<T>(m_EntityID, std::forward<Arg>(arg)...);
         }
+
+		template<typename T, typename... Args>
+		T& AddOrReplaceComponent(Args&&... args)
+		{
+			T& component = m_Scene->m_Registry.emplace_or_replace<T>(m_EntityID, std::forward<Args>(args)...);
+			//m_Scene->OnComponentAdded<T>(*this, component);
+			return component;
+		}
+
 		template<typename T>
 		T& GetComponent()
 		{
@@ -37,8 +47,22 @@ namespace Tso {
 
 		template<typename T>
 		bool HasComponent() {
-			return m_Scene->m_Registry.all_of<T>(m_EntityID);
+			return m_Scene && m_Scene->m_Registry.all_of<T>(m_EntityID);
 		}
+
+		glm::mat4 GetWorldTransform();
+
+		std::unordered_map<uint64_t, Ref<Entity>> GetChildren() { return m_Scene->GetEntityChildren(*this); }
+
+		//TODO: add a method to get a specified child @SuchanTso
+
+		void AddChild(Entity& child);
+
+		void SetParent(Entity& parent);
+
+		Ref<Entity> GetParent() { return m_Scene->GetEntityParent(*this); }
+
+		void RemoveChild(Entity& child);
 
 		uint32_t GetEntityID() { return (uint32_t)m_EntityID; }
         

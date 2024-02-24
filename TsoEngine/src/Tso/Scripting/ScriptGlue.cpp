@@ -55,8 +55,10 @@ namespace Tso {
 	void ScriptGlue::RegisterFunctions() {
 		TSO_ADD_INTERNAL_FUNC(NativeLOG);
 
+#pragma region Transform
 		TSO_ADD_INTERNAL_FUNC(GetTranslation);
 		TSO_ADD_INTERNAL_FUNC(SetTranslation);
+#pragma endregion
 
 
 		TSO_ADD_INTERNAL_FUNC(IsKeyPressed);

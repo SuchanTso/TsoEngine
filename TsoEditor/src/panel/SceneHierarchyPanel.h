@@ -24,6 +24,7 @@ namespace Tso {
 		friend class Scene;
 		Ref<Scene> m_Context = nullptr;
 		Entity m_SelectedEntity{entt::null , nullptr};
+		Entity m_DeletedEntity{ entt::null , nullptr };
 
 	};
 

@@ -18,7 +18,7 @@ namespace Tso {
         TransformComponent(){}
 		TransformComponent(const glm::mat4& transform = glm::mat4(1.0));
 		TransformComponent(const glm::vec3& pos = glm::vec3(1.0,1.0,1.0));
-		TransformComponent(const TransformComponent& transform);
+		TransformComponent(const TransformComponent& transform) = default;
 
         void SetPos(const glm::vec3& pos) { m_Translation = pos; }
 		void SetRotate(const glm::vec3& rotate) { m_Rotation = rotate; }
@@ -39,7 +39,7 @@ namespace Tso {
             return m_Transform;
         }
         
-        glm::vec3 m_Translation = glm::vec3(0.0f , 0.0f , 0.0f);
+		glm::vec3 m_Translation = glm::vec3(0.0f, 0.0f, 0.0f);
         
         glm::vec3 m_Scale = glm::vec3(1.0f , 1.0f , 1.0f);
         
@@ -57,6 +57,8 @@ namespace Tso {
 	struct Renderable  {
         
 		Renderable() = default;
+		Renderable(const Renderable& other);
+
 		Renderable(const glm::vec4& color);
 
 		void Render(const glm::mat4& transform);
@@ -72,7 +74,7 @@ namespace Tso {
 	};
 
 	struct TagComponent  {
-		TagComponent() = delete;
+		TagComponent() = default;
 		TagComponent(const std::string& name = "blankNameEntity");
 
 		std::string& GetTagName() { return m_Name; }
@@ -121,7 +123,7 @@ namespace Tso {
 
 	struct ScriptComponent {
 		ScriptComponent() = default;
-		ScriptComponent(ScriptComponent& sc) = default;
+		ScriptComponent(const ScriptComponent& sc) = default;
 
 		std::string ClassName = "";
 	};
@@ -185,6 +187,18 @@ namespace Tso {
         TextParam textParam;
 
     };
+
+
+	template<typename... Component>
+	struct ComponentGroup
+	{
+	};
+
+	using AllComponents =
+		ComponentGroup<TransformComponent , Renderable,
+		CameraComponent,ScriptComponent,
+		 Rigidbody2DComponent, BoxCollider2DComponent,
+		TextComponent>;
 
 	
 
