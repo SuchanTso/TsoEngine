@@ -3,6 +3,7 @@
 #include "Tso/Core/TimeStep.h"
 #include "Tso/Physics/CollideListener.h"
 #include "Tso/Core/UUID.h"
+#include "Tso/Core/Core.h"
 
 class b2World;
 
@@ -22,6 +23,8 @@ namespace Tso {
         Entity CreateEntityWithID(const UUID& uuid , const std::string& name = "");
 
 		Entity GetEntityByUUID(const UUID& uuid);
+
+		bool EntityExist(const UUID& uuid);
         
         void DeleteEntity(Entity entity);
 
@@ -31,7 +34,15 @@ namespace Tso {
 
 		void OnUpdate(TimeStep ts);
 
-		
+		Entity CopyEntity(Entity entity);
+
+		void SetEntityParent(Entity& parent , Entity& child);
+
+		void RemoveChild(Entity& parent , Entity& child);
+
+		std::unordered_map<uint64_t, Ref<Entity>> GetEntityChildren(Entity& parent);
+
+		Ref<Entity> GetEntityParent(Entity& child);
 
 	private:
 		entt::registry m_Registry;
@@ -45,6 +56,10 @@ namespace Tso {
 		NativeContactListener* m_PhysicsListener = nullptr;
         
 		std::unordered_map<uint64_t, uint32_t> m_EntityMap;
+
+		std::unordered_map<uint64_t, std::unordered_map<uint64_t, Ref<Entity>>> m_ChildrenMap;
+
+		std::unordered_map<uint64_t, Ref<Entity>> m_ParentMap;
 
 		bool m_Pause = true;
 

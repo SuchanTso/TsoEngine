@@ -11,10 +11,6 @@ TransformComponent::TransformComponent(const glm::mat4& transform)
     
 }
 
-TransformComponent::TransformComponent(const TransformComponent& transform)
-{
-    
-}
 
 TransformComponent::TransformComponent(const glm::vec3& pos)
     :m_Translation(pos)
@@ -26,6 +22,14 @@ TransformComponent::TransformComponent(const glm::vec3& pos)
 
 
 
+
+Renderable::Renderable(const Renderable& other)
+    :type(other.type) , isSubtexture(other.isSubtexture) , m_Color(other.m_Color) ,
+    spriteSize(other.spriteSize) , textureIndex(other.textureIndex) , textureSize(other.textureSize)
+{    
+    if(other.subTexture && other.subTexture->GetTexture())
+    subTexture = SubTexture2D::CreateByCoord(other.subTexture->GetTexture(), spriteSize, textureIndex, textureSize); 
+}
 
 Renderable::Renderable(const glm::vec4& color)
     :m_Color(color)

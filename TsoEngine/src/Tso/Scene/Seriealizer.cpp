@@ -130,6 +130,10 @@ static void SeriealizeEntity(YAML::Emitter& out, Entity& entity)
     out << YAML::BeginMap; // Entity
     out << YAML::Key << "Entity" << YAML::Value << entity.GetUUID();
 
+    if (entity.GetParent()) {
+        out << YAML::Key << "ParentEntity" << YAML::Value << entity.GetParent()->GetUUID();
+    }
+
     if (entity.HasComponent<TagComponent>())
     {
         out << YAML::Key << "TagComponent";
@@ -275,12 +279,12 @@ void Seriealizer::SeriealizeScene(const std::string& path)
     out << YAML::Key << "Entities" << YAML::Value << YAML::BeginSeq;
     
     m_Scene->m_Registry.each([&](auto entityID)
-                             {
+    {
         Entity entity = { entityID, m_Scene };
         if (entityID == entt::null)
             return;
-        
-        SeriealizeEntity(out, entity);
+
+    SeriealizeEntity(out, entity);
     });
     out << YAML::EndSeq;
     out << YAML::EndMap;
@@ -316,7 +320,7 @@ bool Seriealizer::DeseriealizeScene(const std::string& path){
     auto entities = data["Entities"];
     if(entities){
         for(auto entity : entities){
-            
+
             std::string name;
             auto tagComponent = entity["TagComponent"];
             if(tagComponent){
@@ -324,6 +328,9 @@ bool Seriealizer::DeseriealizeScene(const std::string& path){
             }
             uint64_t uuid = entity["Entity"].as<uint64_t>();
             Entity deserializedEntity = m_Scene->CreateEntityWithID(uuid , name);
+            if (entity["ParentEntity"]) {
+                m_ParentMap[uuid] = entity["ParentEntity"].as<uint64_t>();
+            }
             auto transformComponent = entity["TransformComponent"];
             if(transformComponent){
                 auto& transform = deserializedEntity.GetComponent<TransformComponent>();
@@ -409,6 +416,13 @@ bool Seriealizer::DeseriealizeScene(const std::string& path){
             
             
             
+        }
+
+        for (auto& it : m_ParentMap) {
+            //deal parented node
+            Entity child = m_Scene->GetEntityByUUID(it.first);
+            Entity parent = m_Scene->GetEntityByUUID(it.second);
+            child.SetParent(parent);
         }
     }
     

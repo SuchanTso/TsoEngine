@@ -61,6 +61,12 @@ Entity Scene::GetEntityByUUID(const UUID& uuid)
     return Entity();
 }
 
+bool Scene::EntityExist(const UUID& uuid)
+{
+    
+    return m_EntityMap.find(uint64_t(uuid)) != m_EntityMap.end();
+}
+
 void Scene::OnUpdate(TimeStep ts)
 {
     if (!m_Pause) {
@@ -123,16 +129,15 @@ void Scene::OnUpdate(TimeStep ts)
             mainCameraTransfrom = &transfrom.GetTransform();
         }
     }
-
-    RenderCommand::SetClearColor({ 0.1f, 0.1f, 0.1f, 1.f });
-    RenderCommand::Clear();
+ 
     if (mainCamera) {
         Renderer2D::BeginScene(*mainCamera, *mainCameraTransfrom);
         
         auto group = m_Registry.view<Renderable , TransformComponent>();
         for (auto& entity : group) {
             const auto& [render, trans] = group.get<Renderable, TransformComponent>(entity);
-            auto transform = trans.GetTransform();
+            Entity tEntity = Entity(entity , this);
+            glm::mat4 transform = tEntity.GetWorldTransform();
             if(render.type == RenderType::PureColor){
                 Renderer2D::DrawQuad(transform,render.m_Color , (int)entity);
             }
@@ -159,6 +164,67 @@ void Scene::OnUpdate(TimeStep ts)
     }
 
     
+}
+
+template<typename... Component>
+static void CopyComponentIfExists(Entity dst, Entity src)
+{
+    ([&]()
+        {
+            if (src.HasComponent<Component>())
+                dst.AddOrReplaceComponent<Component>(src.GetComponent<Component>());
+        }(), ...);
+}
+
+template<typename... Component>
+static void CopyComponentIfExists(ComponentGroup<Component...>, Entity dst, Entity src)
+{
+    CopyComponentIfExists<Component...>(dst, src);
+}
+
+Entity Scene::CopyEntity(Entity entity)
+{
+    std::string name = entity.GetComponent<TagComponent>().m_Name;
+    Entity newEntity = CreateEntity(name);
+    CopyComponentIfExists(AllComponents{}, newEntity, entity);
+    newEntity.SetParent(*entity.GetParent());
+    return newEntity;
+}
+
+void Scene::SetEntityParent(Entity& parent , Entity& child)
+{
+    if (m_ChildrenMap[parent.GetUUID()].find(child.GetUUID()) != m_ChildrenMap[parent.GetUUID()].end()) {
+        TSO_CORE_WARN("two entities are already parent nodes!!");
+    }
+    else {
+        m_ChildrenMap[parent.GetUUID()][child.GetUUID()] = CreateRef<Entity>(child);
+        m_ParentMap[child.GetUUID()] = CreateRef<Entity>(parent);
+    }
+}
+
+
+void Scene::RemoveChild(Entity& parent, Entity& child)
+{
+    for (auto& grandChildren : child.GetChildren()) {
+        RemoveChild(child, *grandChildren.second);
+    }
+
+    
+        m_ChildrenMap[parent.GetUUID()].erase(child.GetUUID());
+        m_ParentMap[child.GetUUID()] = nullptr;
+    
+    //DeleteEntity(child);
+
+}
+
+std::unordered_map<uint64_t, Ref<Entity>> Scene::GetEntityChildren(Entity& parent)
+{
+    return m_ChildrenMap[parent.GetUUID()];
+}
+
+Ref<Entity> Scene::GetEntityParent(Entity& child)
+{
+    return m_ParentMap[child.GetUUID()];
 }
 
 void Scene::DeleteEntity(Entity entity){

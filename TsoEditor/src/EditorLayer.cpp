@@ -188,7 +188,7 @@ namespace Tso {
 
             ImGui::End();
     
-            
+
 
             ImGui::Begin("Viewport");
     
@@ -214,7 +214,7 @@ namespace Tso {
             uint32_t fbId = m_FrameBuffer->GetColorAttachment(0);
 
             ImGui::Image((void*)fbId, ImVec2{ m_ViewportSize.x , m_ViewportSize.y },ImVec2{ 0, 1 }, ImVec2{ 1, 0 });
-
+            
             ImGui::End();
 }
         m_Panel.OnGuiRender();
@@ -229,11 +229,12 @@ namespace Tso {
         Renderer2D::ResetStat();
 
         m_FrameBuffer->Bind();
-        
+        RenderCommand::SetClearColor({ 0.1f, 0.1f, 0.1f, 1.f });
+        RenderCommand::Clear();
         m_FrameBuffer->ClearAttachment(1, -1);
-        
+
         m_Scene->OnUpdate(ts);
-        
+
 
         m_Time += ts.GetSecond();
         
@@ -253,15 +254,25 @@ namespace Tso {
 
         m_FrameBuffer->UnBind();
 
-        /*if (Input::IsKeyPressed(TSO_KEY_SPACE)) {
-            m_StartScene = !m_StartScene;
-            if (m_StartScene) {
-                m_Scene->OnScenePlay();
+        if (Input::IsKeyPressed(TSO_KEY_LEFT_CONTROL) && Input::IsKeyPressed(TSO_KEY_C)) {
+            //copy entity
+            if (m_HoveredEntity.HasComponent<IDComponent>()) {
+                m_CopyEntity = m_HoveredEntity;
             }
-            else {
-                m_Scene->OnSceneStop();
+        }
+
+        if (Input::IsKeyPressed(TSO_KEY_LEFT_CONTROL) && Input::IsKeyPressed(TSO_KEY_V)) {
+            //paste entity
+            if (m_CopyEntity.HasComponent<IDComponent>()) {
+                Entity newEntity = m_Scene->CopyEntity(m_CopyEntity);
+                glm::vec3 posOffset = glm::vec3(0.2f, 0.2f, 0.0f);
+                auto& comp = m_CopyEntity.GetComponent<TransformComponent>();
+                auto& transComp = newEntity.GetComponent<TransformComponent>();
+                transComp.m_Translation = comp.m_Translation + posOffset;
+                m_CopyEntity = Entity();
+                m_Panel.SetSelectedEntity(m_CopyEntity);
             }
-        }*/
+        }
 
     }
 

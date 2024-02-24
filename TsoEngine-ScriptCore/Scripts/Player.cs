@@ -49,6 +49,6 @@ namespace Tso
         }
 
         internal Vector3 m_Tranlation = new Vector3();
-        internal float m_Vecloty = 1.0f;
+        internal float m_Vecloty = 2.0f;
     }
 }
