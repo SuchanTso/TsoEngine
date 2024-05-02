@@ -16,12 +16,14 @@ namespace Tso
 
             m_Tranlation.y = (float)Math.Sin((double)m_Time);
 
-
+            double rotation =  (double)m_Time / Math.PI * 180 - 90;
             InternalCalls.SetTranslation(UUID, m_Tranlation);
+            InternalCalls.SetRotationZ(UUID, (float)rotation);
+
 
         }
 
-        internal float m_Time = 0;
+        internal float m_Time = new float();
         internal Vector3 m_Tranlation = new Vector3();
 
     }

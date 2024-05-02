@@ -8,6 +8,8 @@
 #include "Tso/Scene/Entity.h"
 #include "Tso/Scene/Seriealizer.h"
 #include "Tso/Utils/PlatformUtils.h"
+#include "Tso/Project/Project.h"
+#include "Tso/Scripting/ScriptingEngine.h"
 
 
 namespace Tso {
@@ -27,26 +29,13 @@ namespace Tso {
         m_Scene = std::make_shared<Scene>();
         m_Panel.SetContext(m_Scene);
 
-        std::string lp = "asset/lp2.png";
-
-        std::string tileMap = "asset/tilemap_packed.png";
 
 
         FrameBufferInfo info ;
         info.width = (uint32_t)m_ViewportSize.x;
         info.height = (uint32_t)m_ViewportSize.y;
         info.format = {RGBA8 , RED_INTEGER , DEPTH24_STENCIL8};
-        //{ (uint32_t)m_ViewportSize.x , (uint32_t)m_ViewportSize.y , false };
         m_FrameBuffer = FrameBuffer::Create(info);
-
-        //Scripting script;
-        //auto test = script.LoadCSharpAssembly("../TsoEngine-ScriptCore/Build/TsoEngine-ScriptCore.dll");
-        ////script.PrintAssemblyTypes(test);
-        //MonoClass* p2 = script.GetClassInAssembly(test, "MyNamespace", "Program");
-        //MonoObject* objP = script.CreateInstance(p2);
-        //mono_add_internal_call("MyNamespace.Program::PrintString", &PrintFunc);
-
-        //script.CallMethod(p2, objP, "PrintFloatVar");
 
         
     }
@@ -128,34 +117,49 @@ namespace Tso {
 
         if (ImGui::BeginMenuBar())
         {
-            if (ImGui::BeginMenu("Editor"))
+            if (ImGui::BeginMenu("Project"))
+            {
+                if (ImGui::MenuItem("New Project", NULL, false)) {
+                    NewProject();
+                    m_Project = Project::GetActive();
+                }
+                if (ImGui::MenuItem("Load Project", NULL, false)) {
+                    OpenProject();
+                    m_Project = Project::GetActive();
+                }
+                if (ImGui::MenuItem("Save Project", NULL, false , m_Project != nullptr && !m_ScenePath.empty())) {
+                    SaveProject();
+                }
+                if (ImGui::MenuItem("Close", NULL, false)) {
+                    dockSpaceOpen = false;
+                    Application::Get().OnClose();
+                }
+            ImGui::EndMenu();
+
+            }
+            if (ImGui::BeginMenu("Scene"))
             {
                 // Disabling fullscreen would allow the window to be moved to the front of other windows,
                 // which we can't undo at the moment without finer window depth/z control.
 
-                
-                if (ImGui::MenuItem("New", NULL, false)) {
-                    m_Scene.reset();
-                    m_Scene = std::make_shared<Scene>();
-                    m_Panel.SetContext(m_Scene);
-                }
+                    if (ImGui::MenuItem("New", NULL, false , m_Project != nullptr)) {
+                        m_Scene.reset();
+                        m_Scene = std::make_shared<Scene>();
+                        m_Panel.SetContext(m_Scene);
+                    }
 
-                if (ImGui::MenuItem("Save", "Ctrl + S")) {
-                    SaveScene();
-                }
+                    if (ImGui::MenuItem("Save", "Ctrl + S" , false , m_Project != nullptr)) {
+                        SaveScene();
+                    }
 
-                if (ImGui::MenuItem("Save As..", "Ctrl + S")) {
-                    SaveSceneAs();
-                }
-                
-                if (ImGui::MenuItem("Load", "Ctrl + L")) {
-                    m_ScenePath = LoadScene();
-                }
+                    if (ImGui::MenuItem("Save As..", "Ctrl + S" , false, m_Project != nullptr)) {
+                        SaveSceneAs();
+                    }
 
-                if (ImGui::MenuItem("Close", NULL, false)){
-                    dockSpaceOpen = false;
-                    Application::Get().OnClose();
-                }
+                    if (ImGui::MenuItem("Load", "Ctrl + L" , false, m_Project != nullptr)) {
+                        m_ScenePath = LoadScene();
+                    }
+
                 ImGui::EndMenu();
             }
 
@@ -206,7 +210,8 @@ namespace Tso {
             if (content.x > 0.f && content.y > 0.f && (content.x != m_ViewportSize.x || content.y != m_ViewportSize.y)) {
                 m_ViewportSize = { content.x , content.y };
                 m_FrameBuffer->Resize(uint32_t(m_ViewportSize.x), uint32_t(m_ViewportSize.y));
-                
+                if(m_Scene && m_Scene->GetMainCamera())
+                    m_Scene->GetMainCamera()->SetViewportSize(uint32_t(m_ViewportSize.x), uint32_t(m_ViewportSize.y));
 //                if(!camera.FixedAspectRatio){
 //                    camera.m_Camera.SetViewportSize(m_ViewportSize.x , m_ViewportSize.y);
 //                }
@@ -309,16 +314,21 @@ namespace Tso {
     std::string EditorLayer::LoadScene()
     {
         auto ScenePath = FileDialogs::OpenFile("Tso Scene(*.teScene)\0 * .teScene\0");
-        if (!ScenePath.empty()) {
+        return LoadScene(ScenePath);
+    }
+
+    std::string EditorLayer::LoadScene(const std::filesystem::path& scenePath)
+    {
+        if (!scenePath.empty()) {
             if (m_Scene != nullptr) {
                 m_Scene.reset();
                 m_Scene = std::make_shared<Scene>();
                 m_Panel.SetContext(m_Scene);
             }
             Seriealizer seriealizer(m_Scene.get());
-            seriealizer.DeseriealizeScene(ScenePath);
+            seriealizer.DeseriealizeScene(scenePath.string());
         }
-        return ScenePath;
+        return scenePath.string();
     }
 
     void EditorLayer::SaveScene()
@@ -330,6 +340,53 @@ namespace Tso {
             Seriealizer seriealizer(m_Scene.get());
             seriealizer.SeriealizeScene(m_ScenePath);
         }
+    }
+
+    void EditorLayer::NewProject()
+    {
+        Project::New();
+    }
+
+    void EditorLayer::OpenProject(const std::filesystem::path& path)
+    {
+        if (Project::LoadProject(path))
+        {
+            //ScriptingEngine::Init();
+
+            std::filesystem::path startScenePath = Project::GetAssetFileSystemPath(Project::GetActive()->GetConfig().FirstScene);
+            m_ScenePath = LoadScene(startScenePath);
+            //m_ContentBrowserPanel = CreateScope<ContentBrowserPanel>();
+
+        }
+    }
+
+    void EditorLayer::SaveProject()
+    {
+        auto projPath = Project::GetActive()->GetProjectDirectory();
+        if (projPath.empty()) {
+            projPath = FileDialogs::SaveFile("Tso Project(*.tproj)\0 * .tproj\0");
+        }
+        Project::GetActive()->GetConfig().FirstScene = std::filesystem::path(m_ScenePath).lexically_relative(projPath);
+        Project::SaveActive(projPath);
+    }
+
+    bool EditorLayer::OpenProject()
+    {
+        auto projPath = FileDialogs::OpenFile("Tso Project(*.tproj)\0 * .tproj\0");
+        if (projPath.empty()) {
+            return false;
+        }
+        OpenProject(projPath);
+    }
+
+    bool EditorLayer::LoadProject(const std::filesystem::path& path)
+    {
+        std::string filepath = FileDialogs::OpenFile("Tso Project (*.tproj)\0*.tproj\0");
+        if (filepath.empty())
+            return false;
+
+        OpenProject(filepath);
+        return true;
     }
 
     std::string EditorLayer::SaveSceneAs()

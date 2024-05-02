@@ -12,6 +12,7 @@
 
 namespace Tso {
     class Entity;
+    class Project;
 	class EditorLayer : public Layer {
         struct MovaData {
             glm::vec2 originPos;
@@ -38,9 +39,25 @@ namespace Tso {
 
         std::string LoadScene();
 
+        std::string LoadScene(const std::filesystem::path& scenePath);
+
         void CopyEntity(const Entity& entity);
 
         void SaveScene();
+
+        void NewProject();
+
+        bool LoadProject(const std::filesystem::path& path);
+
+        void OpenProject(const std::filesystem::path& path);
+
+        void SaveProject();
+
+
+
+        bool OpenProject();
+
+
 
         std::string SaveSceneAs();
 
@@ -53,6 +70,7 @@ namespace Tso {
         Ref<SubTexture2D> m_subTexture, m_sub1;
         Ref<FrameBuffer> m_FrameBuffer;
         Ref<Scene>      m_Scene;
+        Ref<Project> m_Project = nullptr;
         SceneHierarchyPanel m_Panel;
         Entity m_CameraEntity;
         Entity m_HoveredEntity;

@@ -10,6 +10,7 @@ class b2World;
 namespace Tso {
 	class Entity;
 	class Font;
+	class SceneCamera;
 	class Scene {
 		friend class Entity;
 		friend class SceneHierarchyPanel;
@@ -44,6 +45,8 @@ namespace Tso {
 
 		Ref<Entity> GetEntityParent(Entity& child);
 
+		SceneCamera* GetMainCamera() { return mainCamera; }
+
 	private:
 		entt::registry m_Registry;
 
@@ -62,6 +65,9 @@ namespace Tso {
 		std::unordered_map<uint64_t, Ref<Entity>> m_ParentMap;
 
 		bool m_Pause = true;
+
+		SceneCamera* mainCamera = nullptr;
+
 
 	};
 

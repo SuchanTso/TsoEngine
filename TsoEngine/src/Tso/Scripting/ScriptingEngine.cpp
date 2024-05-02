@@ -36,6 +36,8 @@ static std::unordered_map<std::string, ScriptFieldType> s_ScriptFieldTypeMap =
 	{ "Tso.Vector4", ScriptFieldType::Vector4 },
 
 	{ "Tso.Entity", ScriptFieldType::Entity },
+	{ "Tso.SpriteAnimationIdle", ScriptFieldType::SpriteAnimationIdle },
+
 };
 
 namespace Utils {
