@@ -48,6 +48,33 @@ namespace Tso {
 		transform.m_Translation = *res;
 	}
 
+
+	static void GetRotationZ(UUID uuid, float* res) {
+		Scene* scene = ScriptingEngine::GetSceneContext();
+		Entity e = scene->GetEntityByUUID(uuid);
+		auto& transform = e.GetComponent<TransformComponent>();
+		*res = transform.m_Rotation.z;
+	}
+
+	static void SetRotationZ(UUID uuid, float res) {
+		Scene* scene = ScriptingEngine::GetSceneContext();
+		Entity e = scene->GetEntityByUUID(uuid);
+		auto& transform = e.GetComponent<TransformComponent>();
+		//TSO_CORE_TRACE("set rotationz = {}", res);
+		transform.m_Rotation.z = res;
+	}
+
+	static void SetSpriteIndex(UUID uuid, glm::vec3* index) {
+		//Fixme: there is an error when set a vec2 as a parameter
+		Scene* scene = ScriptingEngine::GetSceneContext();
+		Entity e = scene->GetEntityByUUID(uuid);
+		auto& rc = e.GetComponent<Renderable>();
+		if (rc.type == Texture && rc.isSubtexture) {
+			rc.textureIndex = { index->x ,  index->y};
+			rc.subTexture->RecalculateCoords(rc.spriteSize , rc.textureIndex , rc.textureSize);
+		}
+	}
+
 	static bool IsKeyPressed(int keycode) {
 		return Input::IsKeyPressed(keycode);
 	}
@@ -58,7 +85,15 @@ namespace Tso {
 #pragma region Transform
 		TSO_ADD_INTERNAL_FUNC(GetTranslation);
 		TSO_ADD_INTERNAL_FUNC(SetTranslation);
+		TSO_ADD_INTERNAL_FUNC(GetRotationZ);
+		TSO_ADD_INTERNAL_FUNC(SetRotationZ);
 #pragma endregion
+
+#pragma region SpriteAnimation
+		TSO_ADD_INTERNAL_FUNC(SetSpriteIndex);
+#pragma endregion
+
+
 
 
 		TSO_ADD_INTERNAL_FUNC(IsKeyPressed);

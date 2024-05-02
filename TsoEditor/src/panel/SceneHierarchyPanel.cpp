@@ -7,6 +7,7 @@
 #include "Tso/Renderer/Font.h"
 #include "Tso/Scene/ScriptableEntity.h"
 #include "Tso/Scripting/ScriptingEngine.h"
+#include "Tso/Project/Project.h"
 
 namespace Tso {
 	void SceneHierarchyPanel::OnGuiRender()
@@ -25,6 +26,10 @@ namespace Tso {
             auto parent = m_DeletedEntity.GetParent();
             if (parent) {
                 parent->RemoveChild(m_DeletedEntity);
+            }
+            for (auto& child : m_DeletedEntity.GetChildren()) {
+                m_DeletedEntity.RemoveChild(*child.second.get());
+                m_Context->DeleteEntity(*child.second.get());
             }
             m_Context->DeleteEntity(m_DeletedEntity);
             m_DeletedEntity = { entt::null , nullptr };
@@ -100,7 +105,7 @@ namespace Tso {
 	}
 	void SceneHierarchyPanel::DrawComponents(Entity& entity)
 {
-        
+
         if (ImGui::Button("Add Component"))
             ImGui::OpenPopup("AddComponent");
         
@@ -262,9 +267,11 @@ namespace Tso {
                     ImGui::Text("Path:%s",comp.subTexture ? comp.subTexture->GetTexture()->GetPath().c_str() : "");
                     ImGui::SameLine();
                     if (ImGui::Button("browse")) {
-                        auto TexturePath = FileDialogs::OpenFile("png (*.png)\0 * .png\0");
-                        if (!TexturePath.empty()) {
-                            auto texture = Texture2D::Create(TexturePath);
+                        auto projDir = Project::GetProjectDirectory();
+                        auto texturePathStr = FileDialogs::OpenFile("png (*.png)\0 * .png\0");
+                        std::filesystem::path texturePath = std::filesystem::path(texturePathStr).lexically_relative(projDir);
+                        if (!texturePath.empty()) {
+                            auto texture = Texture2D::Create(texturePath.string());
                             comp.subTexture.reset();
                             comp.subTexture = SubTexture2D::CreateByCoord(texture, comp.spriteSize, comp.textureIndex, comp.textureSize);
                         }

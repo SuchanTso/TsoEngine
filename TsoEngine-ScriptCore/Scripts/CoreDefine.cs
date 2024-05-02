@@ -10,4 +10,16 @@ namespace Tso
     {
         public float x, y, z;
     };
+
+    public struct Vector2
+    {
+        public float X, Y;
+    };
+
+    public enum AnimationState
+    {
+        Idle = 0,
+        Walk = 1,
+        Climb = 2,
+    }
 }

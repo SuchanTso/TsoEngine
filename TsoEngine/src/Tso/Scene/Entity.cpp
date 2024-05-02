@@ -25,6 +25,19 @@ glm::mat4 Entity::GetWorldTransform()
 	return glm::mat4(1.0f);
 }
 
+glm::mat4 Entity::GetParentTransform()
+{
+	TSO_CORE_ASSERT(HasComponent<TransformComponent>(), "an entity without transformcomponent is not allowed");
+	auto& transComp = GetComponent<TransformComponent>();
+	if (GetParent() == nullptr) {
+		return glm::mat4(1.0f);
+	}
+	else {
+		return GetParent()->GetWorldTransform() * glm::mat4(1.0f);
+	}
+	return glm::mat4(1.0f);
+}
+
 void Entity::AddChild(Entity& child)
 {
 	m_Scene->SetEntityParent(*this, child);

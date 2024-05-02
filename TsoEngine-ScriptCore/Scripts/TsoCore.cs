@@ -19,6 +19,14 @@ namespace Tso
         extern public static void SetTranslation(ulong uuid, Vector3 translation);
 
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        extern public static void SetSpriteIndex(ulong uuid , Vector3 spriteIndex);
+
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        extern public static void GetRotationZ(ulong uuid, out float rotationZ);
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        extern public static void SetRotationZ(ulong uuid, float rotationZ);
+
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
         extern public static bool IsKeyPressed(Keycode keycode);
     }
 }

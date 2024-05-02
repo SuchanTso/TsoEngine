@@ -20,7 +20,8 @@ namespace Tso {
 		Bool, Char, Byte, Short, Int, Long,
 		UByte, UShort, UInt, ULong,
 		Vector2, Vector3, Vector4,
-		Entity
+		Entity,
+		SpriteAnimationIdle
 	};
 
 	struct ScriptField

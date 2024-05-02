@@ -52,6 +52,9 @@ namespace Tso {
 
 		glm::mat4 GetWorldTransform();
 
+		glm::mat4 GetParentTransform();
+
+
 		std::unordered_map<uint64_t, Ref<Entity>> GetChildren() { return m_Scene->GetEntityChildren(*this); }
 
 		//TODO: add a method to get a specified child @SuchanTso
@@ -73,6 +76,8 @@ namespace Tso {
 			return other.m_EntityID != entt::null && other.m_EntityID == m_EntityID;
 		}
         operator entt::entity() const { return m_EntityID; }
+
+		operator bool() const { return this != nullptr; }
 
 	private:
 

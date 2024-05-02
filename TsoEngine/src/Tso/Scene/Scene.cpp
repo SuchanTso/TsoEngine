@@ -12,6 +12,8 @@
 #include "box2d/b2_circle_shape.h"
 #include "Tso/Renderer/Font.h"
 
+#include "Tso/Core/Application.h"
+
 namespace Utils {
     b2BodyType Rigidbody2DTypeToBox2DBody(Tso::Rigidbody2DComponent::BodyType bodyType)
     {
@@ -109,8 +111,12 @@ void Scene::OnUpdate(TimeStep ts)
                 b2Body* body = (b2Body*)rb2d.RuntimeBody;
 
                 const auto& position = body->GetPosition();
-                transform.m_Translation.x = position.x;
-                transform.m_Translation.y = position.y;
+
+                glm::mat4 temTransform = glm::translate(glm::mat4(1.0f), glm::vec3(position.x, position.y, 0.0f));//TODO: set z as 0.0f may not correct
+                temTransform = inverse(entity.GetParentTransform()) * temTransform;
+
+                transform.m_Translation.x = temTransform[3][0];
+                transform.m_Translation.y = temTransform[3][1];
                 transform.m_Rotation.z = body->GetAngle();
 
 
@@ -118,7 +124,6 @@ void Scene::OnUpdate(TimeStep ts)
         }
     }
     auto view = m_Registry.view<TransformComponent, CameraComponent>();
-    SceneCamera* mainCamera = nullptr;
     glm::mat4* mainCameraTransfrom = nullptr;
 
     for (auto& e : view) {
@@ -187,7 +192,9 @@ Entity Scene::CopyEntity(Entity entity)
     std::string name = entity.GetComponent<TagComponent>().m_Name;
     Entity newEntity = CreateEntity(name);
     CopyComponentIfExists(AllComponents{}, newEntity, entity);
-    newEntity.SetParent(*entity.GetParent());
+    if (entity.GetParent()) {
+        newEntity.SetParent(*entity.GetParent());
+    }
     return newEntity;
 }
 
@@ -258,10 +265,14 @@ void Scene::OnScenePlay()
         Entity entity = { e, this };
         auto& transform = entity.GetComponent<TransformComponent>();
         auto& rb2d = entity.GetComponent<Rigidbody2DComponent>();
+        std::string tag = entity.GetComponent<TagComponent>().m_Name;
 
         b2BodyDef bodyDef;
         bodyDef.type = Utils::Rigidbody2DTypeToBox2DBody(rb2d.Type);
-        bodyDef.position.Set(transform.m_Translation.x, transform.m_Translation.y);
+        auto localTransform = entity.GetWorldTransform();
+        //glm::vec4 worldTranslation = localTransform * glm::vec4(transform.m_Translation, 1.0f);
+        TSO_CORE_INFO("{} set position as {} , {}" , tag, localTransform[3][0], localTransform[3][1]);
+        bodyDef.position.Set(localTransform[3][0], localTransform[3][1]);
         bodyDef.angle = transform.m_Rotation.z;
 
         b2Body* body = m_PhysicWorld->CreateBody(&bodyDef);
