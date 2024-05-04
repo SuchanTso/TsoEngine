@@ -2,19 +2,11 @@ Scene: Untitled
 Entities:
   - Entity: 9573343038727609951
     TagComponent:
-      Tag: Character1
+      Tag: Map
     TransformComponent:
-      Translate: [-2.68662977, 0.727653503, 1.89999998]
+      Translate: [-1.68700004, 0.727653503, 1.89999998]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
-    RenderableComponent:
-      Type: 1
-      Color: [0.970588207, 1, 0, 1]
-      TexturePath: asset\tilemap_packed.png
-      SubTexture: true
-      SpriteSize: [16, 16]
-      SpriteIndex: [3, 12]
-      TextureSize: [1, 1]
   - Entity: 17936673958020440578
     TagComponent:
       Tag: ground
@@ -38,11 +30,9 @@ Entities:
   - Entity: 17936673958020442578
     TagComponent:
       Tag: Spider
-    ScriptComponent:
-      className: Tso.Player
     TransformComponent:
       Translate: [0.100780554, -1.54299259, 2.0999999]
-      Rotation: [0, 0, 0.000276606414]
+      Rotation: [0, 0, 0.000276605977]
       Scale: [1, 1, 1]
     RenderableComponent:
       Type: 1
@@ -94,3 +84,100 @@ Entities:
       LineSpacing: 0
       CharacterSpacing: 0
       Text: SuchanTso
+  - Entity: 2392752724819109090
+    TagComponent:
+      Tag: Empty Entity
+    ScriptComponent:
+      className: Tso.Player
+    TransformComponent:
+      Translate: [0, 0, 0.899999976]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    RenderableComponent:
+      Type: 1
+      Color: [0.300000012, 0.800000012, 0.200000003, 1]
+      TexturePath: asset\kenney_platformer-art-pixel-redux\Tilemap\tilemap_packed.png
+      SubTexture: true
+      SpriteSize: [21, 21]
+      SpriteIndex: [22, 28]
+      TextureSize: [1, 1]
+  - Entity: 1191316166044120994
+    ParentEntity: 9573343038727609951
+    TagComponent:
+      Tag: Empty Entity
+    TransformComponent:
+      Translate: [1, 1.5, 0.899999976]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    RenderableComponent:
+      Type: 1
+      Color: [0.300000012, 0.800000012, 0.200000003, 1]
+      TexturePath: asset\kenney_platformer-art-pixel-redux\Tilemap\tilemap_packed.png
+      SubTexture: true
+      SpriteSize: [21, 21]
+      SpriteIndex: [6, 57]
+      TextureSize: [1, 1]
+  - Entity: 15517494782376057819
+    ParentEntity: 9573343038727609951
+    TagComponent:
+      Tag: Empty Entity
+    TransformComponent:
+      Translate: [2, 1.5, 0.899999976]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    RenderableComponent:
+      Type: 1
+      Color: [0.300000012, 0.800000012, 0.200000003, 1]
+      TexturePath: asset\kenney_platformer-art-pixel-redux\Tilemap\tilemap_packed.png
+      SubTexture: true
+      SpriteSize: [21, 21]
+      SpriteIndex: [3, 57]
+      TextureSize: [1, 1]
+  - Entity: 308221309816843514
+    ParentEntity: 9573343038727609951
+    TagComponent:
+      Tag: Empty Entity
+    TransformComponent:
+      Translate: [3, 1.5, 0.899999976]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    RenderableComponent:
+      Type: 1
+      Color: [0.300000012, 0.800000012, 0.200000003, 1]
+      TexturePath: asset\kenney_platformer-art-pixel-redux\Tilemap\tilemap_packed.png
+      SubTexture: true
+      SpriteSize: [21, 21]
+      SpriteIndex: [3, 57]
+      TextureSize: [1, 1]
+  - Entity: 12010906223035131349
+    ParentEntity: 9573343038727609951
+    TagComponent:
+      Tag: Empty Entity
+    TransformComponent:
+      Translate: [4, 1.5, 0.899999976]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    RenderableComponent:
+      Type: 1
+      Color: [0.300000012, 0.800000012, 0.200000003, 1]
+      TexturePath: asset\kenney_platformer-art-pixel-redux\Tilemap\tilemap_packed.png
+      SubTexture: true
+      SpriteSize: [21, 21]
+      SpriteIndex: [3, 57]
+      TextureSize: [1, 1]
+  - Entity: 15726563678865649773
+    ParentEntity: 9573343038727609951
+    TagComponent:
+      Tag: Empty Entity
+    TransformComponent:
+      Translate: [5, 1.5, 0.899999976]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    RenderableComponent:
+      Type: 1
+      Color: [0.300000012, 0.800000012, 0.200000003, 1]
+      TexturePath: asset\kenney_platformer-art-pixel-redux\Tilemap\tilemap_packed.png
+      SubTexture: true
+      SpriteSize: [21, 21]
+      SpriteIndex: [4, 57]
+      TextureSize: [1, 1]
