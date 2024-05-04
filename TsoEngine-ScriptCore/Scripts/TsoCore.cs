@@ -28,5 +28,11 @@ namespace Tso
 
         [MethodImplAttribute(MethodImplOptions.InternalCall)]
         extern public static bool IsKeyPressed(Keycode keycode);
+
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        extern public static void Fire(ulong uuid);
+
+        [MethodImplAttribute(MethodImplOptions.InternalCall)]
+        extern public static void DestroyEntity(ulong uuid);
     }
 }

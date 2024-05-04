@@ -27,6 +27,7 @@ namespace Tso
 
         public override void OnUpdate(float ts)
         {
+            m_Time += ts;
             m_Move = false;
             if (InternalCalls.IsKeyPressed(Keycode.TSO_KEY_D))
             {
@@ -61,14 +62,23 @@ namespace Tso
             {
                 m_Idle.SetIdle();
             }
+
+            if (m_Time - m_AttackTime >= coldDown && InternalCalls.IsKeyPressed(Keycode.TSO_KEY_J))
+            {
+                m_AttackTime = m_Time;
+                InternalCalls.Fire(UUID);
+            }
             m_Idle.OnUpdate(ts, UUID);
             InternalCalls.SetTranslation(UUID, m_Tranlation);
 
         }
 
+        internal const float coldDown = 1.0f;
         internal Vector3 m_Tranlation = new Vector3();
         internal float m_Vecloty = 1.5f;
         internal bool m_Move = false;
+        internal float m_AttackTime = -1.0f;
         internal SpriteAnimationIdle m_Idle = new SpriteAnimationIdle();
+        internal float m_Time = 0.0f;
     }
 }

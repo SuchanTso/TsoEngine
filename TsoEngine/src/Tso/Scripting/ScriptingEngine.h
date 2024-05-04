@@ -73,7 +73,9 @@ namespace Tso {
 		static void OnScenePlay(Scene* context);
 		static void OnSceneStop();
 		static void OnCreateEntity(Entity entity);
+		static void OnDeleteEntity(Entity& entity);
 		static void OnUpdateEntity(Entity entity, TimeStep ts);
+		static void OnCollideEntity(Entity& thisEntity , Entity& otherEntity);
 		static Scene* GetSceneContext();
 
 
@@ -119,6 +121,8 @@ namespace Tso {
 		bool GetFieldValueInternal(const std::string& name, void* buffer);
 		bool SetFieldValueInternal(const std::string& name, const void* value);
 
+		void InvokeOnCollider(UUID uuid);
+
 
 	private:
 		Ref<ScriptClass> m_ScriptClass = nullptr;
@@ -128,6 +132,7 @@ namespace Tso {
 		MonoMethod* m_Constructor = nullptr;
 		MonoMethod* m_OnCreateMethod = nullptr;
 		MonoMethod* m_OnUpdateMethod = nullptr;
+		MonoMethod* m_OnCollideMethod = nullptr;
 
 		std::unordered_map<std::string, ScriptField> m_Fields;
 

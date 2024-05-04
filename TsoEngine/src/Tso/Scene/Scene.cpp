@@ -48,6 +48,7 @@ Entity Scene::CreateEntityWithID(const UUID& uuid , const std::string& name){
     res.AddComponent<TransformComponent>(glm::vec3(0.0 , 0.0 , 0.9));
     res.AddComponent<IDComponent>(uuid);
     res.AddComponent<TagComponent>(entityName);
+    res.AddComponent<ActiveComponent>();
     m_EntityMap[uuid] = (uint32_t)entityID;
     return res;
 }
@@ -123,6 +124,20 @@ void Scene::OnUpdate(TimeStep ts)
             }
         }
     }
+
+    //deal not active entity
+    //delete them
+    auto activeView = m_Registry.view<ActiveComponent>();
+    for (auto& e : activeView) {
+        Entity entity = { e, this };
+
+        auto& activeC = entity.GetComponent<ActiveComponent>();
+        if (!activeC.Active) {
+            DeleteEntity(entity);
+        }
+    }
+
+
     auto view = m_Registry.view<TransformComponent, CameraComponent>();
     glm::mat4* mainCameraTransfrom = nullptr;
 
@@ -169,6 +184,46 @@ void Scene::OnUpdate(TimeStep ts)
     }
 
     
+}
+
+b2Body* Scene::CreatePhysicBody(Entity& entity)
+{
+    auto& transform = entity.GetComponent<TransformComponent>();
+    auto& rb2d = entity.GetComponent<Rigidbody2DComponent>();
+    std::string tag = entity.GetComponent<TagComponent>().m_Name;
+
+    b2BodyDef bodyDef;
+    bodyDef.type = Utils::Rigidbody2DTypeToBox2DBody(rb2d.Type);
+    auto localTransform = entity.GetWorldTransform();
+    //glm::vec4 worldTranslation = localTransform * glm::vec4(transform.m_Translation, 1.0f);
+    TSO_CORE_INFO("{} set position as {} , {}", tag, localTransform[3][0], localTransform[3][1]);
+    bodyDef.position.Set(localTransform[3][0], localTransform[3][1]);
+    bodyDef.angle = transform.m_Rotation.z;
+
+    b2Body* body = m_PhysicWorld->CreateBody(&bodyDef);
+    body->SetFixedRotation(rb2d.FixedRotation);
+    rb2d.RuntimeBody = body;
+
+    if (entity.HasComponent<BoxCollider2DComponent>())
+    {
+        auto& bc2d = entity.GetComponent<BoxCollider2DComponent>();
+
+        b2PolygonShape boxShape;
+        boxShape.SetAsBox(bc2d.Size.x * transform.m_Scale.x, bc2d.Size.y * transform.m_Scale.y, b2Vec2(bc2d.Offset.x, bc2d.Offset.y), 0.0f);
+
+        b2FixtureDef fixtureDef;
+        fixtureDef.shape = &boxShape;
+        fixtureDef.density = bc2d.Density;
+        fixtureDef.friction = bc2d.Friction;
+        fixtureDef.restitution = bc2d.Restitution;
+        fixtureDef.restitutionThreshold = bc2d.RestitutionThreshold;
+        body->CreateFixture(&fixtureDef);
+        body->GetUserData().pointer = reinterpret_cast<uintptr_t>(&m_EntityMap[entity.GetUUID()]);
+
+        
+
+    }
+    return body;
 }
 
 template<typename... Component>
@@ -236,8 +291,16 @@ Ref<Entity> Scene::GetEntityParent(Entity& child)
 
 void Scene::DeleteEntity(Entity entity){
     TSO_CORE_ASSERT(m_EntityMap.find(entity.GetUUID()) != m_EntityMap.end(), "cannot find entity , maybe an invalid scene");
+    if (entity.HasComponent<Rigidbody2DComponent>()) {
+        auto& rigidc = entity.GetComponent<Rigidbody2DComponent>();
+        b2Body* body = (b2Body*)rigidc.RuntimeBody;
+        body->SetEnabled(false);
+        m_PhysicWorld->DestroyBody(body);
+        
+    }
     m_EntityMap.erase(entity.GetUUID());
     m_Registry.destroy(entity);
+    //ScriptingEngine::OnDeleteEntity(entity);
 
 }
 
@@ -253,9 +316,8 @@ void Scene::OnScenePlay()
     }
 
     m_PhysicWorld = new b2World({ 0.0f , -9.8f});
-    m_PhysicsListener = new NativeContactListener();
+    m_PhysicsListener = new NativeContactListener(this);
 
-    //NativeBehavior registry
     m_PhysicWorld->SetContactListener(m_PhysicsListener);
 
     //
@@ -263,46 +325,7 @@ void Scene::OnScenePlay()
     for (auto e : view)
     {
         Entity entity = { e, this };
-        auto& transform = entity.GetComponent<TransformComponent>();
-        auto& rb2d = entity.GetComponent<Rigidbody2DComponent>();
-        std::string tag = entity.GetComponent<TagComponent>().m_Name;
-
-        b2BodyDef bodyDef;
-        bodyDef.type = Utils::Rigidbody2DTypeToBox2DBody(rb2d.Type);
-        auto localTransform = entity.GetWorldTransform();
-        //glm::vec4 worldTranslation = localTransform * glm::vec4(transform.m_Translation, 1.0f);
-        TSO_CORE_INFO("{} set position as {} , {}" , tag, localTransform[3][0], localTransform[3][1]);
-        bodyDef.position.Set(localTransform[3][0], localTransform[3][1]);
-        bodyDef.angle = transform.m_Rotation.z;
-
-        b2Body* body = m_PhysicWorld->CreateBody(&bodyDef);
-        body->SetFixedRotation(rb2d.FixedRotation);
-        rb2d.RuntimeBody = body;
-
-        if (entity.HasComponent<BoxCollider2DComponent>())
-        {
-            auto& bc2d = entity.GetComponent<BoxCollider2DComponent>();
-
-            b2PolygonShape boxShape;
-            boxShape.SetAsBox(bc2d.Size.x * transform.m_Scale.x, bc2d.Size.y * transform.m_Scale.y, b2Vec2(bc2d.Offset.x, bc2d.Offset.y), 0.0f);
-
-            b2FixtureDef fixtureDef;
-            fixtureDef.shape = &boxShape;
-            fixtureDef.density = bc2d.Density;
-            fixtureDef.friction = bc2d.Friction;
-            fixtureDef.restitution = bc2d.Restitution;
-            fixtureDef.restitutionThreshold = bc2d.RestitutionThreshold;
-            body->CreateFixture(&fixtureDef);
-
-            if (entity.HasComponent<NativeScriptComponent>()) {
-                auto& nsc = entity.GetComponent<NativeScriptComponent>();
-                body->GetUserData().pointer = reinterpret_cast<uintptr_t>(&nsc);
-               
-            }
-            
-        }
-
-        
+        CreatePhysicBody(entity);
     }
     m_Pause = false;
 }

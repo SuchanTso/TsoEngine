@@ -75,6 +75,36 @@ namespace Tso {
 		}
 	}
 
+	static void DestroyEntity(UUID uuid) {
+		Scene* scene = ScriptingEngine::GetSceneContext();
+		Entity e = scene->GetEntityByUUID(uuid);
+		auto& activeC = e.GetComponent<ActiveComponent>();
+		activeC.Active = false;
+	}
+
+	static void Fire(UUID uuid) {
+		//just a temp func
+		//this specified func is not flexible and is not allowed
+		Scene* scene = ScriptingEngine::GetSceneContext();
+		Entity e = scene->GetEntityByUUID(uuid);
+		auto& tc = e.GetComponent<TransformComponent>();
+		Entity bullet = scene->CreateEntity("bullet");
+		auto& btc = bullet.GetComponent<TransformComponent>();
+		btc = tc;
+		auto&rigid = bullet.AddComponent<Rigidbody2DComponent>();
+		auto& script = bullet.AddComponent<ScriptComponent>();
+		script.ClassName = "Tso.Bullet";
+		rigid.Type = Rigidbody2DComponent::BodyType::Dynamic;
+		bullet.AddComponent<BoxCollider2DComponent>();
+		auto& render = bullet.AddComponent<Renderable>();
+		render.m_Color = glm::vec4(0.8f, 0.3f, 0.23f, 1.f);
+		render.type = PureColor;
+		auto body = scene->CreatePhysicBody(bullet);
+		body->SetGravityScale(0.f);
+		body->SetLinearVelocity(b2Vec2(10.f, 0.f));
+		ScriptingEngine::OnCreateEntity(bullet);
+	}
+
 	static bool IsKeyPressed(int keycode) {
 		return Input::IsKeyPressed(keycode);
 	}
@@ -97,6 +127,10 @@ namespace Tso {
 
 
 		TSO_ADD_INTERNAL_FUNC(IsKeyPressed);
+
+		TSO_ADD_INTERNAL_FUNC(DestroyEntity);
+
+		TSO_ADD_INTERNAL_FUNC(Fire);
 
 
 	}

@@ -15,11 +15,18 @@
 
 
 #include <stdio.h>
-
 namespace Tso{
+    class Scene;
+
 class NativeContactListener : public b2ContactListener{
 public:
+    NativeContactListener() = default;
+    NativeContactListener(Scene* scene);
     virtual void BeginContact(b2Contact* contact) override;
+    //void SetScene(Scene* scene);
+
+private:
+    Scene* m_Scene = nullptr;
 };
 }
 

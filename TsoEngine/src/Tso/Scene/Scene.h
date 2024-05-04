@@ -35,6 +35,8 @@ namespace Tso {
 
 		void OnUpdate(TimeStep ts);
 
+		b2Body* CreatePhysicBody(Entity& entity);
+
 		Entity CopyEntity(Entity entity);
 
 		void SetEntityParent(Entity& parent , Entity& child);

@@ -51,7 +51,7 @@ namespace Tso {
 
     enum RenderType {
         PureColor = 0,
-        Texture = 1
+        Texture = 1,
     };
 
 	struct Renderable  {
@@ -187,6 +187,14 @@ namespace Tso {
         TextParam textParam;
 
     };
+
+	struct ActiveComponent {
+		ActiveComponent() = default;
+		ActiveComponent(const bool& active) :Active(active) {
+
+		}
+		bool Active = true;
+	};
 
 
 	template<typename... Component>

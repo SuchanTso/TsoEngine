@@ -256,6 +256,35 @@ namespace Utils {
 		}
 	}
 
+	void ScriptingEngine::OnDeleteEntity(Entity& entity)
+	{
+		return;
+		auto entityUUID = entity.GetUUID();
+		if (auto it = s_Data->EntityInstances.find(entityUUID) != s_Data->EntityInstances.end())
+		{
+			s_Data->EntityInstances.erase(it);
+		}
+		else
+		{
+			TSO_CORE_ERROR("Could not find ScriptInstance for entity {}", entityUUID);
+		}
+	}
+
+	void ScriptingEngine::OnCollideEntity(Entity& thisEntity, Entity& otherEntity)
+	{
+		auto entityUUID = thisEntity.GetUUID();
+		if (auto it = s_Data->EntityInstances.find(entityUUID) != s_Data->EntityInstances.end())
+		{
+			Ref<ScriptInstance> instance = s_Data->EntityInstances[entityUUID];
+			instance->InvokeOnCollider(otherEntity.GetUUID());
+		}
+		else
+		{
+			TSO_CORE_ERROR("Could not find ScriptInstance for entity {}", entityUUID);
+		}
+	}
+
+
 	Scene* ScriptingEngine::GetSceneContext()
 	{
 		return s_Data->SceneContext;
@@ -405,6 +434,7 @@ namespace Utils {
 		m_Constructor = s_Data->EntityClass.GetMethod(".ctor", 1);
 		m_OnCreateMethod = scriptClass->GetMethod("OnCreate", 0);
 		m_OnUpdateMethod = scriptClass->GetMethod("OnUpdate", 1);
+		m_OnCollideMethod = scriptClass->GetMethod("OnCollide", 1);
 
 		// Call Entity constructor
 		{
@@ -453,5 +483,14 @@ namespace Utils {
 		return true;
 	}
 
+
+	void ScriptInstance::InvokeOnCollider(UUID uuid)
+	{
+		if (m_OnCollideMethod)
+		{
+			void* param = &uuid;
+			m_ScriptClass->InvokeMethod(m_Instance, m_OnCollideMethod, &param);
+		}
+	}
 
 }

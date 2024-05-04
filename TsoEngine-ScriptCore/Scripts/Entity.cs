@@ -22,6 +22,11 @@ namespace Tso
 
         public virtual void OnUpdate(float ts) { }
 
+        public virtual void OnCollide(ulong uuid) {
+            Console.WriteLine("collide by uuid " + uuid); ;
+
+        }
+
         protected ulong UUID { get; set; }
     }
 }
