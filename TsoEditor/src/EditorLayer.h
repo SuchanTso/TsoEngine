@@ -14,13 +14,6 @@ namespace Tso {
     class Entity;
     class Project;
 	class EditorLayer : public Layer {
-        struct MovaData {
-            glm::vec2 originPos;
-            glm::vec2 targetPos;
-            float startTime;
-
-        };
-
     public:
         EditorLayer();
         ~EditorLayer() = default;
@@ -53,21 +46,12 @@ namespace Tso {
 
         void SaveProject();
 
-
-
         bool OpenProject();
-
-
 
         std::string SaveSceneAs();
 
     private:
 
-        glm::vec3 m_TrianglePos;
-        Ref<Shader> m_Shader;
-        Ref<ShaderLibrary> m_ShaderLibrary;
-        Ref<Texture2D> m_Texture, m_TileTexture;
-        Ref<SubTexture2D> m_subTexture, m_sub1;
         Ref<FrameBuffer> m_FrameBuffer;
         Ref<Scene>      m_Scene;
         Ref<Project> m_Project = nullptr;
@@ -76,16 +60,13 @@ namespace Tso {
         Entity m_HoveredEntity;
         Entity m_CopyEntity;
 
-        float m_MoveSpeed = 1.0f;
-        bool m_LpMovable = false;
-        float m_Time = 0.0;
-        MovaData m_MoveData;
         std::string m_ScenePath = "";
         bool m_StartScene = false;
 
         float m_MouseX = 0.f, m_MouseY = 0.f;
         bool m_ViewportFocused = false;
         bool m_ViewportHovered = false;
+        bool m_UpdateViewportSize = false;
         glm::vec2 m_ViewportBounds[2];
 
 

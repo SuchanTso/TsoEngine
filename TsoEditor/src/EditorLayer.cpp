@@ -13,19 +13,10 @@
 
 
 namespace Tso {
-
-    static void PrintFunc() {
-        TSO_CORE_INFO("hello world from c++ by c#");
-    }
-
     EditorLayer::EditorLayer()
-        :Layer("EditorLayer"),
-        m_TrianglePos(glm::vec3(0.f))
+        :Layer("EditorLayer")
     {
-        m_ShaderLibrary = std::make_shared<ShaderLibrary>();
-
-        m_Shader = m_ShaderLibrary->Load("asset/shader/Shader2D.glsl");
-        Renderer2D::Init(m_Shader);
+        Renderer2D::Init();
         m_Scene = std::make_shared<Scene>();
         m_Panel.SetContext(m_Scene);
 
@@ -210,11 +201,14 @@ namespace Tso {
             if (content.x > 0.f && content.y > 0.f && (content.x != m_ViewportSize.x || content.y != m_ViewportSize.y)) {
                 m_ViewportSize = { content.x , content.y };
                 m_FrameBuffer->Resize(uint32_t(m_ViewportSize.x), uint32_t(m_ViewportSize.y));
-                if(m_Scene && m_Scene->GetMainCamera())
-                    m_Scene->GetMainCamera()->SetViewportSize(uint32_t(m_ViewportSize.x), uint32_t(m_ViewportSize.y));
+                m_UpdateViewportSize = true;
 //                if(!camera.FixedAspectRatio){
 //                    camera.m_Camera.SetViewportSize(m_ViewportSize.x , m_ViewportSize.y);
 //                }
+            }
+            if (m_UpdateViewportSize && m_Scene && m_Scene->GetMainCamera()) {
+                m_Scene->GetMainCamera()->SetViewportSize(uint32_t(m_ViewportSize.x), uint32_t(m_ViewportSize.y));
+                m_UpdateViewportSize = false;
             }
             uint32_t fbId = m_FrameBuffer->GetColorAttachment(0);
 
@@ -239,9 +233,6 @@ namespace Tso {
         m_FrameBuffer->ClearAttachment(1, -1);
 
         m_Scene->OnUpdate(ts);
-
-
-        m_Time += ts.GetSecond();
         
         auto [mx , my] = ImGui::GetMousePos();
         mx -= m_ViewportBounds[0].x ;
@@ -362,7 +353,7 @@ namespace Tso {
 
     void EditorLayer::SaveProject()
     {
-        auto projPath = Project::GetActive()->GetProjectDirectory();
+        auto& projPath = Project::GetActive()->GetProjectDirectory();
         if (projPath.empty()) {
             projPath = FileDialogs::SaveFile("Tso Project(*.tproj)\0 * .tproj\0");
         }
