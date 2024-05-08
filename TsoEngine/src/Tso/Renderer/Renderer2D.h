@@ -20,9 +20,14 @@ namespace Tso {
 class Font;
 struct TextParam;
 
+struct RendererSpec {
+    std::filesystem::path shaderPath;
+    BufferLayout layout;
+};
+
 class Renderer2D{
 public:
-    static void Init(Ref<Shader> quadShader);
+    static void Init();
     
     static void BeginScene(const OrthographicCamera& camera);
 
@@ -58,7 +63,12 @@ public:
     static void ResetStat();
     static Statistics GetStat();
 
-    
+private:
+    static Ref<IndexBuffer> GenIndexBuffer(const uint32_t& maxIndexCounts);
+
+    template<typename T>
+    static void InitRenderer(Ref<Shader>& shader , Ref<VertexArray>& vertexArray , Ref<VertexBuffer>& vertexBuffer , T** vertexBase ,Ref<IndexBuffer>& indexBuffer,const RendererSpec& rendererSpec);
+    static void GenDefaultTexture();
 private:
     static void FlushAndRest();
 };

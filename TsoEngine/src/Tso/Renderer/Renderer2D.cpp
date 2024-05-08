@@ -37,30 +37,8 @@ struct Renderer2DData{
     static const uint32_t maxIndices = maxQuads * 6;
     static const uint32_t maxTextureSlot = 16;
     
+
     Ref<Texture2D> DefaultTex;
-
-
-    Ref<VertexArray> QuadVertextArray;
-    Ref<VertexBuffer> QuadVertexBuffer;
-    QuadVertex* QuadVertexBufferBase = nullptr;
-    QuadVertex* QuadVertexBufferPtr = nullptr;
-    Ref<Shader> QuadShader;
-
-    uint32_t QuadIndexCount = 0;
-    uint32_t TextIndexCount = 0;
-
-
-    
-    Ref<VertexArray> TextVertextArray;
-    Ref<VertexBuffer> TextVertexBuffer;
-    TextVertex* TextVertexBufferBase = nullptr;
-    TextVertex* TextVertexBufferPtr = nullptr;
-    Ref<Shader> TextShader;
-    Ref<Texture2D> FontAtlasTexture;
-
-    
-    std::array<Ref<Texture2D>, maxTextureSlot> QuadTextureSlots;
-    uint32_t QuadTextureIndex = 1;//0 for white texture
 
     glm::vec4 quadVertices[4] = {
         {   -0.5f , -0.5f , 0.0f , 1.0f },
@@ -68,8 +46,28 @@ struct Renderer2DData{
         {    0.5f ,  0.5f , 0.0f , 1.0f },
         {   -0.5f ,  0.5f , 0.0f , 1.0f }
     };
-    
 
+    //Quad 
+    Ref<VertexArray> QuadVertextArray;
+    Ref<VertexBuffer> QuadVertexBuffer;
+    QuadVertex* QuadVertexBufferBase = nullptr;
+    QuadVertex* QuadVertexBufferPtr = nullptr;
+    Ref<Shader> QuadShader;
+    uint32_t QuadIndexCount = 0;
+    std::array<Ref<Texture2D>, maxTextureSlot> QuadTextureSlots;
+    uint32_t QuadTextureIndex = 1;//0 for white texture
+
+    //Text
+    Ref<VertexArray> TextVertextArray;
+    Ref<VertexBuffer> TextVertexBuffer;
+    TextVertex* TextVertexBufferBase = nullptr;
+    TextVertex* TextVertexBufferPtr = nullptr;
+    Ref<Shader> TextShader;
+    Ref<Texture2D> FontAtlasTexture;
+    uint32_t TextIndexCount = 0;
+
+    
+    //Info
     Renderer2D::Statistics Stat;
 };
 
@@ -78,96 +76,46 @@ struct Renderer2DData{
 static Renderer2DData s_Data ;
 
 
-void Renderer2D::Init(Ref<Shader> quadShader){
+void Renderer2D::Init(){
+    Ref<IndexBuffer> indexBuffer = GenIndexBuffer(s_Data.maxIndices);
 
 
-    
-    
-    s_Data.QuadShader = Shader::Create("asset/shader/Shader2D.glsl");
-    
-    s_Data.TextShader = Shader::Create("asset/shader/Text.glsl");
-    
-    
-    s_Data.QuadVertextArray.reset(Tso::VertexArray::Create());
-    s_Data.TextVertextArray.reset(Tso::VertexArray::Create());
+    RendererSpec quadSpec;
+    quadSpec.shaderPath = std::filesystem::path("asset/shader/Shader2D.glsl");
+    quadSpec.layout = {
+        {ShaderDataType::Float3 , "a_Position"},
+        {ShaderDataType::Float2 , "a_TexCoord"},
+        {ShaderDataType::Float4 , "a_Color"},
+        {ShaderDataType::Float  , "a_TexIndex"},
+        {ShaderDataType::Int    , "a_EntityID"}
+    };
+    InitRenderer<QuadVertex>(s_Data.QuadShader, s_Data.QuadVertextArray, s_Data.QuadVertexBuffer, &s_Data.QuadVertexBufferBase , indexBuffer, quadSpec);
+
+    RendererSpec textSpec;
+    textSpec.shaderPath = std::filesystem::path("asset/shader/Text.glsl");
+    textSpec.layout = {
+        {ShaderDataType::Float3 , "a_Position"},
+        {ShaderDataType::Float2 , "a_TexCoord"},
+        {ShaderDataType::Float4 , "a_Color"},
+        {ShaderDataType::Int    , "a_EntityID"}
+    };
+    InitRenderer<TextVertex>(s_Data.TextShader, s_Data.TextVertextArray, s_Data.TextVertexBuffer, &s_Data.TextVertexBufferBase , indexBuffer , textSpec);
 
 
 
-    s_Data.QuadVertexBuffer.reset(Tso::VertexBuffer::Create(s_Data.maxVertices * sizeof(QuadVertex)));
+    GenDefaultTexture();
+    s_Data.QuadTextureSlots[0] = s_Data.DefaultTex;
 
-    {
-        Tso::BufferLayout layout = {
-            {Tso::ShaderDataType::Float3 , "a_Position"},
-            {Tso::ShaderDataType::Float2 , "a_TexCoord"},
-            {Tso::ShaderDataType::Float4 , "a_Color"},
-            {Tso::ShaderDataType::Float  , "a_TexIndex"},
-            {Tso::ShaderDataType::Int  , "a_EntityID"}
-
-
-        };
-        s_Data.QuadVertexBuffer->SetLayout(layout);
+    int32_t samplers[s_Data.maxTextureSlot];
+    for (uint32_t i = 0; i < s_Data.maxTextureSlot; i++){
+        samplers[i] = i;
     }
 
-    s_Data.QuadVertexBufferBase = new QuadVertex[s_Data.maxVertices];
-
-    
-    s_Data.TextVertexBuffer.reset(Tso::VertexBuffer::Create(s_Data.maxVertices * sizeof(TextVertex)));
-
-    {
-        Tso::BufferLayout layout = {
-            {Tso::ShaderDataType::Float3 , "a_Position"},
-            {Tso::ShaderDataType::Float2 , "a_TexCoord"},
-            {Tso::ShaderDataType::Float4 , "a_Color"},
-            {Tso::ShaderDataType::Int  , "a_EntityID"}
-        };
-        s_Data.TextVertexBuffer->SetLayout(layout);
-    }
-
-    s_Data.TextVertexBufferBase = new TextVertex[s_Data.maxVertices];
-
-    uint32_t* quadIndices = new uint32_t[s_Data.maxIndices];
-
-    uint32_t offset = 0;
-    for (uint32_t i = 0; i < s_Data.maxIndices; i += 6) {
-        quadIndices[i + 0] = offset + 0;
-        quadIndices[i + 1] = offset + 1;
-        quadIndices[i + 2] = offset + 2;
-
-        quadIndices[i + 3] = offset + 2;
-        quadIndices[i + 4] = offset + 3;
-        quadIndices[i + 5] = offset + 0;
-
-        offset += 4;
-    }
-
-    Tso::Ref<Tso::IndexBuffer> indexBuffer;
-    indexBuffer.reset(Tso::IndexBuffer::Create(quadIndices, s_Data.maxIndices));
-
-    s_Data.QuadVertextArray->AddVertexBuffer(s_Data.QuadVertexBuffer);
-    s_Data.QuadVertextArray->SetIndexBuffer(indexBuffer);
-    
-    s_Data.TextVertextArray->AddVertexBuffer(s_Data.TextVertexBuffer);
-    s_Data.TextVertextArray->SetIndexBuffer(indexBuffer);
-
-    delete []quadIndices;
-    
-    s_Data.DefaultTex = Texture2D::Create(1,1);
-    uint32_t pureColor = 0xffffffff;
-    s_Data.DefaultTex->SetData(&pureColor , 4);
-    
-
-      s_Data.QuadTextureSlots[0] = s_Data.DefaultTex;
-
-      int32_t samplers[s_Data.maxTextureSlot];
-      for (uint32_t i = 0; i < s_Data.maxTextureSlot; i++) {
-          samplers[i] = i;
-      }
     s_Data.TextShader->Bind();
     s_Data.TextShader->SetInt("u_Textures", 0);
 
-
-      s_Data.QuadShader->Bind();
-      s_Data.QuadShader->SetIntArray("u_Textures", samplers , s_Data.maxTextureSlot);
+    s_Data.QuadShader->Bind();
+    s_Data.QuadShader->SetIntArray("u_Textures", samplers , s_Data.maxTextureSlot);
 
     
 }
@@ -181,21 +129,10 @@ void Renderer2D::BeginScene(const OrthographicCamera& camera){
     s_Data.TextShader->UnBind();
     
     s_Data.QuadShader->Bind();
-    
     s_Data.QuadShader->SetMatrix4("u_ProjViewMat", camera.GetProjViewMatrix());
-
     s_Data.QuadVertexBufferPtr = s_Data.QuadVertexBufferBase;
-
     s_Data.QuadIndexCount = 0;
 
-    
-    s_Data.QuadTextureIndex = 1;
-    while(s_Data.QuadTextureIndex < s_Data.QuadTextureSlots.size()){
-        if(s_Data.QuadTextureSlots[s_Data.QuadTextureIndex] == nullptr){
-            break;
-        }
-        s_Data.QuadTextureIndex++;
-    }
     
 }
 
@@ -209,21 +146,9 @@ void Renderer2D::BeginScene(const SceneCamera& camera, const glm::mat4& cameraTr
     
     
     s_Data.QuadShader->Bind();
-
     s_Data.QuadShader->SetMatrix4("u_ProjViewMat", camera.GetProjection() * glm::inverse(cameraTransform));
-
     s_Data.QuadVertexBufferPtr = s_Data.QuadVertexBufferBase;
-
     s_Data.QuadIndexCount = 0;
-
-
-    s_Data.QuadTextureIndex = 1;
-    while (s_Data.QuadTextureIndex < s_Data.QuadTextureSlots.size()) {
-        if (s_Data.QuadTextureSlots[s_Data.QuadTextureIndex] == nullptr) {
-            break;
-        }
-        s_Data.QuadTextureIndex++;
-    }
 
 }
 
@@ -234,29 +159,69 @@ void Renderer2D::EndScene() {
     s_Data.QuadVertexBuffer->SetData(s_Data.QuadVertexBufferBase, vertexCount);
 
     uint32_t textVertexCount = (uint8_t*)s_Data.TextVertexBufferPtr - (uint8_t*)s_Data.TextVertexBufferBase;
-    
     s_Data.TextVertexBuffer->SetData(s_Data.TextVertexBufferBase, textVertexCount);
 
     Flush();
 }
 
 void Renderer2D::Flush() {
-    for (uint32_t i = 0; i < s_Data.QuadTextureIndex; i++) {
-        s_Data.QuadTextureSlots[i]->Bind(i);
-    }
+    
     if(s_Data.QuadIndexCount){
+        for (uint32_t i = 0; i < s_Data.QuadTextureIndex; i++) {
+            s_Data.QuadTextureSlots[i]->Bind(i);
+        }
         RenderCommand::DrawIndexed(s_Data.QuadVertextArray, s_Data.QuadIndexCount);
-        
         s_Data.Stat.DrawCalls++;
     }
     
     if(s_Data.TextIndexCount){
         s_Data.FontAtlasTexture->Bind(0);
         s_Data.TextShader->Bind();
-
         RenderCommand::DrawIndexed(s_Data.TextVertextArray, s_Data.TextIndexCount);
         s_Data.Stat.DrawCalls++;
     }
+}
+
+Ref<IndexBuffer> Renderer2D::GenIndexBuffer(const uint32_t& maxIndexCounts)
+{
+    uint32_t* quadIndices = new uint32_t[maxIndexCounts];
+
+    uint32_t offset = 0;
+    for (uint32_t i = 0; i < maxIndexCounts; i += 6) {
+        quadIndices[i + 0] = offset + 0;
+        quadIndices[i + 1] = offset + 1;
+        quadIndices[i + 2] = offset + 2;
+
+        quadIndices[i + 3] = offset + 2;
+        quadIndices[i + 4] = offset + 3;
+        quadIndices[i + 5] = offset + 0;
+
+        offset += 4;
+    }
+
+    Ref<IndexBuffer> indexBuffer;
+    indexBuffer.reset(IndexBuffer::Create(quadIndices, s_Data.maxIndices));
+    delete[]quadIndices;
+    return indexBuffer;
+}
+
+template<typename T>
+void Renderer2D::InitRenderer(Ref<Shader>& shader, Ref<VertexArray>& vertexArray, Ref<VertexBuffer>& vertexBuffer, T** vertexBase , Ref<IndexBuffer>& indexBuffer,const RendererSpec& rendererSpec)
+{
+    shader = Shader::Create(rendererSpec.shaderPath.string());
+    vertexArray.reset(Tso::VertexArray::Create());
+    vertexBuffer.reset(Tso::VertexBuffer::Create(s_Data.maxVertices * sizeof(T)));
+    vertexBuffer->SetLayout(rendererSpec.layout);
+    vertexArray->AddVertexBuffer(vertexBuffer);
+    vertexArray->SetIndexBuffer(indexBuffer);
+    *vertexBase = new T[s_Data.maxVertices];
+}
+
+void Renderer2D::GenDefaultTexture()
+{
+    s_Data.DefaultTex = Texture2D::Create(1, 1);
+    uint32_t pureColor = 0xffffffff;
+    s_Data.DefaultTex->SetData(&pureColor, 4);
 }
 
 void Renderer2D::FlushAndRest()
@@ -264,15 +229,13 @@ void Renderer2D::FlushAndRest()
     EndScene();
 
     s_Data.QuadVertexBufferPtr = s_Data.QuadVertexBufferBase;
-
     s_Data.QuadIndexCount = 0;
+    s_Data.QuadTextureIndex = 1;
 
-    while(s_Data.QuadTextureIndex < s_Data.QuadTextureSlots.size()){
-        if(s_Data.QuadTextureSlots[s_Data.QuadTextureIndex] == nullptr){
-            break;
-        }
-        s_Data.QuadTextureIndex++;
-    }
+
+    s_Data.TextVertexBufferPtr = s_Data.TextVertexBufferBase;
+    s_Data.TextIndexCount = 0;
+
 }
 
 
