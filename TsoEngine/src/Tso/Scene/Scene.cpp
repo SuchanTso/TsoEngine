@@ -149,8 +149,15 @@ void Scene::OnUpdate(TimeStep ts)
             mainCameraTransfrom = &transfrom.GetTransform();
         }
     }
+
+    if (m_UseSceneCamera) {
+        TSO_CORE_ASSERT(m_SceneCamera != nullptr, "attempt to use scene camera while sceneCamera is null");
+        mainCamera = &(m_SceneCamera->GetComponent<CameraComponent>().m_Camera);
+        auto& transform = m_SceneCamera->GetComponent<TransformComponent>();
+        mainCameraTransfrom = &transform.GetTransform();
+    }
  
-    if (mainCamera) {
+    if (mainCamera && mainCameraTransfrom) {
         Renderer2D::BeginScene(*mainCamera, *mainCameraTransfrom);
         
         auto group = m_Registry.view<Renderable , TransformComponent>();
@@ -253,6 +260,19 @@ Entity Scene::CopyEntity(Entity entity)
     return newEntity;
 }
 
+Ref<Entity> Scene::GetEntityByName(const std::string& name)
+{
+    auto tagView = m_Registry.view<TagComponent>();
+    for (auto& e : tagView) {
+        Entity entity = { e , this };
+        auto& tag = entity.GetComponent<TagComponent>();
+        if (tag.m_Name == name) {
+            return CreateRef<Entity>(entity);
+        }
+    }
+    return nullptr;
+}
+
 void Scene::SetEntityParent(Entity& parent , Entity& child)
 {
     if (m_ChildrenMap[parent.GetUUID()].find(child.GetUUID()) != m_ChildrenMap[parent.GetUUID()].end()) {
@@ -287,6 +307,16 @@ std::unordered_map<uint64_t, Ref<Entity>> Scene::GetEntityChildren(Entity& paren
 Ref<Entity> Scene::GetEntityParent(Entity& child)
 {
     return m_ParentMap[child.GetUUID()];
+}
+
+void Scene::SetSceneCamera(const Entity& cameraEntity)
+{
+    m_SceneCamera = CreateRef<Entity>(cameraEntity , this);
+}
+
+void Scene::SetUseSceneCamera(bool useSceneCamera)
+{
+    m_UseSceneCamera = useSceneCamera;
 }
 
 void Scene::DeleteEntity(Entity entity){
@@ -342,6 +372,11 @@ void Scene::OnSceneStop()
     }
     ScriptingEngine::OnSceneStop();
     m_Pause = true;
+}
+
+SceneCamera* Scene::GetMainCamera()
+{
+    return m_UseSceneCamera ? &(m_SceneCamera->GetComponent<CameraComponent>().m_Camera) : mainCamera;
 }
 
 

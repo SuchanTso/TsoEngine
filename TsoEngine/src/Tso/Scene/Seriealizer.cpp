@@ -328,6 +328,9 @@ bool Seriealizer::DeseriealizeScene(const std::string& path){
             }
             uint64_t uuid = entity["Entity"].as<uint64_t>();
             Entity deserializedEntity = m_Scene->CreateEntityWithID(uuid , name);
+            if (name == "SceneCamera") {
+                m_Scene->SetSceneCamera(deserializedEntity);
+            }
             if (entity["ParentEntity"]) {
                 m_ParentMap[uuid] = entity["ParentEntity"].as<uint64_t>();
             }

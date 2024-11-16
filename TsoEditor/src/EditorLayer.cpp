@@ -23,10 +23,13 @@ namespace Tso {
 
 
         FrameBufferInfo info ;
-        info.width = (uint32_t)m_ViewportSize.x;
-        info.height = (uint32_t)m_ViewportSize.y;
+        info.width = (uint32_t)m_GameViewSize.x;
+        info.height = (uint32_t)m_GameViewSize.y;
         info.format = {RGBA8 , RED_INTEGER , DEPTH24_STENCIL8};
         m_FrameBuffer = FrameBuffer::Create(info);
+        m_CameraEntity = CreateRef<Entity>(m_Scene->CreateEntity("SceneCamera"));
+        m_CameraEntity->AddComponent<CameraComponent>();
+        m_Scene->SetSceneCamera(*m_CameraEntity);//TODO: there is a camera stuff that camera should not be rendered on game view while scene view does
 
         
     }
@@ -185,34 +188,80 @@ namespace Tso {
     
 
 
-            ImGui::Begin("Viewport");
-    
-            auto viewportMinRegion = ImGui::GetWindowContentRegionMin();
-            auto viewportMaxRegion = ImGui::GetWindowContentRegionMax();
-            auto viewportOffset = ImGui::GetWindowPos();
-            m_ViewportBounds[0] = { viewportMinRegion.x + viewportOffset.x, viewportMinRegion.y + viewportOffset.y };
-            m_ViewportBounds[1] = { viewportMaxRegion.x + viewportOffset.x, viewportMaxRegion.y + viewportOffset.y };
-            
+            ImGui::Begin("scene view");
             m_ViewportFocused = ImGui::IsWindowFocused();
             m_ViewportHovered = ImGui::IsWindowHovered();
-            Application::Get().GetGUILayer()->BlockEvents(!m_ViewportFocused);
-
-            auto content = ImGui::GetContentRegionAvail();
-            if (content.x > 0.f && content.y > 0.f && (content.x != m_ViewportSize.x || content.y != m_ViewportSize.y)) {
-                m_ViewportSize = { content.x , content.y };
-                m_FrameBuffer->Resize(uint32_t(m_ViewportSize.x), uint32_t(m_ViewportSize.y));
-                m_UpdateViewportSize = true;
-//                if(!camera.FixedAspectRatio){
-//                    camera.m_Camera.SetViewportSize(m_ViewportSize.x , m_ViewportSize.y);
-//                }
+            if (m_ViewportFocused) {
+                if (m_Focus != FocusWindow::Sceneview) {
+                    m_UpdateViewportSize = true;
+                }
+                m_Scene->SetUseSceneCamera(true);
+                m_Focus = FocusWindow::Sceneview;
             }
-            if (m_UpdateViewportSize && m_Scene && m_Scene->GetMainCamera()) {
-                m_Scene->GetMainCamera()->SetViewportSize(uint32_t(m_ViewportSize.x), uint32_t(m_ViewportSize.y));
-                m_UpdateViewportSize = false;
-            }
-            uint32_t fbId = m_FrameBuffer->GetColorAttachment(0);
+                auto viewportMinRegion = ImGui::GetWindowContentRegionMin();
+                auto viewportMaxRegion = ImGui::GetWindowContentRegionMax();
+                auto viewportOffset = ImGui::GetWindowPos();
+                m_ViewportBounds[0] = { viewportMinRegion.x + viewportOffset.x, viewportMinRegion.y + viewportOffset.y };
+                m_ViewportBounds[1] = { viewportMaxRegion.x + viewportOffset.x, viewportMaxRegion.y + viewportOffset.y };
 
-            ImGui::Image((void*)fbId, ImVec2{ m_ViewportSize.x , m_ViewportSize.y },ImVec2{ 0, 1 }, ImVec2{ 1, 0 });
+
+                Application::Get().GetGUILayer()->BlockEvents(!(m_GameViewFocused || m_ViewportFocused));
+
+
+                auto content = ImGui::GetContentRegionAvail();
+                if (content.x > 0.f && content.y > 0.f && (content.x != m_SceneVeiwSize.x || content.y != m_SceneVeiwSize.y)) {
+                    m_SceneVeiwSize = { content.x , content.y };
+                    m_FrameBuffer->Resize(uint32_t(m_SceneVeiwSize.x), uint32_t(m_SceneVeiwSize.y));
+                    m_UpdateViewportSize = true;
+                }
+                if (m_UpdateViewportSize && m_Scene && m_Scene->GetMainCamera()) {
+                    TSO_CORE_INFO("update scene view size!!");
+
+                    m_Scene->GetMainCamera()->SetViewportSize(uint32_t(m_SceneVeiwSize.x), uint32_t(m_SceneVeiwSize.y));
+                    m_UpdateViewportSize = false;
+                }
+                uint32_t fbId = m_FrameBuffer->GetColorAttachment(0);
+
+                ImGui::Image((void*)fbId, ImVec2{ m_SceneVeiwSize.x , m_SceneVeiwSize.y }, ImVec2{ 0, 1 }, ImVec2{ 1, 0 });
+            
+            ImGui::End();
+
+
+            ImGui::Begin("game view");
+
+            m_GameViewFocused = ImGui::IsWindowFocused();
+            m_GameViewHovered = ImGui::IsWindowHovered();
+
+            if (m_GameViewFocused) {
+                if (m_Focus != FocusWindow::GameView) {
+                    m_UpdateViewportSize = true;
+                }
+                m_Scene->SetUseSceneCamera(false);
+                m_Focus = FocusWindow::GameView;
+            }
+                auto gameViewMinRegion = ImGui::GetWindowContentRegionMin();
+                auto gameViewMaxRegion = ImGui::GetWindowContentRegionMax();
+                auto gameViewOffset = ImGui::GetWindowPos();
+
+                bool gameViewFocused = ImGui::IsWindowFocused();
+                bool gameViewHovered = ImGui::IsWindowHovered();
+                m_GameViewBounds[0] = { gameViewMinRegion.x + gameViewOffset.x, gameViewMinRegion.y + gameViewOffset.y };
+                m_GameViewBounds[1] = { gameViewMaxRegion.x + gameViewOffset.x, gameViewMaxRegion.y + gameViewOffset.y };
+                Application::Get().GetGUILayer()->BlockEvents(!(m_GameViewFocused || m_ViewportFocused));
+                auto gameViewcontent = ImGui::GetContentRegionAvail();
+                if (gameViewcontent.x > 0.f && gameViewcontent.y > 0.f && (gameViewcontent.x != m_GameViewSize.x || gameViewcontent.y != m_GameViewSize.y)) {
+                    m_GameViewSize = { gameViewcontent.x , gameViewcontent.y };
+                    m_FrameBuffer->Resize(uint32_t(m_GameViewSize.x), uint32_t(m_GameViewSize.y));
+                    m_UpdateViewportSize = true;
+                }
+
+                if (m_UpdateViewportSize && m_Scene && m_Scene->GetMainCamera()) {
+                    TSO_CORE_INFO("update game view size!!");
+                    m_Scene->GetMainCamera()->SetViewportSize(uint32_t(m_GameViewSize.x), uint32_t(m_GameViewSize.y));
+                    m_UpdateViewportSize = false;
+                }
+                fbId = m_FrameBuffer->GetColorAttachment(0);
+                ImGui::Image((void*)fbId, ImVec2{ m_GameViewSize.x , m_GameViewSize.y }, ImVec2{ 0, 1 }, ImVec2{ 1, 0 });
             
             ImGui::End();
 }

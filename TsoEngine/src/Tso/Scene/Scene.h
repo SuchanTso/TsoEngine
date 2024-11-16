@@ -39,6 +39,8 @@ namespace Tso {
 
 		Entity CopyEntity(Entity entity);
 
+		Ref<Entity> GetEntityByName(const std::string& name);
+
 		void SetEntityParent(Entity& parent , Entity& child);
 
 		void RemoveChild(Entity& parent , Entity& child);
@@ -47,7 +49,11 @@ namespace Tso {
 
 		Ref<Entity> GetEntityParent(Entity& child);
 
-		SceneCamera* GetMainCamera() { return mainCamera; }
+		SceneCamera* GetMainCamera();
+
+		void SetSceneCamera(const Entity& cameraEntity);
+
+		void SetUseSceneCamera(bool useSceneCamera);
 
 	private:
 		entt::registry m_Registry;
@@ -67,6 +73,10 @@ namespace Tso {
 		std::unordered_map<uint64_t, Ref<Entity>> m_ParentMap;
 
 		bool m_Pause = true;
+
+		bool m_UseSceneCamera = false;
+
+		Ref<Entity> m_SceneCamera = nullptr;
 
 		SceneCamera* mainCamera = nullptr;
 
