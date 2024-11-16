@@ -15,6 +15,13 @@ namespace Tso {
     class Project;
 	class EditorLayer : public Layer {
     public:
+        enum class FocusWindow {
+            None = 0,
+            Sceneview = 1,
+            GameView = 2,
+        };
+
+    public:
         EditorLayer();
         ~EditorLayer() = default;
 
@@ -56,7 +63,7 @@ namespace Tso {
         Ref<Scene>      m_Scene;
         Ref<Project> m_Project = nullptr;
         SceneHierarchyPanel m_Panel;
-        Entity m_CameraEntity;
+        Ref<Entity> m_CameraEntity = nullptr;
         Entity m_HoveredEntity;
         Entity m_CopyEntity;
 
@@ -66,11 +73,21 @@ namespace Tso {
         float m_MouseX = 0.f, m_MouseY = 0.f;
         bool m_ViewportFocused = false;
         bool m_ViewportHovered = false;
+
+        bool m_GameViewFocused = false;
+        bool m_GameViewHovered = false;
+
         bool m_UpdateViewportSize = false;
         glm::vec2 m_ViewportBounds[2];
+        glm::vec2 m_GameViewBounds[2];
 
 
-        glm::vec2 m_ViewportSize = { 720.0 , 1280.0 };
+        glm::vec2 m_SceneVeiwSize = { 720.0 , 1280.0 };
+        glm::vec2 m_GameViewSize = { 720.0 , 1280.0 };
+
+        FocusWindow m_Focus = FocusWindow::None;
+
+
 };
 
 }
