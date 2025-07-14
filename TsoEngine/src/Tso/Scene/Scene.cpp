@@ -11,7 +11,7 @@
 #include "box2d/b2_polygon_shape.h"
 #include "box2d/b2_circle_shape.h"
 #include "Tso/Renderer/Font.h"
-
+#include "Tso/Network/NetworkEngine.h"
 #include "Tso/Core/Application.h"
 
 namespace Utils {
@@ -123,6 +123,23 @@ void Scene::OnUpdate(TimeStep ts)
 
             }
         }
+        //update network here
+        auto view = m_Registry.view<NetworkComponent>(); 
+        for(auto entity : view){
+            Entity e = { entity, this };
+            NetworkComponent& network = e.GetComponent<NetworkComponent>();
+            ByteStream byte = ByteStream::SeriealizeEntity(e , network.protocol);
+            if (byte == network.byte) {
+                //do nothing since we just rewrite operator==
+            }
+            else {
+                NetWorkEngine::HandlerNetwork(network.protocol, byte);//Send by customed protocol
+                network.byte.setBuffer(byte.getBuffer());
+            }
+            //TODO(Suchan):deal with recv msg  
+        }
+
+        NetWorkEngine::OnUpdate(ts);
     }
 
     //deal not active entity
@@ -317,6 +334,11 @@ void Scene::SetSceneCamera(const Entity& cameraEntity)
 void Scene::SetUseSceneCamera(bool useSceneCamera)
 {
     m_UseSceneCamera = useSceneCamera;
+}
+
+bool Scene::HasEntity(const UUID& uuid)
+{
+    return m_EntityMap.find((uint64_t)uuid) != m_EntityMap.end();
 }
 
 void Scene::DeleteEntity(Entity entity){

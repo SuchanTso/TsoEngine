@@ -8,11 +8,24 @@
 #include "Tso/Renderer/SubTexture2D.h"
 #include "Tso/Renderer/Font.h"
 #include "Tso/Core/UUID.h"
-
+#include "Tso/Scene/Seriealizer.h"
+#include "Tso/Network/ByteStream.h"
 
 namespace Tso {
 
-
+	enum class ComponentID: uint16_t {
+		None = 0,
+		TransformComponent = 1,
+		Renderable = 2,
+		TagComponent = 3,
+		IDComponent = 4,
+		NativeScriptComponent = 5,
+		ScriptComponent = 6,
+		CameraComponent = 7,
+		Rigidbody2DComponent = 8, 
+		BoxCollider2DComponent = 9,
+		TextComponent = 10
+	};
 
 	struct TransformComponent {
         TransformComponent(){}
@@ -194,6 +207,15 @@ namespace Tso {
 
 		}
 		bool Active = true;
+	};
+
+	struct NetworkComponent
+	{
+		// we don't set network id additionally, UUID can handle this
+		bool authoritative = false;
+		ByteStream byte;// implemented as vector , so it is okay write nothing for initial
+		uint8_t protocol = 0; // see more information in networkEngine.h
+		
 	};
 
 

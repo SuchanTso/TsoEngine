@@ -27,7 +27,8 @@ project "TsoEditor"
 		"%{wks.location}/TsoEngine/third_party/mono/include",
 		"%{wks.location}/TsoEngine/third_party/msdf-atlas-gen/msfgen/include",
 		"%{wks.location}/TsoEngine/third_party/msdf-atlas-gen/msdf-atlas-gen",
-		"%{wks.location}/TsoEngine/third_party/msdf-atlas-gen/msdfgen"
+		"%{wks.location}/TsoEngine/third_party/msdf-atlas-gen/msdfgen",
+		"%{wks.location}/TsoEngine/third_party/readerwriterqueue"
 	}
 
 	links { "TsoEngine" }
