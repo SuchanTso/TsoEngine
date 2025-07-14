@@ -55,6 +55,8 @@ namespace Tso {
 
 		void SetUseSceneCamera(bool useSceneCamera);
 
+		bool HasEntity(const UUID& uuid);
+
 	private:
 		entt::registry m_Registry;
 

@@ -3,6 +3,7 @@
 #include "GLFW/glfw3.h"
 #include "Tso/Renderer/Renderer.h"
 #include "Tso/Scripting/ScriptingEngine.h"
+#include "Tso/Network/NetworkEngine.h"
 
 //temp
 // 
@@ -19,6 +20,7 @@ namespace Tso {
 
         RenderCommand::Init();
         ScriptingEngine::Init();
+        NetWorkEngine::Init();
         m_ImGuiLayer = new ImGuiLayer;
         m_LayerStack.PushOverlay(m_ImGuiLayer);
 
@@ -107,6 +109,7 @@ namespace Tso {
 			m_Window->OnUpdate();
 		}
         ScriptingEngine::ShutDown();
+        NetWorkEngine::Shutdown();
 	}
 
 bool Application::OnWindowClosed(const WindowCloseEvent &e){

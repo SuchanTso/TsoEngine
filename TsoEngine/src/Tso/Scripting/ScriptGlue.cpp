@@ -75,6 +75,15 @@ namespace Tso {
 		}
 	}
 
+	static void GetEntityUUIDByName(MonoString* name , UUID* uuid) {
+		Scene* scene = ScriptingEngine::GetSceneContext();
+		std::string nameStr = Utils::MonoStringToString(name);
+		auto entity = scene->GetEntityByName(nameStr);
+		if (entity != nullptr) {
+			*uuid = entity->GetUUID();
+		}
+	}
+
 	static void DestroyEntity(UUID uuid) {
 		Scene* scene = ScriptingEngine::GetSceneContext();
 		Entity e = scene->GetEntityByUUID(uuid);

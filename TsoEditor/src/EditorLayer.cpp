@@ -10,6 +10,7 @@
 #include "Tso/Utils/PlatformUtils.h"
 #include "Tso/Project/Project.h"
 #include "Tso/Scripting/ScriptingEngine.h"
+#include "Tso/Network/NetworkEngine.h"
 
 
 namespace Tso {
@@ -20,8 +21,6 @@ namespace Tso {
         m_Scene = std::make_shared<Scene>();
         m_Panel.SetContext(m_Scene);
 
-
-
         FrameBufferInfo info ;
         info.width = (uint32_t)m_GameViewSize.x;
         info.height = (uint32_t)m_GameViewSize.y;
@@ -30,7 +29,7 @@ namespace Tso {
         m_CameraEntity = CreateRef<Entity>(m_Scene->CreateEntity("SceneCamera"));
         m_CameraEntity->AddComponent<CameraComponent>();
         m_Scene->SetSceneCamera(*m_CameraEntity);//TODO: there is a camera stuff that camera should not be rendered on game view while scene view does
-
+        NetWorkEngine::RegistryScene(m_Scene);
         
     }
 
@@ -183,6 +182,23 @@ namespace Tso {
             }
             ImGui::SameLine();
             ImGui::Text("%s", m_StartScene ? "play" : "stop");
+
+            if (ImGui::Button("connect")) {
+
+                /*NetWorkEngine::TestSend("127.0.0.1", 6000, "this is the first message");*/
+                if (NetWorkEngine::Connect("127.0.0.1", 6000)) {
+                    TSO_INFO("connect sucussfully");
+                }
+            }
+            if (ImGui::Button("disconnect")) {
+                /*NetWorkEngine::TestSend("127.0.0.1", 6000, "this is the first message");*/
+                if (NetWorkEngine::DisConnect()) {
+                    TSO_INFO("disconnect sucussfully");
+                }
+                else {
+                    TSO_ERROR("unable to disconnect");
+                }
+            }
 
             ImGui::End();
     

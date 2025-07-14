@@ -118,6 +118,7 @@ namespace Tso {
             DisplayAddComponentEntry<Rigidbody2DComponent>("Rigidbody2DComponent");
             DisplayAddComponentEntry<BoxCollider2DComponent>("BoxCollider2DComponent");
             DisplayAddComponentEntry<TextComponent>("TextComponent");
+            DisplayAddComponentEntry<NetworkComponent>("NetworkComponent");
             ImGui::EndPopup();
         }
     
@@ -413,6 +414,18 @@ namespace Tso {
             }
 
             
+        }
+
+        if (entity.HasComponent<NetworkComponent>()) {
+            auto& comp = entity.GetComponent<NetworkComponent>();
+            auto& protocol = std::to_string(comp.protocol);
+            char buff[256];
+
+            strcpy(buff, protocol.c_str());
+
+            if (ImGui::InputText("protocol", buff, sizeof(buff))) {
+                comp.protocol = std::stoi(buff);
+            }
         }
         
         
