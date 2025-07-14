@@ -43,7 +43,10 @@ public:
     
     static void DrawQuad(const glm::mat4& transform , const glm::vec4& color , const int& entityID);
     static void DrawString(const Ref<Font> font , const glm::mat4& transform , const std::string& text , const TextParam& textParam , const int& entityID);
-    
+    static void DrawCDQuad(const glm::mat4& transform, Ref<Texture2D> texture, const int& entityID , const float& percent);
+    static void DrawCDQuad(const glm::mat4& transform, Ref<SubTexture2D> subTexture, const int& entityID , const float& percent);
+
+
     static void DrawQuad(const glm::vec2& position , const glm::vec2& scale , Ref<Texture2D> texture , const int& entityID);
     static void DrawQuad(const glm::vec3& position , const glm::vec2& scale , Ref<Texture2D> texture , const int& entityID);
     static void DrawQuad(const glm::vec3& position , const float& rotation , const glm::vec2& scale , Ref<Texture2D> texture , const int& entityID);
