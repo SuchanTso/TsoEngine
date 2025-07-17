@@ -9,7 +9,7 @@ project "Sandbox"
     
 	files { "src/**.h", "src/**.cpp"}
 
-    includedirs
+    externalincludedirs
 	{
         "%{wks.location}/TsoEngine/third_party/spdlog/include",
 		"%{wks.location}/TsoEngine/src",

@@ -8,5 +8,6 @@ project "TsoEngine-ScriptCore"
 
 	files 
 	{
-		"Scripts/**.cs"
+		"Scripts/**.lua",
+
 	}

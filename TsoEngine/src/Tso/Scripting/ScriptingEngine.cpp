@@ -6,15 +6,18 @@
 #include "spdlog/fmt/ostr.h"
 
 #include "Tso/Scene/Component.h"
+//
+//
+//#include "mono/jit/jit.h"
+//#include "mono/metadata/assembly.h"
+//#include "mono/metadata/object.h"
+//#include "mono/metadata/tabledefs.h"
+//#include "mono/metadata/mono-debug.h"
+//#include "mono/metadata/threads.h"
+//#include "mono/metadata/image.h"
+//
 
 
-#include "mono/jit/jit.h"
-#include "mono/metadata/assembly.h"
-#include "mono/metadata/object.h"
-#include "mono/metadata/tabledefs.h"
-#include "mono/metadata/mono-debug.h"
-#include "mono/metadata/threads.h"
-#include "mono/metadata/image.h"
 
 namespace Tso {
 static std::unordered_map<std::string, ScriptFieldType> s_ScriptFieldTypeMap =
@@ -68,171 +71,78 @@ namespace Utils {
 		*outSize = size;
 		return buffer;
 	}
-
-
-
-	static MonoAssembly* LoadMonoAssembly(const std::filesystem::path& assemblyPath, bool loadPDB = false)
-	{
-		uint32_t fileSize = 0;
-		char* fileData = ReadBytes(assemblyPath.string(), &fileSize);
-
-		// NOTE: We can't use this image for anything other than loading the assembly because this image doesn't have a reference to the assembly
-		MonoImageOpenStatus status;
-		MonoImage* image = mono_image_open_from_data_full(fileData, fileSize, 1, &status, 0);
-
-		if (status != MONO_IMAGE_OK)
-		{
-			const char* errorMessage = mono_image_strerror(status);
-			// Log some error message using the errorMessage data
-			return nullptr;
-		}
-
-		/*if (loadPDB)
-		{
-			std::filesystem::path pdbPath = assemblyPath;
-			pdbPath.replace_extension(".pdb");
-
-			if (std::filesystem::exists(pdbPath))
-			{
-				uint32_t fileSize = 0;
-				char* pdbFileData = ReadBytes(pdbPath.string() , &fileSize);
-				mono_debug_open_image_from_memory(image, (mono_byte*)pdbFileData, fileSize);
-				TSO_CORE_INFO("Loaded PDB {}", pdbPath);
-			}
-		}*/
-
-		std::string pathString = assemblyPath.string();
-		MonoAssembly* assembly = mono_assembly_load_from_full(image, pathString.c_str(), &status, 0);
-		mono_image_close(image);
-
-		return assembly;
-	}
-
-	void PrintAssemblyTypes(MonoAssembly* assembly)
-	{
-		MonoImage* image = mono_assembly_get_image(assembly);
-		const MonoTableInfo* typeDefinitionsTable = mono_image_get_table_info(image, MONO_TABLE_TYPEDEF);
-		int32_t numTypes = mono_table_info_get_rows(typeDefinitionsTable);
-
-		for (int32_t i = 0; i < numTypes; i++)
-		{
-			uint32_t cols[MONO_TYPEDEF_SIZE];
-			mono_metadata_decode_row(typeDefinitionsTable, i, cols, MONO_TYPEDEF_SIZE);
-
-			const char* nameSpace = mono_metadata_string_heap(image, cols[MONO_TYPEDEF_NAMESPACE]);
-			const char* name = mono_metadata_string_heap(image, cols[MONO_TYPEDEF_NAME]);
-			TSO_CORE_TRACE("{}.{}", nameSpace, name);
-		}
-	}
-
-	ScriptFieldType MonoTypeToScriptFieldType(MonoType* monoType)
-	{
-		std::string typeName = mono_type_get_name(monoType);
-
-		auto it = s_ScriptFieldTypeMap.find(typeName);
-		if (it == s_ScriptFieldTypeMap.end())
-		{
-			TSO_CORE_ERROR("Unknown type: {}", typeName);
-			return ScriptFieldType::None;
-		}
-
-		return it->second;
-	}
 }
+//
+
+    // 在 C++ 中定义 Lua 的"类"
+    struct LuaClass {
+        std::string Name;
+        // 指向 Lua 注册表中代表这个类的 metatable
+        int MetatableRef = LUA_NOREF;
+
+        // 从脚本中解析出的可编辑字段 { "fieldName": FieldType }
+        std::unordered_map<std::string, ScriptFieldType> Fields;
+    };
 
 
+    struct ScriptEngineData {
+        lua_State* L = nullptr; // 全局的 Lua 状态机
 
-	struct ScriptEngineData {
-		MonoDomain* RootDomain = nullptr;
-		MonoDomain* AppDomain = nullptr;
+        // 管理所有从脚本文件加载的 "类"
+        // "Player" -> LuaClass
+        std::unordered_map<std::string, Ref<ScriptClass>> EntityClasses;
 
+        // 运行中的脚本实例
+        // EntityID -> LuaInstance
+        std::unordered_map<uint64_t, Ref<ScriptInstance>> EntityInstances;
 
-		MonoAssembly* CoreAssembly = nullptr;
-		MonoImage* CoreAssemblyImage = nullptr;
-		std::filesystem::path CoreAssemblyFilepath;
+        // 用于序列化和编辑器，存储每个实体脚本字段的默认值
+        std::unordered_map<uint64_t, ScriptFieldMap> EntityScriptFields;
 
-		MonoAssembly* AppAssembly = nullptr;
-		MonoImage* AppAssemblyImage = nullptr;
-		std::filesystem::path AppAssemblyFilepath;
+        Scene* SceneContext = nullptr;
+    };
 
-		ScriptClass EntityClass;
-
-
-
-		std::unordered_map<std::string, Ref<ScriptClass>> EntityClasses;
-		std::unordered_map<uint64_t, Ref<ScriptInstance>> EntityInstances;
-
-		std::unordered_map<uint64_t, ScriptFieldMap> EntityScriptFields;
-
-		Scene* SceneContext = nullptr;
-	};
-
-	static ScriptEngineData* s_Data = nullptr;
+    // 全局的 s_Data 指针保持不变
+    static ScriptEngineData* s_Data = nullptr;
 	 
 
 	void ScriptingEngine::Init()
 	{
-		s_Data = new ScriptEngineData;
-		InitMono();
-		ScriptGlue::RegisterFunctions();
+        s_Data = new ScriptEngineData;
+            
+        // 1. 初始化 Lua 状态机
+        s_Data->L = luaL_newstate();
+        luaL_openlibs(s_Data->L); // 加载标准库
+
+        // 2. 注册 C++ 核心 API 给 Lua (ScriptGlue)
+        ScriptGlue::RegisterFunctions();
+
+        // 3. 加载并解析所有脚本文件
+        LoadAllScripts("../../../TsoEngine-ScriptCore/Scripts");
+        //TODO: make filesystem to load script core automatically @Suchan
 	}
 
+    void ScriptingEngine::LoadAllScripts(const std::string& directory) {
+        // 遍历指定目录下的所有 .lua 文件
+        if(std::filesystem::exists(directory)){
+            for (auto& entry : std::filesystem::directory_iterator(directory)) {
+                if (entry.path().extension() == ".lua") {
+                    LoadScriptClasses(entry.path());
+                }
+            }
+        }
+    }
 
+    lua_State* ScriptingEngine::GetLuaState(){
+        TSO_CORE_ASSERT(s_Data && s_Data->L, "Didn't init the engine or lua state");
+        return s_Data->L;
+    }
 
-	void ScriptingEngine::InitMono()
-	{
-		mono_set_assemblies_path("../TsoEngine/third_party/mono/DotNetLibs/4.5");
-		//TODO: consider add filesystem to make file accessible@SuchanTso
-
-		MonoDomain* rootDomain = mono_jit_init("TsoJitRuntime");
-		TSO_CORE_ASSERT(rootDomain, "failed to init root Domain");
-		s_Data->RootDomain = rootDomain;
-		//mono_thread_set_main(mono_thread_current());
-		bool status = LoadAssembly(std::filesystem::path("../TsoEngine-ScriptCore/Build/TsoEngine-ScriptCore.dll"));
-		if (!status) {
-			TSO_CORE_ERROR("unable to load assembly");
-		}
-
-		LoadAssemblyClasses();
-
-		s_Data->EntityClass = ScriptClass("Tso", "Entity", true);
-		/*ScriptEngineData* testptr = s_Data;
-		int a = 0;*/
-#if 0
-		if (LoadAssembly(std::filesystem::path("../TsoEngine-ScriptCore/Build/TsoEngine-ScriptCore.dll"))) {
-			//MonoImage* image = mono_assembly_get_image(s_Data->CoreAssembly);
-			MonoClass* klass = mono_class_from_name(s_Data->CoreAssemblyImage, "MyNamespace", "Program");
-			if (klass) {
-				MonoObject* objecteInstance = mono_object_new(s_Data->AppDomain,klass);
-				MonoMethod* objectMethod = mono_class_get_method_from_name(klass, "PrintFloatVar", 0);
-				if (objectMethod) {
-					mono_runtime_invoke(objectMethod, objecteInstance, nullptr, nullptr);
-				}
-				MonoMethod* objectMothedP = mono_class_get_method_from_name(klass, "PrintFloatP", 1);
-				float value = 3.14159f;
-				void* params[] = {&value};
-				mono_runtime_invoke(objectMothedP, objecteInstance, params, nullptr);
-			}
-		}
-#endif
-	}
-
-	void ScriptingEngine::ShutDown()
-	{
-		ShutdownMono();
-		delete s_Data;
-	}
-
-	void ScriptingEngine::ShutdownMono()
-	{
-		mono_domain_set(mono_get_root_domain(), false);
-
-		mono_domain_unload(s_Data->AppDomain);
-		s_Data->AppDomain = nullptr;
-
-		mono_jit_cleanup(s_Data->RootDomain);
-		s_Data->RootDomain = nullptr;
-	}
+//
+    void ScriptingEngine::ShutDown()
+    {
+        delete s_Data;
+    }
 
 	void ScriptingEngine::OnCreateEntity(Entity entity)
 	{
@@ -270,19 +180,19 @@ namespace Utils {
 		}
 	}
 
-	void ScriptingEngine::OnCollideEntity(Entity& thisEntity, Entity& otherEntity)
-	{
-		auto entityUUID = thisEntity.GetUUID();
-		if (auto it = s_Data->EntityInstances.find(entityUUID) != s_Data->EntityInstances.end())
-		{
-			Ref<ScriptInstance> instance = s_Data->EntityInstances[entityUUID];
-			instance->InvokeOnCollider(otherEntity.GetUUID());
-		}
-		else
-		{
-			TSO_CORE_ERROR("Could not find ScriptInstance for entity {}", entityUUID);
-		}
-	}
+//	void ScriptingEngine::OnCollideEntity(Entity& thisEntity, Entity& otherEntity)
+//	{
+//		auto entityUUID = thisEntity.GetUUID();
+//		if (auto it = s_Data->EntityInstances.find(entityUUID) != s_Data->EntityInstances.end())
+//		{
+//			Ref<ScriptInstance> instance = s_Data->EntityInstances[entityUUID];
+//			instance->InvokeOnCollider(otherEntity.GetUUID());
+//		}
+//		else
+//		{
+//			TSO_CORE_ERROR("Could not find ScriptInstance for entity {}", entityUUID);
+//		}
+//	}
 
 
 	Scene* ScriptingEngine::GetSceneContext()
@@ -304,92 +214,53 @@ namespace Utils {
 		}
 	}
 
-	
-
-	bool ScriptingEngine::LoadAssembly(const std::filesystem::path& filepath)
+void ScriptingEngine::LoadScriptClasses(const std::filesystem::path& path)
 	{
-		s_Data->AppDomain = mono_domain_create_appdomain("TsoScriptRuntime", nullptr);
-		mono_domain_set(s_Data->AppDomain, true);
+    // 执行 Lua 脚本文件，它会返回一个 table 在栈顶
+        if (luaL_dofile(s_Data->L, path.string().c_str()) != LUA_OK) {
+            // 错误处理...
+            TSO_CORE_ERROR("Unable to load file{} :[{}]" , path.string().c_str() , lua_tostring(s_Data->L, -1));
+            return;
+        }
 
-		s_Data->CoreAssemblyFilepath = filepath;
-		s_Data->CoreAssembly = Utils::LoadMonoAssembly(filepath, false);
-		if (s_Data->CoreAssembly == nullptr)
-			return false;
+        if (!lua_istable(s_Data->L, -1)) {
+            // 脚本没有返回一个 table，格式错误
+            lua_pop(s_Data->L, 1);
+            return;
+        }
 
-		s_Data->CoreAssemblyImage = mono_assembly_get_image(s_Data->CoreAssembly);
-		return true;
-	}
+        // 从返回的 table 中提取类名 (从文件名获取)
+        std::string className = path.stem().string();
+        
+        Ref<ScriptClass> scriptClass = std::make_shared<ScriptClass>(className , luaL_ref(s_Data->L, LUA_REGISTRYINDEX));
+        
+        // --- 解析公共字段 (Fields) ---
+        // 再次把 metatable 推到栈上
+        lua_rawgeti(s_Data->L, LUA_REGISTRYINDEX, scriptClass->m_MetatableRef);
+        lua_getfield(s_Data->L, -1, "Fields");
+        if (lua_istable(s_Data->L, -1)) {
+            lua_pushnil(s_Data->L); // 开始遍历
+            while (lua_next(s_Data->L, -2) != 0) {
+                // key at -2, value at -1
+                const char* fieldName = lua_tostring(s_Data->L, -2);
+                const char* fieldTypeStr = lua_tostring(s_Data->L, -1);
+                scriptClass->m_Fields[fieldName] = {s_ScriptFieldTypeMap[fieldTypeStr] , fieldName}; // 使用你现有的 map
+                TSO_CORE_INFO("Scipt class{}:{}",fieldName , fieldTypeStr);
+                lua_pop(s_Data->L, 1); // 弹出 value，保留 key 给下一次迭代
+            }
+        }
+        lua_pop(s_Data->L, 1); // 弹出 Fields table
 
-	void ScriptingEngine::LoadAssemblyClasses()
-	{
-		s_Data->EntityClasses.clear();
+        
+        lua_pop(s_Data->L, 1); // 弹出 metatable
+
+        s_Data->EntityClasses[className] = scriptClass;
+        TSO_CORE_INFO("Loaded Lua class: {}", className);
 		
-
-		const MonoTableInfo* typeDefinitionsTable = mono_image_get_table_info(s_Data->CoreAssemblyImage, MONO_TABLE_TYPEDEF);
-		int32_t numTypes = mono_table_info_get_rows(typeDefinitionsTable);
-		MonoClass* entityClass = mono_class_from_name(s_Data->CoreAssemblyImage, "Tso", "Entity");
-
-		for (int32_t i = 0; i < numTypes; i++)
-		{
-			uint32_t cols[MONO_TYPEDEF_SIZE];
-			mono_metadata_decode_row(typeDefinitionsTable, i, cols, MONO_TYPEDEF_SIZE);
-
-			const char* nameSpace = mono_metadata_string_heap(s_Data->CoreAssemblyImage, cols[MONO_TYPEDEF_NAMESPACE]);
-			const char* className = mono_metadata_string_heap(s_Data->CoreAssemblyImage, cols[MONO_TYPEDEF_NAME]);
-			std::string fullName;
-			if (strlen(nameSpace) != 0)
-				fullName = fmt::format("{}.{}", nameSpace, className);
-			else
-				fullName = className;
-
-			MonoClass* monoClass = mono_class_from_name(s_Data->CoreAssemblyImage, nameSpace, className);//TODO: make core and app devided
-
-			if (monoClass == entityClass)
-				continue;
-
-			bool isEntity = mono_class_is_subclass_of(monoClass, entityClass, false);
-			if (!isEntity)
-				continue;
-
-			Ref<ScriptClass> scriptClass = std::make_shared<ScriptClass>(nameSpace, className , true);
-			s_Data->EntityClasses[fullName] = scriptClass;
-
-
-			// This routine is an iterator routine for retrieving the fields in a class.
-			// You must pass a gpointer that points to zero and is treated as an opaque handle
-			// to iterate over all of the elements. When no more values are available, the return value is NULL.
-
-			int fieldCount = mono_class_num_fields(monoClass);
-			TSO_CORE_WARN("{} has {} fields:", className, fieldCount);
-			void* iterator = nullptr;
-			while (MonoClassField* field = mono_class_get_fields(monoClass, &iterator))
-			{
-				const char* fieldName = mono_field_get_name(field);
-				uint32_t flags = mono_field_get_flags(field);
-				if (flags & FIELD_ATTRIBUTE_PUBLIC)
-				{
-					MonoType* type = mono_field_get_type(field);
-					ScriptFieldType fieldType = Utils::MonoTypeToScriptFieldType(type);
-					//TSO_CORE_WARN("  {} ({})", fieldName, Utils::ScriptFieldTypeToString(fieldType));
-
-					scriptClass->m_Fields[fieldName] = { fieldType, fieldName, field };
-				}
-			}
-
-		}
-		
-	}
-
-	MonoObject* ScriptingEngine::InstantiateClass(MonoClass* monoClass)
-	{
-		MonoObject* instance = mono_object_new(s_Data->AppDomain, monoClass);
-		mono_runtime_object_init(instance);
-		return instance;
 	}
 
 	bool ScriptingEngine::EntityClassExists(const std::string& className)
 	{
-		ScriptEngineData* test = s_Data;
 		return s_Data->EntityClasses.find(className) != s_Data->EntityClasses.end();
 	}
 
@@ -403,94 +274,205 @@ namespace Utils {
 		s_Data->SceneContext = nullptr;
 	}
 
-	ScriptClass::ScriptClass(const std::string& classNamespace, const std::string& className, bool isCore)
-		: m_ClassNamespace(classNamespace), m_ClassName(className)
+	ScriptClass::ScriptClass(const std::string& className, const int& tableRef)
+    :m_ClassName(className) , m_MetatableRef(tableRef)
 	{
-		m_MonoClass = mono_class_from_name(isCore ? s_Data->CoreAssemblyImage : s_Data->AppAssemblyImage, classNamespace.c_str(), className.c_str());
+		
 	}
-
-	MonoObject* ScriptClass::Instantiate()
-	{
-		return ScriptingEngine::InstantiateClass(m_MonoClass);
-	}
-
-	MonoMethod* ScriptClass::GetMethod(const std::string& name, int parameterCount)
-	{
-		return mono_class_get_method_from_name(m_MonoClass, name.c_str(), parameterCount);
-	}
-
-	MonoObject* ScriptClass::InvokeMethod(MonoObject* instance, MonoMethod* method, void** params = nullptr)
-	{
-		MonoObject* exception = nullptr;
-		return mono_runtime_invoke(method, instance, params, &exception);
-	}
-
-
+//
+//	MonoObject* ScriptClass::Instantiate()
+//	{
+//		return ScriptingEngine::InstantiateClass(m_MonoClass);
+//	}
+//
+//	MonoMethod* ScriptClass::GetMethod(const std::string& name, int parameterCount)
+//	{
+//		return mono_class_get_method_from_name(m_MonoClass, name.c_str(), parameterCount);
+//	}
+//
+//	MonoObject* ScriptClass::InvokeMethod(MonoObject* instance, MonoMethod* method, void** params = nullptr)
+//	{
+//		MonoObject* exception = nullptr;
+//		return mono_runtime_invoke(method, instance, params, &exception);
+//	}
+//s
+//
 	ScriptInstance::ScriptInstance(Ref<ScriptClass> scriptClass, Entity entity)
 		: m_ScriptClass(scriptClass)
 	{
-		m_Instance = scriptClass->Instantiate();
+//		m_Instance = scriptClass->Instantiate();
+        lua_rawgeti(s_Data->L , LUA_REGISTRYINDEX , scriptClass->GetMetatableRef());
 
-		m_Constructor = s_Data->EntityClass.GetMethod(".ctor", 1);
-		m_OnCreateMethod = scriptClass->GetMethod("OnCreate", 0);
-		m_OnUpdateMethod = scriptClass->GetMethod("OnUpdate", 1);
-		m_OnCollideMethod = scriptClass->GetMethod("OnCollide", 1);
+        //constructor
+        auto entityID = entity.GetUUID();
 
-		// Call Entity constructor
-		{
-			auto entityID = entity.GetUUID();
-			void* param = &entityID;
-			m_ScriptClass->InvokeMethod(m_Instance, m_Constructor, &param);
-		}
+        lua_getfield(s_Data->L, -1, "new");
+        if (lua_isfunction(s_Data->L, -1)) {
+            m_Constructor = luaL_ref(s_Data->L, LUA_REGISTRYINDEX);
+        }
+        else{
+            lua_pop(s_Data->L,1);
+            TSO_CORE_ERROR("Unable to fetch Constructor function for entity {}" , entityID);
+        }
+        lua_rawgeti(s_Data->L , LUA_REGISTRYINDEX , m_Constructor);
+        
+//        lua_pushnumber(s_Data->L, entityID);
+        lua_pushstring(s_Data->L, std::to_string(entityID).c_str());
+        if(lua_pcall(s_Data->L, 1, 1, 0) != LUA_OK){
+            TSO_CORE_ERROR("Unable to call constructor when instantiating entity:{}",entityID);
+            TSO_CORE_ERROR("Error:[{}]" , lua_tostring(s_Data->L, -1));
+        }
+        m_InstanceTableRef = luaL_ref(s_Data->L , LUA_REGISTRYINDEX);
+
+//        lua_rawgeti(s_Data->L , LUA_REGISTRYINDEX , m_InstanceTableRef);
+        lua_getfield(s_Data->L, -1, "OnCreate");
+        if(lua_isfunction(s_Data->L, -1)){
+            m_OnCreateRef = luaL_ref(s_Data->L, LUA_REGISTRYINDEX);
+        }
+        else {
+            TSO_CORE_ERROR("Unable to fetch OnCreate() function for entity {}" , entityID);
+            lua_pop(s_Data->L, 1); // 弹出 nil
+        }
+        
+        lua_getfield(s_Data->L, -1, "OnUpdate");
+        if(lua_isfunction(s_Data->L, -1)){
+            m_OnUpdateRef = luaL_ref(s_Data->L, LUA_REGISTRYINDEX);
+        }
+        else{
+            lua_pop(s_Data->L, 1);
+        }
+        
+        lua_pop(s_Data->L, 1); // 弹出 instance table
 	}
-
+//
 	void ScriptInstance::InvokeOnCreate()
 	{
-		if (m_OnCreateMethod)
-			m_ScriptClass->InvokeMethod(m_Instance, m_OnCreateMethod , nullptr);
+        if (m_OnCreateRef != LUA_NOREF) {
+            lua_rawgeti(s_Data->L, LUA_REGISTRYINDEX, m_OnCreateRef);
+            // OnCreate 的第一个参数是 self (instance table)
+            lua_rawgeti(s_Data->L, LUA_REGISTRYINDEX, m_InstanceTableRef);
+            lua_pcall(s_Data->L, 1, 0, 0); // 1个参数(self), 0个返回值
+        }
 	}
 
 	void ScriptInstance::InvokeOnUpdate(float ts)
 	{
-		if (m_OnUpdateMethod)
-		{
-			void* param = &ts;
-			m_ScriptClass->InvokeMethod(m_Instance, m_OnUpdateMethod, &param);
-		}
+        if (m_OnUpdateRef != LUA_NOREF){
+            // 推入 OnUpdate 函数
+            lua_rawgeti(s_Data->L, LUA_REGISTRYINDEX, m_OnUpdateRef);
+            
+            // 推入参数1：self (instance table)
+            lua_rawgeti(s_Data->L, LUA_REGISTRYINDEX, m_InstanceTableRef);
+            
+            // 推入参数2：ts (timestep)
+            lua_pushnumber(s_Data->L, (float)ts);
+            
+            // 调用：2个参数，0个返回值
+            if (lua_pcall(s_Data->L, 2, 0, 0) != LUA_OK) {
+                TSO_CORE_ERROR("Unable to update entity");
+            }
+        }
 	}
-
-	bool ScriptInstance::GetFieldValueInternal(const std::string& name, void* buffer)
-	{
-		const auto& fields = m_ScriptClass->GetFields();
-		auto it = fields.find(name);
-		if (it == fields.end())
-			return false;
-
-		const ScriptField& field = it->second;
-		mono_field_get_value(m_Instance, field.ClassField, buffer);
-		return true;
-	}
-
+//
+//	bool ScriptInstance::GetFieldValueInternal(const std::string& name, void* buffer)
+//	{
+//		const auto& fields = m_ScriptClass->GetFields();
+//		auto it = fields.find(name);
+//		if (it == fields.end())
+//			return false;
+//
+//		const ScriptField& field = it->second;
+//		mono_field_get_value(m_Instance, field.ClassField, buffer);
+//		return true;
+//	}
+//
 	bool ScriptInstance::SetFieldValueInternal(const std::string& name, const void* value)
 	{
+        lua_rawgeti(s_Data->L , LUA_REGISTRYINDEX , m_InstanceTableRef);
+        if(!lua_istable(s_Data->L, -1)){
+            lua_pop(s_Data->L, 1); // 弹出 nil 或非 table 值
+            TSO_CORE_ERROR("ScriptInstance's table is invalid!");
+            return false;
+        }
 		const auto& fields = m_ScriptClass->GetFields();
 		auto it = fields.find(name);
-		if (it == fields.end())
-			return false;
-
+        if (it == fields.end()){
+            lua_pop(s_Data->L, 1); // 弹出 instance table
+            TSO_CORE_WARN("Trying to set non-existent or non-public field '{}'", name);
+            return false;
+        }
 		const ScriptField& field = it->second;
-		mono_field_set_value(m_Instance, field.ClassField, (void*)value);
+        lua_pushstring(s_Data->L, name.c_str());
+        switch (field.Type)
+            {
+                case ScriptFieldType::Float:   lua_pushnumber(s_Data->L, *(const float*)value); break;
+                case ScriptFieldType::Double:  lua_pushnumber(s_Data->L, *(const double*)value); break;
+                case ScriptFieldType::Bool:    lua_pushboolean(s_Data->L, *(const bool*)value); break;
+                case ScriptFieldType::Char:    { char str[2] = { *(const char*)value, '\0' }; lua_pushstring(s_Data->L, str); break; }
+                case ScriptFieldType::Short:   lua_pushinteger(s_Data->L, *(const int16_t*)value); break;
+                case ScriptFieldType::Int:     lua_pushinteger(s_Data->L, *(const int32_t*)value); break;
+                case ScriptFieldType::Long:    lua_pushinteger(s_Data->L, *(const int64_t*)value); break;
+                case ScriptFieldType::Byte:    lua_pushinteger(s_Data->L, *(const uint8_t*)value); break;
+                case ScriptFieldType::UShort:  lua_pushinteger(s_Data->L, *(const uint16_t*)value); break;
+                case ScriptFieldType::UInt:    lua_pushinteger(s_Data->L, *(const uint32_t*)value); break;
+                case ScriptFieldType::ULong:   lua_pushinteger(s_Data->L, *(const uint64_t*)value); break;
+
+                // 对于向量类型，我们需要创建一个 table
+                case ScriptFieldType::Vector2:
+                {
+                    const glm::vec2& vec = *(const glm::vec2*)value;
+                    lua_newtable(s_Data->L);
+                    lua_pushnumber(s_Data->L, vec.x); lua_setfield(s_Data->L, -2, "x");
+                    lua_pushnumber(s_Data->L, vec.y); lua_setfield(s_Data->L, -2, "y");
+                    // 你也可以在这里关联一个 Vector2 的 metatable，让它在 Lua 中有自己的方法
+                    break;
+                }
+                case ScriptFieldType::Vector3:
+                {
+                    const glm::vec3& vec = *(const glm::vec3*)value;
+                    lua_newtable(s_Data->L);
+                    lua_pushnumber(s_Data->L, vec.x); lua_setfield(s_Data->L, -2, "x");
+                    lua_pushnumber(s_Data->L, vec.y); lua_setfield(s_Data->L, -2, "y");
+                    lua_pushnumber(s_Data->L, vec.z); lua_setfield(s_Data->L, -2, "z");
+                    break;
+                }
+                case ScriptFieldType::Vector4:
+                {
+                    const glm::vec4& vec = *(const glm::vec4*)value;
+                    lua_newtable(s_Data->L);
+                    lua_pushnumber(s_Data->L, vec.x); lua_setfield(s_Data->L, -2, "x");
+                    lua_pushnumber(s_Data->L, vec.y); lua_setfield(s_Data->L, -2, "y");
+                    lua_pushnumber(s_Data->L, vec.z); lua_setfield(s_Data->L, -2, "z");
+                    lua_pushnumber(s_Data->L, vec.w); lua_setfield(s_Data->L, -2, "w");
+                    break;
+                }
+
+                // 对于实体，我们存储它的 UUID
+                case ScriptFieldType::Entity:
+                {
+                    const uint64_t& uuid = *(const uint64_t*)value;
+                    lua_pushnumber(s_Data->L, uuid); // 在 Lua 端存储为数字 ID
+                    break;
+                }
+                    
+                default:
+                    TSO_CORE_ERROR("Unknown script field type!");
+                    lua_pop(s_Data->L, 2); // 弹出 instance table 和 key
+                    return false;
+            }
+        
+        
+        lua_settable(s_Data->L, -3);
+        // 6. 弹出 instance table
+        lua_pop(s_Data->L, 1);
+
 		return true;
 	}
 
 
-	void ScriptInstance::InvokeOnCollider(UUID uuid)
-	{
-		if (m_OnCollideMethod)
-		{
-			void* param = &uuid;
-			m_ScriptClass->InvokeMethod(m_Instance, m_OnCollideMethod, &param);
-		}
-	}
-
+    ScriptInstance::~ScriptInstance(){
+        //TODO: garbage collection @Suchan
+    }
+//
+//
 }

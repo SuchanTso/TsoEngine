@@ -16,7 +16,7 @@ namespace Tso {
 	public:
 		static Ref<Project> New();
 		static Ref<Project> LoadProject(const std::filesystem::path& path);
-		static bool Project::SaveActive(const std::filesystem::path& path);
+		static bool SaveActive(const std::filesystem::path& path);
 		ProjectConfig& GetConfig() { return m_Config; }
 
 		static std::filesystem::path& GetProjectDirectory() {

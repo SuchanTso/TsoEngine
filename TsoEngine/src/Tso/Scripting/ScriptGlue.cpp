@@ -7,141 +7,220 @@
 #include "Tso/Scene/Scene.h"
 #include "Tso/Scene/Component.h"
 
-#include "mono/jit/jit.h"
-#include "mono/metadata/tabledefs.h"
-#include "mono/metadata/mono-debug.h"
-#include "mono/metadata/threads.h"
-
-
 namespace Tso {
 
-#define TSO_ADD_INTERNAL_FUNC(Name) mono_add_internal_call("Tso.InternalCalls::" #Name, Name)
 
 	namespace Utils {
 
-		static std::string MonoStringToString(MonoString* string)
-		{
-			char* cStr = mono_string_to_utf8(string);
-			std::string str(cStr);
-			mono_free(cStr);
-			return str;
-		}
+    static UUID GetUUIDFromLua(lua_State* L){
+        std::string uuid_str = luaL_checkstring(L, 1);
+        uint64_t uuid = strtoull(uuid_str.c_str() , NULL , 0);
+        TSO_CORE_TRACE("Translate uuid_str[{}] -> [{}]", uuid_str , uuid);
+        return UUID(uuid);
+    }
+    // 模板化的组件指针 userdata 创建函数
+    template<typename T>
+    void PushComponentPointer(lua_State* L, T* component, const char* metatableName) {
+        if (!component) {
+            lua_pushnil(L);
+            return;
+        }
+        T** component_ptr_userdata = (T**)lua_newuserdata(L, sizeof(T*));
+        *component_ptr_userdata = component;
+        luaL_getmetatable(L, metatableName);
+        lua_setmetatable(L, -2);
+    }
 
-	}
+}
+static std::unordered_map<std::string , std::function<void(lua_State*, Entity*)>> ComponentsStr = {
+    {"TransformComponent" ,    [](lua_State* L, Entity* entity) {
+        if (entity->HasComponent<TransformComponent>()) {
+            Utils::PushComponentPointer(L, &entity->GetComponent<TransformComponent>(), "TsoEngine.TransformComponent");
+        } else {
+            lua_pushnil(L);
+        }
+    }}
+};
+//==============================Bound Functions======================================================================
+namespace Global{
+    static int Log(lua_State* L) {
+        // 获取第一个参数作为字符串
+        const char* message = luaL_checkstring(L, 1);
+        TSO_CORE_TRACE("[LUA] {}", message);
+        return 0; // 0个返回值
+    }
 
-	static void NativeLOG(MonoString* msg) {
-		std::string str = Utils::MonoStringToString(msg);
-		TSO_CORE_INFO("{}", str.c_str());
-	}
+    static int IsKeyPressed(lua_State* L) {
+        int keycode = static_cast<int>(luaL_checkinteger(L, 1));
+        bool keyDown = Input::IsKeyPressed(keycode);
+        lua_pushboolean(L, keyDown);
+        return 1;
+    }
 
-	static void GetTranslation(UUID uuid , glm::vec3* res) {
-		Scene* scene = ScriptingEngine::GetSceneContext();
-		Entity e = scene->GetEntityByUUID(uuid);
-		auto& transform = e.GetComponent<TransformComponent>();
-		*res = transform.m_Translation;
-	}
+    static int GetEntityByUUID(lua_State* L){
+        
+        Scene* scene = ScriptingEngine::GetSceneContext();
+        if (!scene) {
+            lua_pushnil(L);
+            return 1;
+        }
+        UUID uuid = Utils::GetUUIDFromLua(L);
+        Entity entity = scene->GetEntityByUUID(uuid);
+        if (entity) {
+            // 将 C++ Entity 对象作为 userdata 推给 Lua
+            Entity* user_data = (Entity*)lua_newuserdata(L, sizeof(Entity));
+            new(user_data) Entity(entity);
+            luaL_getmetatable(L, "TsoEngine.Entity");
+            lua_setmetatable(L, -2);
+        } else {
+            lua_pushnil(L);
+        }
+        return 1; // 1个返回值 (entity userdata 或 nil)
+    }
+}
+namespace EntityMethod{
 
-	static void SetTranslation(UUID uuid, glm::vec3* res) {
-		Scene* scene = ScriptingEngine::GetSceneContext();
-		Entity e = scene->GetEntityByUUID(uuid);
-		auto& transform = e.GetComponent<TransformComponent>();
-		transform.m_Translation = *res;
-	}
 
+    static int GetComponent(lua_State* L){
+        Entity* self = (Entity*)luaL_checkudata(L, 1, "TsoEngine.Entity");
+        self->SetScene(ScriptingEngine::GetSceneContext());
+        std::string componentName = luaL_checkstring(L, 2);
+        std::string cppMetatableName = "TsoEngine." + componentName;
+        auto it = ComponentsStr.find(componentName);
+        if(it == ComponentsStr.end()){
+            lua_pushnil(L);
+        }
+        else{
+            it->second(L, self);
+            std::string modulePath = "core.";
+            modulePath += componentName;
+            lua_getglobal(L, "require");
+            lua_pushstring(L, modulePath.c_str());
+            if (lua_pcall(L, 1, 1, 0) != LUA_OK) {
+                TSO_CORE_WARN("Failed to execute Lua module '{}': {}", modulePath, lua_tostring(L, -1));
+                lua_pop(L, 1);
+                lua_pushnil(L);
+                return 1; // 返回原始 userdata
+            }
 
-	static void GetRotationZ(UUID uuid, float* res) {
-		Scene* scene = ScriptingEngine::GetSceneContext();
-		Entity e = scene->GetEntityByUUID(uuid);
-		auto& transform = e.GetComponent<TransformComponent>();
-		*res = transform.m_Rotation.z;
-	}
+            if (!lua_istable(L, -1)) {
+                lua_pop(L, 1);
+                lua_pushnil(L);
+                return 1; // 模块不存在，返回原始 userdata
+            }
+            
+            // 此时栈: [..., cpp_userdata, lua_module_table]
 
-	static void SetRotationZ(UUID uuid, float res) {
-		Scene* scene = ScriptingEngine::GetSceneContext();
-		Entity e = scene->GetEntityByUUID(uuid);
-		auto& transform = e.GetComponent<TransformComponent>();
-		//TSO_CORE_TRACE("set rotationz = {}", res);
-		transform.m_Rotation.z = res;
-	}
+            // 5. 设置原型链
+            luaL_getmetatable(L, cppMetatableName.c_str()); // 获取 C++ 元表
+            lua_setmetatable(L, -2); // setmetatable(lua_module_table, cpp_metatable)
+            lua_setmetatable(L, -2); // setmetatable(cpp_userdata, lua_module_table)
+            
+            return 1;
+        }
+        return 1;
+    }
+}
+// --- TransformComponent 方法 ---
+namespace TransformComponentMethods {
+    // 辅助函数，避免重复
+    static TransformComponent* GetSelf(lua_State* L) {
+        TransformComponent** self_ptr = (TransformComponent**)lua_touserdata(L, 1);
+        return *self_ptr;
+    }
 
-	static void SetSpriteIndex(UUID uuid, glm::vec3* index) {
-		//Fixme: there is an error when set a vec2 as a parameter
-		Scene* scene = ScriptingEngine::GetSceneContext();
-		Entity e = scene->GetEntityByUUID(uuid);
-		auto& rc = e.GetComponent<Renderable>();
-		if (rc.type == Texture && rc.isSubtexture) {
-			rc.textureIndex = { index->x ,  index->y};
-			rc.subTexture->RecalculateCoords(rc.spriteSize , rc.textureIndex , rc.textureSize);
-		}
-	}
+    static int GetPosition(lua_State* L) {
+        TransformComponent* self = GetSelf(L);
+        if (!self) return 0;
+        Utils::PushComponentPointer(L, &self->m_Translation, "TsoEngine.Vector3"); // 返回一个可变的 vec3 指针
+        return 1;
+    }
 
-	static void GetEntityUUIDByName(MonoString* name , UUID* uuid) {
-		Scene* scene = ScriptingEngine::GetSceneContext();
-		std::string nameStr = Utils::MonoStringToString(name);
-		auto entity = scene->GetEntityByName(nameStr);
-		if (entity != nullptr) {
-			*uuid = entity->GetUUID();
-		}
-	}
+    static int SetPosition(lua_State* L) {
+        TransformComponent* self = GetSelf(L);
+        if (!self) return 0;
+        glm::vec3** vec3_ptr = (glm::vec3**)luaL_checkudata(L, 2, "TsoEngine.Vector3");
+        self->m_Translation = **vec3_ptr;
+        return 0;
+    }
+}
 
-	static void DestroyEntity(UUID uuid) {
-		Scene* scene = ScriptingEngine::GetSceneContext();
-		Entity e = scene->GetEntityByUUID(uuid);
-		auto& activeC = e.GetComponent<ActiveComponent>();
-		activeC.Active = false;
-	}
+// --- Vector3 方法 ---
+namespace Vector3Methods {
+    // 使得 Lua 可以写 vec3.x, vec3.y, vec3.z
+    static int get(lua_State* L) {
+        glm::vec3** self_ptr = (glm::vec3**)luaL_checkudata(L, 1, "TsoEngine.Vector3");
+        const char* key = luaL_checkstring(L, 2);
+        if (strcmp(key, "x") == 0) lua_pushnumber(L, (*self_ptr)->x);
+        else if (strcmp(key, "y") == 0) lua_pushnumber(L, (*self_ptr)->y);
+        else if (strcmp(key, "z") == 0) lua_pushnumber(L, (*self_ptr)->z);
+        else lua_pushnil(L);
+        return 1;
+    }
 
-	static void Fire(UUID uuid) {
-		//just a temp func
-		//this specified func is not flexible and is not allowed
-		Scene* scene = ScriptingEngine::GetSceneContext();
-		Entity e = scene->GetEntityByUUID(uuid);
-		auto& tc = e.GetComponent<TransformComponent>();
-		Entity bullet = scene->CreateEntity("bullet");
-		auto& btc = bullet.GetComponent<TransformComponent>();
-		btc = tc;
-		auto&rigid = bullet.AddComponent<Rigidbody2DComponent>();
-		auto& script = bullet.AddComponent<ScriptComponent>();
-		script.ClassName = "Tso.Bullet";
-		rigid.Type = Rigidbody2DComponent::BodyType::Dynamic;
-		bullet.AddComponent<BoxCollider2DComponent>();
-		auto& render = bullet.AddComponent<Renderable>();
-		render.m_Color = glm::vec4(0.8f, 0.3f, 0.23f, 1.f);
-		render.type = PureColor;
-		auto body = scene->CreatePhysicBody(bullet);
-		body->SetGravityScale(0.f);
-		body->SetLinearVelocity(b2Vec2(10.f, 0.f));
-		ScriptingEngine::OnCreateEntity(bullet);
-	}
-
-	static bool IsKeyPressed(int keycode) {
-		return Input::IsKeyPressed(keycode);
-	}
-
+    static int set(lua_State* L) {
+        glm::vec3** self_ptr = (glm::vec3**)luaL_checkudata(L, 1, "TsoEngine.Vector3");
+        const char* key = luaL_checkstring(L, 2);
+        float value = luaL_checknumber(L, 3);
+        if (strcmp(key, "x") == 0) (*self_ptr)->x = value;
+        else if (strcmp(key, "y") == 0) (*self_ptr)->y = value;
+        else if (strcmp(key, "z") == 0) (*self_ptr)->z = value;
+        return 0;
+    }
+}
+//==============================Bound Functions======================================================================
 	void ScriptGlue::RegisterFunctions() {
-		TSO_ADD_INTERNAL_FUNC(NativeLOG);
+        lua_State* L = ScriptingEngine::GetLuaState();
 
-#pragma region Transform
-		TSO_ADD_INTERNAL_FUNC(GetTranslation);
-		TSO_ADD_INTERNAL_FUNC(SetTranslation);
-		TSO_ADD_INTERNAL_FUNC(GetRotationZ);
-		TSO_ADD_INTERNAL_FUNC(SetRotationZ);
-#pragma endregion
+        // === 1. global functions registry ===
+        lua_newtable(L);
+        
+        static const luaL_Reg world_funcs[] = {
+            //global functions
+            {"GetEntityByUUID", Global::GetEntityByUUID},
+            {"Log",             Global::Log},
+            {"IsKeyPressed",    Global::IsKeyPressed},
+            {NULL, NULL}
+        };
+        
+        luaL_setfuncs(L, world_funcs, 0);
+        lua_setglobal(L, "World");
+        
+        // === 2. entity registry ===
 
-#pragma region SpriteAnimation
-		TSO_ADD_INTERNAL_FUNC(SetSpriteIndex);
-#pragma endregion
-
-
-
-
-		TSO_ADD_INTERNAL_FUNC(IsKeyPressed);
-
-		TSO_ADD_INTERNAL_FUNC(DestroyEntity);
-
-		TSO_ADD_INTERNAL_FUNC(Fire);
-
-
+        luaL_newmetatable(L, "TsoEngine.Entity");
+        lua_pushcfunction(L, [](lua_State* L){ // __gc method
+            Entity** e = (Entity**)lua_touserdata(L, 1);
+            (*e)->~Entity(); // 调用析构
+            return 0;
+        });
+        lua_setfield(L, -2, "__gc");
+        lua_pushvalue(L, -1);
+        lua_setfield(L, -2, "__index");
+        luaL_Reg entity_methods[] = {
+            {"GetComponent", EntityMethod::GetComponent},
+            {NULL, NULL}
+        };
+        luaL_setfuncs(L, entity_methods, 0);
+        lua_pop(L, 1);
+        
+        // TransformComponent
+            luaL_newmetatable(L, "TsoEngine.TransformComponent");
+            lua_pushvalue(L, -1);
+            lua_setfield(L, -2, "__index");
+            luaL_Reg transform_methods[] = {
+                {"GetPosition", TransformComponentMethods::GetPosition},
+                {"SetPosition", TransformComponentMethods::SetPosition},
+                {NULL, NULL}};
+            luaL_setfuncs(L, transform_methods, 0);
+            lua_pop(L, 1);
+            
+            // Vector3
+            luaL_newmetatable(L, "TsoEngine.Vector3");
+            lua_pushcfunction(L, Vector3Methods::get); lua_setfield(L, -2, "__index");
+            lua_pushcfunction(L, Vector3Methods::set); lua_setfield(L, -2, "__newindex");
+            lua_pop(L, 1);
+    
 	}
 
 }

@@ -70,6 +70,8 @@ namespace Tso {
 		uint32_t GetEntityID() { return (uint32_t)m_EntityID; }
         
         uint64_t GetUUID();
+        
+        void SetScene(Scene* scene){m_Scene = scene;}
 
 		operator uint32_t() { return (uint32_t)m_EntityID; }
 		bool operator==(Entity& other) {

@@ -4,7 +4,7 @@
 #include "Tso/Core/TimeStep.h"
 
 extern "C" {
-	typedef struct _MonoClass MonoClass;
+//	typedef struct _MonoClass MonoClass;
 	typedef struct _MonoObject MonoObject;
 	typedef struct _MonoMethod MonoMethod;
 	typedef struct _MonoAssembly MonoAssembly;
@@ -12,6 +12,12 @@ extern "C" {
 	typedef struct _MonoClassField MonoClassField;
 	typedef struct _MonoString MonoString;
 }
+extern "C" {
+#include "lua.h"
+#include "lauxlib.h"
+#include "lualib.h"
+}
+
 namespace Tso {
 	enum class ScriptFieldType
 	{
@@ -28,7 +34,6 @@ namespace Tso {
 	{
 		ScriptFieldType Type = ScriptFieldType::None;
 		std::string Name = "";
-		MonoClassField* ClassField = nullptr;
 	};
 
 	// ScriptField + data storage
@@ -68,6 +73,7 @@ namespace Tso {
 		ScriptingEngine() = default;
 		~ScriptingEngine() = default;
 		static void Init();
+        static void LoadAllScripts(const std::string& directory);
 		static void ShutDown();
 		static bool EntityClassExists(const std::string& className);
 		static void OnScenePlay(Scene* context);
@@ -75,7 +81,8 @@ namespace Tso {
 		static void OnCreateEntity(Entity entity);
 		static void OnDeleteEntity(Entity& entity);
 		static void OnUpdateEntity(Entity entity, TimeStep ts);
-		static void OnCollideEntity(Entity& thisEntity , Entity& otherEntity);
+//		static void OnCollideEntity(Entity& thisEntity , Entity& otherEntity);
+        static lua_State* GetLuaState();
 		static Scene* GetSceneContext();
 
 
@@ -84,8 +91,8 @@ namespace Tso {
 		static void InitMono();
 		static void ShutdownMono();
 		static bool LoadAssembly(const std::filesystem::path& filepath);
-		static void LoadAssemblyClasses();
-		static MonoObject* InstantiateClass(MonoClass* monoClass);
+        static void LoadScriptClasses(const std::filesystem::path& path);
+//		static MonoObject* InstantiateClass(MonoClass* monoClass);
 
 
 		friend class ScriptClass;
@@ -95,15 +102,19 @@ namespace Tso {
 	class ScriptClass {
 	public:
 		ScriptClass() = default;
-		ScriptClass(const std::string& classNamespace, const std::string& className, bool isCore);
+		ScriptClass(const std::string& className, const int& tableRef);
 		MonoObject* Instantiate();
 		MonoMethod* GetMethod(const std::string& name, int parameterCount);
 		MonoObject* InvokeMethod(MonoObject* instance, MonoMethod* method, void** params);
 		const std::unordered_map<std::string, ScriptField>& GetFields() const { return m_Fields; }
+        int GetMetatableRef(){return m_MetatableRef;}
 	private:
-		std::string m_ClassNamespace;
+        
+        // 指向 Lua 注册表中代表这个类的 metatable
+        int m_MetatableRef = LUA_NOREF;
+
+        // 从脚本中解析出的可编辑字段 { "fieldName": FieldType }
 		std::string m_ClassName;
-		MonoClass* m_MonoClass = nullptr;
 
 		std::unordered_map<std::string, ScriptField> m_Fields;
 
@@ -115,24 +126,26 @@ namespace Tso {
 	class ScriptInstance {
 	public:
 		ScriptInstance() = default;
+        ~ScriptInstance();
 		ScriptInstance(Ref<ScriptClass> scriptClass, Entity entity);
 		void InvokeOnCreate();
 		void InvokeOnUpdate(float ts);
 		bool GetFieldValueInternal(const std::string& name, void* buffer);
 		bool SetFieldValueInternal(const std::string& name, const void* value);
 
-		void InvokeOnCollider(UUID uuid);
+//		void InvokeOnCollider(UUID uuid);
 
 
 	private:
 		Ref<ScriptClass> m_ScriptClass = nullptr;
+        
+        // 指向 Lua 注册表中代表这个实例的 table
+        int m_InstanceTableRef = LUA_NOREF;
 
-		MonoObject* m_Instance = nullptr;
-
-		MonoMethod* m_Constructor = nullptr;
-		MonoMethod* m_OnCreateMethod = nullptr;
-		MonoMethod* m_OnUpdateMethod = nullptr;
-		MonoMethod* m_OnCollideMethod = nullptr;
+        // 缓存生命周期函数的引用，避免每次都查找
+        int m_Constructor = LUA_NOREF;
+        int m_OnCreateRef = LUA_NOREF;
+        int m_OnUpdateRef = LUA_NOREF;
 
 		std::unordered_map<std::string, ScriptField> m_Fields;
 

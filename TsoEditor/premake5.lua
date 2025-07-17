@@ -12,9 +12,10 @@ project "TsoEditor"
 	defines
 	{
 		"YAML_CPP_STATIC_DEFINE",
+		"TSO_EDITOR"
 	}
 
-    includedirs
+    externalincludedirs
 	{
         "%{wks.location}/TsoEngine/third_party/spdlog/include",
 		"%{wks.location}/TsoEngine/src",
@@ -28,12 +29,13 @@ project "TsoEditor"
 		"%{wks.location}/TsoEngine/third_party/msdf-atlas-gen/msfgen/include",
 		"%{wks.location}/TsoEngine/third_party/msdf-atlas-gen/msdf-atlas-gen",
 		"%{wks.location}/TsoEngine/third_party/msdf-atlas-gen/msdfgen",
-		"%{wks.location}/TsoEngine/third_party/readerwriterqueue"
+		"%{wks.location}/TsoEngine/third_party/readerwriterqueue",
+		"%{wks.location}/TsoEngine/third_party/lua/src"
 	}
 
 	links { "TsoEngine" }
 
-		filter { "configurations:Debug"}
+	filter { "configurations:Debug"}
 		defines { "DEBUG"}
 		symbols "On"
 		if _ACTION == "vs2022" then
@@ -73,8 +75,7 @@ project "TsoEditor"
 
 	filter "system:macosx"
 		defines{
-				"TSO_PLATFORM_MACOSX",
-				"TSO_EDITOR"
+				"TSO_PLATFORM_MACOSX"
 
 		}
 		links{

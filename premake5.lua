@@ -12,6 +12,7 @@ include "TsoEngine/third_party/imgui"
 include "TsoEngine/third_party/yaml-cpp"
 include "TsoEngine/third_party/box2d"
 include "TsoEngine/third_party/msdf-atlas-gen"
+include "TsoEngine/third_party/lua"
 group ""
 
 
