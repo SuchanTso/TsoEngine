@@ -13,7 +13,7 @@ project "Glad"
         "src/glad.c"
     }
 
-    includedirs
+    externalincludedirs
     {
         "include"
     }

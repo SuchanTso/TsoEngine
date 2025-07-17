@@ -7,7 +7,7 @@ project "TsoEngine"
 	objdir   ("../bin-int/" .. outputdir .. "/%{prj.name}") 
 
 	links {"GLFW", "opengl32.lib", "Glad", "imgui", "YAML_CPP" , "Box2D" ,
-	"third_party/mono/lib/Debug/mono-2.0-sgen.lib","msdf-atlas-gen"
+	"third_party/mono/lib/Debug/mono-2.0-sgen.lib","msdf-atlas-gen","Lua"
 
 	}
 	
@@ -34,7 +34,7 @@ project "TsoEngine"
 		"third_party/readerwriterqueue/atomicops.h"
 	}
 
-	includedirs
+	externalincludedirs
 	{
 		"third_party/spdlog/include",
 		"src",
@@ -51,7 +51,8 @@ project "TsoEngine"
 		"third_party/msdf-atlas-gen/msdfgen/include",
 		"third_party/msdf-atlas-gen/msdf-atlas-gen",
 		"third_party/msdf-atlas-gen/msdfgen",
-		"third_party/readerwriterqueue"
+		"third_party/readerwriterqueue",
+        "third_party/lua/src"
 
 	}
 
@@ -126,6 +127,8 @@ project "TsoEngine"
 
 		defines{
 			"TSO_PLATFORM_MACOSX",
+			"MACOS_BUNDLE",
+			"TSO_ENABLE_ASSERTS"
 		}
 		files{
 			"src/**.mm"

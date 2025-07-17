@@ -61,6 +61,7 @@ Entity Scene::GetEntityByUUID(const UUID& uuid)
     else {
         TSO_CORE_ERROR("cannot find entity keeps uuid({}) in this scene", uuid);
     }
+    TSO_CORE_ASSERT(false , "cannot find entity keeps uuid({}) in this scene",uuid);
     return Entity();
 }
 
@@ -360,7 +361,7 @@ void Scene::OnScenePlay()
 {
     ScriptingEngine::OnScenePlay(this);
 
-    auto& sView = m_Registry.view<ScriptComponent>();
+    const auto& sView = m_Registry.view<ScriptComponent>();
     for (auto e : sView) {
         Entity entity = { e , this };
         //std::string className = entity.GetComponent<ScriptComponent>().ClassName;
