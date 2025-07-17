@@ -32,10 +32,10 @@ struct TextVertex{
 
 struct Renderer2DData{
 
-    static const uint32_t maxQuads = 2000;
-    static const uint32_t maxVertices = maxQuads * 4;
-    static const uint32_t maxIndices = maxQuads * 6;
-    static const uint32_t maxTextureSlot = 16;
+    inline static const uint32_t maxQuads = 2000;
+    inline static const uint32_t maxVertices = maxQuads * 4;
+    inline static const uint32_t maxIndices = maxQuads * 6;
+    inline static const uint32_t maxTextureSlot = 16;
     
 
     Ref<Texture2D> DefaultTex;
