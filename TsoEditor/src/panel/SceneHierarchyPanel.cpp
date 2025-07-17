@@ -272,7 +272,8 @@ namespace Tso {
                         auto texturePathStr = FileDialogs::OpenFile("png (*.png)\0 * .png\0");
                         std::filesystem::path texturePath = std::filesystem::path(texturePathStr).lexically_relative(projDir);
                         if (!texturePath.empty()) {
-                            auto texture = Texture2D::Create(texturePath.string());
+                            std::string strTexturePath = texturePath.string();
+                            auto texture = Texture2D::Create(strTexturePath);
                             comp.subTexture.reset();
                             comp.subTexture = SubTexture2D::CreateByCoord(texture, comp.spriteSize, comp.textureIndex, comp.textureSize);
                         }
@@ -418,7 +419,7 @@ namespace Tso {
 
         if (entity.HasComponent<NetworkComponent>()) {
             auto& comp = entity.GetComponent<NetworkComponent>();
-            auto& protocol = std::to_string(comp.protocol);
+            auto protocol = std::to_string(comp.protocol);
             char buff[256];
 
             strcpy(buff, protocol.c_str());
