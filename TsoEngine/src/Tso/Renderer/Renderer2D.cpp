@@ -78,10 +78,10 @@ static Renderer2DData s_Data ;
 
 void Renderer2D::Init(){
     Ref<IndexBuffer> indexBuffer = GenIndexBuffer(s_Data.maxIndices);
-
+    std::string resourcePath = Project::GetResourcePath();
 
     RendererSpec quadSpec;
-    quadSpec.shaderPath = std::filesystem::path("asset/shader/Shader2D.glsl");
+    quadSpec.shaderPath = std::filesystem::path(resourcePath + "assets/shader/Shader2D.glsl");
     quadSpec.layout = {
         {ShaderDataType::Float3 , "a_Position"},
         {ShaderDataType::Float2 , "a_TexCoord"},
@@ -92,7 +92,7 @@ void Renderer2D::Init(){
     InitRenderer<QuadVertex>(s_Data.QuadShader, s_Data.QuadVertextArray, s_Data.QuadVertexBuffer, &s_Data.QuadVertexBufferBase , indexBuffer, quadSpec);
 
     RendererSpec textSpec;
-    textSpec.shaderPath = std::filesystem::path("asset/shader/Text.glsl");
+    textSpec.shaderPath = std::filesystem::path(resourcePath + "assets/shader/Text.glsl");
     textSpec.layout = {
         {ShaderDataType::Float3 , "a_Position"},
         {ShaderDataType::Float2 , "a_TexCoord"},
