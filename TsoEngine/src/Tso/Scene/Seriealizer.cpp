@@ -372,7 +372,7 @@ namespace Tso {
                     renderComp.type = (RenderType)(renderComponent["Type"] ? renderComponent["Type"].as<int>() : 0);
                     renderComp.isSubtexture = renderComponent["SubTexture"] ? renderComponent["SubTexture"].as<bool>() : false;
                     if(renderComponent["TexturePath"]){
-                        auto texturePath = renderComponent["TexturePath"].as<std::string>();
+                        auto texturePath = Project::GetResourcePath() + renderComponent["TexturePath"].as<std::string>();
                         auto texture = GetTextureByPath(texturePath);
                         glm::vec2 spriteSize = renderComponent["SpriteSize"] ? renderComponent["SpriteSize"].as<glm::vec2>() : glm::vec2(1.0f , 1.0f);
                         glm::vec2 spriteIndex = renderComponent["SpriteIndex"] ? renderComponent["SpriteIndex"].as<glm::vec2>() : glm::vec2(0.0f , 0.0f);

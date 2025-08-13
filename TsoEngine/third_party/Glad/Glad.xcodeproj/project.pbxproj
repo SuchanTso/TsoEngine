@@ -165,15 +165,16 @@
 				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
 				GCC_WARN_ABOUT_RETURN_TYPE = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				OBJROOT = "bin-int/Dist-macosx-/Glad";
+				OBJROOT = "bin-int/Dist-macosx-x86_64/Glad";
 				ONLY_ACTIVE_ARCH = NO;
 				OTHER_CFLAGS = (
 					"-std=c11",
 					"-lgdi32",
 				);
-				SYMROOT = "bin/Dist-macosx-/Glad";
-				USER_HEADER_SEARCH_PATHS = (
+				SYMROOT = "bin/Dist-macosx-x86_64/Glad";
+				SYSTEM_HEADER_SEARCH_PATHS = (
 					include,
+					"$(inherited)",
 				);
 			};
 			name = Dist;
@@ -184,19 +185,22 @@
 				ARCHS = "$(NATIVE_ARCH_ACTUAL)";
 				CONFIGURATION_BUILD_DIR = "$(SYMROOT)";
 				CONFIGURATION_TEMP_DIR = "$(OBJROOT)";
+				COPY_PHASE_STRIP = NO;
+				GCC_ENABLE_FIX_AND_CONTINUE = YES;
 				GCC_OPTIMIZATION_LEVEL = 0;
 				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
 				GCC_WARN_ABOUT_RETURN_TYPE = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				OBJROOT = "bin-int/Debug-macosx-/Glad";
-				ONLY_ACTIVE_ARCH = NO;
+				OBJROOT = "bin-int/Debug-macosx-x86_64/Glad";
+				ONLY_ACTIVE_ARCH = YES;
 				OTHER_CFLAGS = (
 					"-std=c11",
 					"-lgdi32",
 				);
-				SYMROOT = "bin/Debug-macosx-/Glad";
-				USER_HEADER_SEARCH_PATHS = (
+				SYMROOT = "bin/Debug-macosx-x86_64/Glad";
+				SYSTEM_HEADER_SEARCH_PATHS = (
 					include,
+					"$(inherited)",
 				);
 			};
 			name = Debug;
@@ -205,7 +209,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
-				CONFIGURATION_BUILD_DIR = "bin/Dist-macosx-/Glad";
+				CONFIGURATION_BUILD_DIR = "bin/Dist-macosx-x86_64/Glad";
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				GCC_DYNAMIC_NO_PIC = NO;
 				INSTALL_PATH = /usr/local/lib;
@@ -219,19 +223,20 @@
 				ARCHS = "$(NATIVE_ARCH_ACTUAL)";
 				CONFIGURATION_BUILD_DIR = "$(SYMROOT)";
 				CONFIGURATION_TEMP_DIR = "$(OBJROOT)";
-				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_OPTIMIZATION_LEVEL = 3;
 				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
 				GCC_WARN_ABOUT_RETURN_TYPE = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				OBJROOT = "bin-int/Release-macosx-/Glad";
+				OBJROOT = "bin-int/Release-macosx-x86_64/Glad";
 				ONLY_ACTIVE_ARCH = NO;
 				OTHER_CFLAGS = (
 					"-std=c11",
 					"-lgdi32",
 				);
-				SYMROOT = "bin/Release-macosx-/Glad";
-				USER_HEADER_SEARCH_PATHS = (
+				SYMROOT = "bin/Release-macosx-x86_64/Glad";
+				SYSTEM_HEADER_SEARCH_PATHS = (
 					include,
+					"$(inherited)",
 				);
 			};
 			name = Release;
@@ -240,7 +245,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
-				CONFIGURATION_BUILD_DIR = "bin/Release-macosx-/Glad";
+				CONFIGURATION_BUILD_DIR = "bin/Release-macosx-x86_64/Glad";
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				GCC_DYNAMIC_NO_PIC = NO;
 				INSTALL_PATH = /usr/local/lib;
@@ -252,7 +257,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
-				CONFIGURATION_BUILD_DIR = "bin/Debug-macosx-/Glad";
+				CONFIGURATION_BUILD_DIR = "bin/Debug-macosx-x86_64/Glad";
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				GCC_DYNAMIC_NO_PIC = NO;
 				INSTALL_PATH = /usr/local/lib;
