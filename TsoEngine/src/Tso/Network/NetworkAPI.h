@@ -26,12 +26,14 @@ namespace Tso {
         InetAddress GetLocalAddress() const;
         int ReceiveNonBlocking(void* buffer, size_t length);
         void Close();
+        std::chrono::steady_clock::time_point& GetLastSend(){return m_LastSendTime;}
 
     private:
         bool m_Connect = false;
         int socketFd_ = -1;
         Ref<InetAddress> localAddr_ = nullptr;
         Ref<InetAddress> remoteAddr_ = nullptr;
+        std::chrono::steady_clock::time_point m_LastSendTime;
     };
 
     /*class UDPChannel : public INetworkChannel {

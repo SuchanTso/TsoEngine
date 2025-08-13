@@ -100,6 +100,16 @@ namespace Tso {
         }
         if (scene->HasEntity(uuid)) {
             auto entity = scene->GetEntityByUUID(uuid);
+//            TSO_CORE_ASSERT(entity.HasComponent<NetworkComponent>(),"");
+            if(entity.HasComponent<NetworkComponent>()){
+                auto& netc = entity.GetComponent<NetworkComponent>();
+                if(netc.authoritative){
+                    //to prevent echo loop between client and server
+                    //we decide to ignore component async from server since we are not going to realize conflict for now
+                    //TODO: client should send input data to be calculate on server instead of sending state directly.
+                    return;
+                }
+            }
             if (transformTag) {
                 auto& transform = entity.GetComponent<TransformComponent>();
                 transform.m_Translation = translate;
@@ -192,7 +202,8 @@ namespace Tso {
     bool ByteStream::operator==(ByteStream& other) {
         if (buffer.size() != other.buffer.size()) return false;
         for (int i = 0; i < buffer.size(); i++)
-            if (buffer[i] != other.buffer[i]) return false;
+            if (buffer[i] != other.buffer[i])
+                return false;
         return true;
     }
 }

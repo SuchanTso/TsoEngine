@@ -390,6 +390,7 @@ namespace Tso {
                 m_Scene.reset();
                 m_Scene = std::make_shared<Scene>();
                 m_Panel.SetContext(m_Scene);
+                NetWorkEngine::SetContext(m_Scene);
             }
             Seriealizer seriealizer(m_Scene.get());
             seriealizer.DeseriealizeScene(scenePath.string());
