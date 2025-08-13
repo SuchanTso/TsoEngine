@@ -31,6 +31,9 @@ namespace Tso {
         m_Scene->SetSceneCamera(*m_CameraEntity);//TODO: there is a camera stuff that camera should not be rendered on game view while scene view does
         NetWorkEngine::RegistryScene(m_Scene);
         
+        std::string ini_path = Project::GetResourcePath() + "assets/imgui.ini";
+        ImGui::LoadIniSettingsFromDisk(ini_path.c_str());
+        
     }
 
 
@@ -198,6 +201,12 @@ namespace Tso {
                 else {
                     TSO_ERROR("unable to disconnect");
                 }
+            }
+            if (Project::GetActive() && ImGui::Button("reload")) {
+                m_Scene->OnSceneStop();
+                std::filesystem::path resourcePath = std::filesystem::path(Project::GetResourcePath());
+                ScriptingEngine::LoadAllScripts(resourcePath / Project::GetActive()->GetConfig().ScriptModulePath);
+                m_Scene->OnScenePlay();
             }
 
             ImGui::End();
@@ -412,6 +421,8 @@ namespace Tso {
             std::filesystem::path startScenePath = Project::GetAssetFileSystemPath(Project::GetActive()->GetConfig().FirstScene);
             m_ScenePath = LoadScene(startScenePath);
             //m_ContentBrowserPanel = CreateScope<ContentBrowserPanel>();
+            std::filesystem::path resourcePath = std::filesystem::path(Project::GetResourcePath());
+            ScriptingEngine::LoadAllScripts(resourcePath / Project::GetActive()->GetConfig().ScriptModulePath);
 
         }
     }
@@ -422,7 +433,8 @@ namespace Tso {
         if (projPath.empty()) {
             projPath = FileDialogs::SaveFile("Tso Project(*.tproj)\0 * .tproj\0");
         }
-        Project::GetActive()->GetConfig().FirstScene = std::filesystem::path(m_ScenePath).lexically_relative(projPath);
+        auto projDir = projPath.parent_path();
+        Project::GetActive()->GetConfig().FirstScene = std::filesystem::path(m_ScenePath).lexically_relative(projDir);
         Project::SaveActive(projPath);
     }
 

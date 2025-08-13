@@ -34,8 +34,8 @@ namespace Tso{
         TSO_CORE_INFO("entity {} 's name is {}", entityA.GetUUID(), entityA.GetComponent<TagComponent>().m_Name);
         TSO_CORE_INFO("entity {} 's name is {}", entityB.GetUUID(), entityB.GetComponent<TagComponent>().m_Name);
 
-        ScriptingEngine::OnCollideEntity(entityA, entityB);
-        ScriptingEngine::OnCollideEntity(entityB, entityA);
+//        ScriptingEngine::OnCollideEntity(entityA, entityB);
+//        ScriptingEngine::OnCollideEntity(entityB, entityA);
 
 
         //ScriptingEngine::I

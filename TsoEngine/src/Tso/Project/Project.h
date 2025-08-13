@@ -32,6 +32,7 @@ namespace Tso {
 		static std::filesystem::path GetAssetFileSystemPath(const std::filesystem::path& filePath) {
 			return GetProjectDirectory() / filePath; 
 		}
+        static std::string GetResourcePath();
 
 		static Ref<Project> GetActive() { return s_Project; }
 	private:

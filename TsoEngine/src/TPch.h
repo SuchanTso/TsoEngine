@@ -28,6 +28,7 @@
 #include "Tso/Core/Core.h"
 #include "Tso/Core/Input.h"
 #include "Tso/Event/Event.h"
+#include "Tso/Project/Project.h"
 
 
 #include "Tso/Renderer/Buffer.h"
