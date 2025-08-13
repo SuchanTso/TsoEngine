@@ -58,5 +58,10 @@ uint64_t Entity::GetUUID(){
     return GetComponent<IDComponent>().ID;
 }
 
+Entity::operator bool(){
+        // 一个实体有效的条件是它有一个有效的句柄（不是null）并且它属于一个场景
+        return m_EntityID != entt::null && m_Scene != nullptr;
+}
+
 
 }

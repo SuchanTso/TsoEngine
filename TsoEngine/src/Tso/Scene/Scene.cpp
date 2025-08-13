@@ -399,7 +399,7 @@ void Scene::OnSceneStop()
 
 SceneCamera* Scene::GetMainCamera()
 {
-    return m_UseSceneCamera ? &(m_SceneCamera->GetComponent<CameraComponent>().m_Camera) : mainCamera;
+    return  mainCamera;
 }
 
 

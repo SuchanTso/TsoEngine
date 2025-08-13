@@ -362,6 +362,7 @@ namespace Tso {
                     camera.SetOrthographicFarClip(cameraComponent["OrthographicFar"] ? cameraComponent["OrthographicFar"].as<float>() : 1.f);
                     cameraComp.m_Pramiary = cameraComponent["Primary"] ? cameraComponent["Primary"].as<bool>() : false;
                     cameraComp.FixedAspectRatio = cameraComponent["FixedAspect"] ? cameraComponent["FixedAspect"].as<bool>() : false;
+                    cameraComp.m_Camera.SetFixAspectRatio(cameraComp.FixedAspectRatio);
                 
                 }
             

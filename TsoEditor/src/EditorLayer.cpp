@@ -236,13 +236,13 @@ namespace Tso {
                 auto content = ImGui::GetContentRegionAvail();
                 if (content.x > 0.f && content.y > 0.f && (content.x != m_SceneVeiwSize.x || content.y != m_SceneVeiwSize.y)) {
                     m_SceneVeiwSize = { content.x , content.y };
-                    m_FrameBuffer->Resize(uint32_t(m_SceneVeiwSize.x), uint32_t(m_SceneVeiwSize.y));
                     m_UpdateViewportSize = true;
                 }
                 if (m_UpdateViewportSize && m_Scene && m_Scene->GetMainCamera()) {
                     TSO_CORE_INFO("update scene view size!!");
-
+                    m_FrameBuffer->Resize(uint32_t(m_SceneVeiwSize.x), uint32_t(m_SceneVeiwSize.y));
                     m_Scene->GetMainCamera()->SetViewportSize(uint32_t(m_SceneVeiwSize.x), uint32_t(m_SceneVeiwSize.y));
+                    RenderCommand::SetViewPort(0, 0, m_SceneVeiwSize.x, m_SceneVeiwSize.y);
                     m_UpdateViewportSize = false;
                 }
                 uint32_t fbId = m_FrameBuffer->GetColorAttachment(0);
@@ -283,6 +283,7 @@ namespace Tso {
                 if (m_UpdateViewportSize && m_Scene && m_Scene->GetMainCamera()) {
                     TSO_CORE_INFO("update game view size!!");
                     m_Scene->GetMainCamera()->SetViewportSize(uint32_t(m_GameViewSize.x), uint32_t(m_GameViewSize.y));
+                    RenderCommand::SetViewPort(0, 0, m_SceneVeiwSize.x, m_SceneVeiwSize.y);
                     m_UpdateViewportSize = false;
                 }
                 fbId = m_FrameBuffer->GetColorAttachment(0);
@@ -445,6 +446,7 @@ namespace Tso {
             return false;
         }
         OpenProject(projPath);
+        return true;
     }
 
     bool EditorLayer::LoadProject(const std::filesystem::path& path)

@@ -79,7 +79,7 @@ namespace Tso {
 		}
         operator entt::entity() const { return m_EntityID; }
 
-		operator bool() const { return this != nullptr; }
+        explicit operator bool();
 
 	private:
 

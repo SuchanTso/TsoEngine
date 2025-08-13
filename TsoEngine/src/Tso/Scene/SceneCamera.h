@@ -46,6 +46,8 @@ public:
     
 
     void SetViewportSize(uint32_t width, uint32_t height);
+    
+    void SetFixAspectRatio(bool fixAspectRatio){m_FixAspectRatio = fixAspectRatio;}
 
 private:
     void ReCalculateProjection();
@@ -62,6 +64,8 @@ private:
     float m_OrthographicFar = 1.0f;
     
     float m_AspectRatio = 1.667f;
+    
+    bool m_FixAspectRatio = false;
 };
     
 }

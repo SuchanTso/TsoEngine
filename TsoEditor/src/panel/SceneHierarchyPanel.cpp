@@ -121,6 +121,11 @@ namespace Tso {
             DisplayAddComponentEntry<NetworkComponent>("NetworkComponent");
             ImGui::EndPopup();
         }
+        
+        if(entity.HasComponent<IDComponent>()){
+            auto comp = entity.GetComponent<IDComponent>();
+            ImGui::Text("ID:%llu" , (uint64_t)comp.ID);
+        }
     
 		if (entity.HasComponent<TagComponent>()) {
 
@@ -348,7 +353,9 @@ namespace Tso {
 					if (ImGui::DragFloat("Far", &orthoFar))
 						camera.SetOrthographicFarClip(orthoFar);
 
-					ImGui::Checkbox("Fixed Aspect Ratio", &component.FixedAspectRatio);
+                    if(ImGui::Checkbox("Fixed Aspect Ratio", &component.FixedAspectRatio)){
+                        component.m_Camera.SetFixAspectRatio(component.FixedAspectRatio);
+                    }
                     ImGui::Checkbox("Primary", &component.m_Pramiary);
 
 				}
