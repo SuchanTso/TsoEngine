@@ -30,7 +30,9 @@ project "TsoEditor"
 		"%{wks.location}/TsoEngine/third_party/msdf-atlas-gen/msdf-atlas-gen",
 		"%{wks.location}/TsoEngine/third_party/msdf-atlas-gen/msdfgen",
 		"%{wks.location}/TsoEngine/third_party/readerwriterqueue",
-		"%{wks.location}/TsoEngine/third_party/lua/src"
+		"%{wks.location}/TsoEngine/third_party/lua/src",
+		"%{wks.location}/TsoEngine/third_party/sol2/include"
+
 	}
 
 	links { "TsoEngine" }
@@ -74,6 +76,7 @@ project "TsoEditor"
 		
 
 	filter "system:macosx"
+	kind "WindowedApp"
 		defines{
 				"TSO_PLATFORM_MACOSX"
 
@@ -84,6 +87,16 @@ project "TsoEditor"
 			"CoreVideo.framework",
 			"OpenGL.framework"
 		}
-		
+		xcodebuildsettings 
+		{
+			GENERATE_INFOPLIST_FILE = "YES",
+			-- 建议添加一个产品包标识符
+			-- 格式通常是反向域名：com.yourcompany.yourapp
+			PRODUCT_BUNDLE_IDENTIFIER = "com.mycompany.myawesomeapp",
+			--  MACOSX_DEPLOYMENT_TARGET = "11.0" -- (可选) 设置最低支持的 macOS 版本
+		}
+		filter "files:asset/**"
+			print("%{prj.name}")
+            buildaction "Embed"
 
 
