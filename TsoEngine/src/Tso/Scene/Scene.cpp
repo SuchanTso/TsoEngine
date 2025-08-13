@@ -353,7 +353,7 @@ void Scene::DeleteEntity(Entity entity){
     }
     m_EntityMap.erase(entity.GetUUID());
     m_Registry.destroy(entity);
-    //ScriptingEngine::OnDeleteEntity(entity);
+    ScriptingEngine::OnDeleteEntity(entity);
 
 }
 

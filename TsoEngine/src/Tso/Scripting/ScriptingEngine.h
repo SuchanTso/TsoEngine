@@ -2,6 +2,8 @@
 #include <filesystem>
 #include "Tso/Scene/Entity.h"
 #include "Tso/Core/TimeStep.h"
+#include "sol/sol.hpp"
+
 
 extern "C" {
 //	typedef struct _MonoClass MonoClass;
@@ -82,8 +84,12 @@ namespace Tso {
 		static void OnDeleteEntity(Entity& entity);
 		static void OnUpdateEntity(Entity entity, TimeStep ts);
 //		static void OnCollideEntity(Entity& thisEntity , Entity& otherEntity);
-        static lua_State* GetLuaState();
+//        static lua_State* GetLuaState();
 		static Scene* GetSceneContext();
+        
+        static void SetLuaPackagePath(const std::string& rootPath);
+        static sol::state& GetLuaState(); // 返回 sol::state 的引用
+
 
 
 
@@ -95,6 +101,7 @@ namespace Tso {
 //		static MonoObject* InstantiateClass(MonoClass* monoClass);
 
 
+
 		friend class ScriptClass;
 
 	};
@@ -102,16 +109,19 @@ namespace Tso {
 	class ScriptClass {
 	public:
 		ScriptClass() = default;
-		ScriptClass(const std::string& className, const int& tableRef);
+		ScriptClass(const std::string& className, sol::table luaClassTable);
 		MonoObject* Instantiate();
 		MonoMethod* GetMethod(const std::string& name, int parameterCount);
 		MonoObject* InvokeMethod(MonoObject* instance, MonoMethod* method, void** params);
 		const std::unordered_map<std::string, ScriptField>& GetFields() const { return m_Fields; }
-        int GetMetatableRef(){return m_MetatableRef;}
+//        int GetMetatableRef(){return m_MetatableRef;}
+        sol::table GetLuaClassTable()&{return m_LuaClassTable;}
+        std::string GetClassName()&{return m_ClassName;}
 	private:
         
         // 指向 Lua 注册表中代表这个类的 metatable
-        int m_MetatableRef = LUA_NOREF;
+//        int m_MetatableRef = LUA_NOREF;
+        sol::table m_LuaClassTable; // [MODIFIED] 直接持有 sol::table
 
         // 从脚本中解析出的可编辑字段 { "fieldName": FieldType }
 		std::string m_ClassName;
@@ -140,12 +150,13 @@ namespace Tso {
 		Ref<ScriptClass> m_ScriptClass = nullptr;
         
         // 指向 Lua 注册表中代表这个实例的 table
-        int m_InstanceTableRef = LUA_NOREF;
+//        int m_InstanceTableRef = LUA_NOREF;
+        sol::table m_LuaInstance; // [MODIFIED] 直接持有代表实例的 table
 
         // 缓存生命周期函数的引用，避免每次都查找
-        int m_Constructor = LUA_NOREF;
-        int m_OnCreateRef = LUA_NOREF;
-        int m_OnUpdateRef = LUA_NOREF;
+//        int m_Constructor = LUA_NOREF;
+//        int m_OnCreateRef = LUA_NOREF;
+//        int m_OnUpdateRef = LUA_NOREF;
 
 		std::unordered_map<std::string, ScriptField> m_Fields;
 
