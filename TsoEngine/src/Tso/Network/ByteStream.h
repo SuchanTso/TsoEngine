@@ -6,12 +6,16 @@ namespace Tso {
     
     class ByteStream {
     public:
+        ByteStream(const uint8_t* data, size_t size) : buffer(data, data + size), pos(0) {}
         struct Header
         {
             uint8_t protocol = 0;
             size_t dataLength = 0;
         };
-        static constexpr size_t HEADER_SIZE = sizeof(uint8_t) + sizeof(size_t);
+        static constexpr size_t PACK_LENGTH = sizeof(uint32_t);
+        static constexpr size_t PROTOCOL_SIZE = sizeof(uint16_t);
+        static constexpr size_t HEADER_SIZE = PACK_LENGTH + PROTOCOL_SIZE;
+
     public:
         // 写入基本类型
         template<typename T>
