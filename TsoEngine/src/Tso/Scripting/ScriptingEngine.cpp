@@ -7,6 +7,7 @@
 #include "Project/Project.h"
 
 #include "Tso/Scene/Component.h"
+#include "Tso/Protocol/LuaBridge.h"
 //
 //
 //#include "mono/jit/jit.h"
@@ -102,6 +103,9 @@ namespace Utils {
         std::unordered_map<uint64_t, ScriptFieldMap> EntityScriptFields;
 
         Scene* SceneContext = nullptr;
+        
+        std::unordered_map<uint8_t, std::shared_ptr<LuaProtocolHandler>> LuaProtocolHandlers;
+
     };
 
     // 全局的 s_Data 指针保持不变
@@ -365,6 +369,12 @@ namespace Utils {
 		return s_Data->EntityClasses.find(className) != s_Data->EntityClasses.end();
 	}
 
+
+    bool ScriptingEngine::EntityInstanceExists(const UUID& uuid){
+        return s_Data->EntityInstances.find(uuid) != s_Data->EntityInstances.end();
+    }
+
+
 	void ScriptingEngine::OnScenePlay(Scene* context)
 	{
 		s_Data->SceneContext = context;
@@ -374,6 +384,19 @@ namespace Utils {
 	{
 		s_Data->SceneContext = nullptr;
 	}
+
+std::unordered_map<uint8_t, Ref<LuaProtocolHandler>>& ScriptingEngine::GetLuaProtocolHandlers(){
+    return s_Data->LuaProtocolHandlers;
+}
+
+Ref<ScriptInstance> ScriptingEngine::GetScriptInstance(const UUID& uuid){
+    if(s_Data->EntityInstances.find(uuid) != s_Data->EntityInstances.end()){
+        return s_Data->EntityInstances[uuid];
+    }
+    return nullptr;
+}
+
+
 
 	ScriptClass::ScriptClass(const std::string& className, sol::table luaClassTable)
         :m_ClassName(className) , m_LuaClassTable(luaClassTable)
@@ -420,7 +443,7 @@ namespace Utils {
             }
         } else {
             TSO_CORE_ERROR("Class '{}' does not have a 'new' function.", m_ScriptClass->GetClassName());
-            m_LuaInstance = sol::make_object(s_Data->L, sol::lua_nil);
+            m_LuaInstance = s_Data->L.create_table();
         }
     }
 
@@ -482,14 +505,20 @@ namespace Utils {
 //        }
 //	}
     void ScriptInstance::InvokeOnCreate() {
-        if (m_LuaInstance.valid() && m_LuaInstance["OnCreate"].is<sol::function>()) {
-            sol::protected_function onCreate = m_LuaInstance["OnCreate"];
+        if (!m_LuaInstance.valid()) return;
+
+        // [MODIFIED] 直接尝试调用，让 sol2 去处理 __index
+        // sol::protected_function 会安全地执行查找和调用
+        sol::protected_function onCreate = m_LuaInstance["OnCreate"];
+
+        if (onCreate.valid()) {
             auto result = onCreate(m_LuaInstance); // 调用 self:OnCreate()
             if (!result.valid()) {
                 sol::error err = result;
                 TSO_CORE_ERROR("Lua error in OnCreate for {}: {}", m_ScriptClass->GetClassName(), err.what());
             }
         }
+        // 如果 OnCreate 不存在（onCreate.valid() 为 false），则什么也不做
     }
 
 //	void ScriptInstance::InvokeOnUpdate(float ts)
