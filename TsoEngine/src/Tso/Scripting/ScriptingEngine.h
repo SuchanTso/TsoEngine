@@ -21,6 +21,8 @@ extern "C" {
 }
 
 namespace Tso {
+    class LuaProtocolHandler;
+    class ScriptInstance;
 	enum class ScriptFieldType
 	{
 		None = 0,
@@ -78,14 +80,18 @@ namespace Tso {
         static void LoadAllScripts(const std::string& directory);
 		static void ShutDown();
 		static bool EntityClassExists(const std::string& className);
+        static bool EntityInstanceExists(const UUID& uuid);
 		static void OnScenePlay(Scene* context);
 		static void OnSceneStop();
 		static void OnCreateEntity(Entity entity);
 		static void OnDeleteEntity(Entity& entity);
 		static void OnUpdateEntity(Entity entity, TimeStep ts);
+        static Ref<ScriptInstance> GetScriptInstance(const UUID& uuid);
 //		static void OnCollideEntity(Entity& thisEntity , Entity& otherEntity);
 //        static lua_State* GetLuaState();
 		static Scene* GetSceneContext();
+        static std::unordered_map<uint8_t, Ref<LuaProtocolHandler>>& GetLuaProtocolHandlers();
+
         
         static void SetLuaPackagePath(const std::string& rootPath);
         static sol::state& GetLuaState(); // 返回 sol::state 的引用
@@ -142,6 +148,7 @@ namespace Tso {
 		void InvokeOnUpdate(float ts);
 		bool GetFieldValueInternal(const std::string& name, void* buffer);
 		bool SetFieldValueInternal(const std::string& name, const void* value);
+        sol::table GetLuaInstance(){return m_LuaInstance;}
 
 //		void InvokeOnCollider(UUID uuid);
 

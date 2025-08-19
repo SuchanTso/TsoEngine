@@ -7,284 +7,14 @@
 #include "Tso/Scene/Scene.h"
 #include "Tso/Scene/Component.h"
 #include "Tso/Scene/Entity.h"
+#include "Network/ByteStream.h"
+#include "Network/NetworkEngine.h"
+#include "Tso/Protocol/LuaBridge.h"
+
+
 
 namespace Tso {
 
-
-//	namespace Utils {
-//
-//    static UUID GetUUIDFromLua(lua_State* L){
-//        std::string uuid_str = luaL_checkstring(L, 1);
-//        uint64_t uuid = strtoull(uuid_str.c_str() , NULL , 0);
-//        TSO_CORE_TRACE("Translate uuid_str[{}] -> [{}]", uuid_str , uuid);
-//        return UUID(uuid);
-//    }
-//    // 模板化的组件指针 userdata 创建函数
-//    template<typename T>
-//    void PushComponentPointer(lua_State* L, T* component, const char* metatableName) {
-//        if (!component) {
-//            lua_pushnil(L);
-//            return;
-//        }
-//        T** component_ptr_userdata = (T**)lua_newuserdata(L, sizeof(T*));
-//        *component_ptr_userdata = component;
-//        luaL_getmetatable(L, metatableName);
-//        lua_setmetatable(L, -2);
-//    }
-//
-//}
-//static std::unordered_map<std::string , std::function<void(lua_State*, Entity*)>> ComponentsStr = {
-//    {"TransformComponent" ,    [](lua_State* L, Entity* entity) {
-//        if (entity->HasComponent<TransformComponent>()) {
-//            Utils::PushComponentPointer(L, &entity->GetComponent<TransformComponent>(), "TsoEngine.TransformComponent");
-//        } else {
-//            lua_pushnil(L);
-//        }
-//    }},
-//    {"Renderable" ,    [](lua_State* L, Entity* entity) {
-//        if (entity->HasComponent<Renderable>()) {
-//            Utils::PushComponentPointer(L, &entity->GetComponent<Renderable>(), "TsoEngine.Renderable");
-//        } else {
-//            lua_pushnil(L);
-//        }
-//    }}
-//};
-////==============================Bound Functions======================================================================
-//namespace Global{
-//    static int Log(lua_State* L) {
-//        // 获取第一个参数作为字符串
-//        const char* message = luaL_checkstring(L, 1);
-//        TSO_CORE_TRACE("[LUA] {}", message);
-//        return 0; // 0个返回值
-//    }
-//
-//    static int IsKeyPressed(lua_State* L) {
-//        int keycode = static_cast<int>(luaL_checkinteger(L, 1));
-//        bool keyDown = Input::IsKeyPressed(keycode);
-//        lua_pushboolean(L, keyDown);
-//        return 1;
-//    }
-//
-//    static int GetEntityByUUID(lua_State* L){
-//        
-//        Scene* scene = ScriptingEngine::GetSceneContext();
-//        if (!scene) {
-//            lua_pushnil(L);
-//            return 1;
-//        }
-//        UUID uuid = Utils::GetUUIDFromLua(L);
-//        Entity entity = scene->GetEntityByUUID(uuid);
-//        if ((bool)entity) {
-//            // 将 C++ Entity 对象作为 userdata 推给 Lua
-//            Entity* user_data = (Entity*)lua_newuserdata(L, sizeof(Entity));
-//            new(user_data) Entity(entity);
-//            luaL_getmetatable(L, "TsoEngine.Entity");
-//            lua_setmetatable(L, -2);
-//        } else {
-//            TSO_CORE_ERROR("didn't get entity:[{}]" , uuid);
-//            lua_pushnil(L);
-//        }
-//        return 1; // 1个返回值 (entity userdata 或 nil)
-//    }
-//}
-//namespace EntityMethod{
-//
-//
-//    static int GetComponent(lua_State* L){
-//        Entity* self = (Entity*)luaL_checkudata(L, 1, "TsoEngine.Entity");
-//        self->SetScene(ScriptingEngine::GetSceneContext());
-//        std::string componentName = luaL_checkstring(L, 2);
-//        std::string cppMetatableName = "TsoEngine." + componentName;
-//        auto it = ComponentsStr.find(componentName);
-//        if(it == ComponentsStr.end()){
-//            lua_pushnil(L);
-//        }
-//        else{
-//            it->second(L, self);
-//            std::string modulePath = "core.";
-//            modulePath += componentName;
-//            lua_getglobal(L, "require");
-//            lua_pushstring(L, modulePath.c_str());
-//            if (lua_pcall(L, 1, 1, 0) != LUA_OK) {
-//                TSO_CORE_WARN("Failed to execute Lua module '{}': {}", modulePath, lua_tostring(L, -1));
-//                lua_pop(L, 1);
-//                lua_pushnil(L);
-//                return 1; // 返回原始 userdata
-//            }
-//
-//            if (!lua_istable(L, -1)) {
-//                lua_pop(L, 1);
-//                lua_pushnil(L);
-//                return 1; // 模块不存在，返回原始 userdata
-//            }
-//            
-//            // 此时栈: [..., cpp_userdata, lua_module_table]
-//
-//            // 5. 设置原型链
-//            luaL_getmetatable(L, cppMetatableName.c_str()); // 获取 C++ 元表
-//            lua_setmetatable(L, -2); // setmetatable(lua_module_table, cpp_metatable)
-//            lua_setmetatable(L, -2); // setmetatable(cpp_userdata, lua_module_table)
-//            
-//            return 1;
-//        }
-//        return 1;
-//    }
-//}
-//// --- TransformComponent 方法 ---
-//namespace TransformComponentMethods {
-//    // 辅助函数，避免重复
-//    static TransformComponent* GetSelf(lua_State* L) {
-//        TransformComponent** self_ptr = (TransformComponent**)lua_touserdata(L, 1);
-//        return *self_ptr;
-//    }
-//
-//    static int GetPosition(lua_State* L) {
-//        TransformComponent* self = GetSelf(L);
-//        if (!self) return 0;
-//        Utils::PushComponentPointer(L, &self->m_Translation, "TsoEngine.Vector3"); // 返回一个可变的 vec3 指针
-//        return 1;
-//    }
-//
-//    static int SetPosition(lua_State* L) {
-//        TransformComponent* self = GetSelf(L);
-//        if (!self) return 0;
-//        glm::vec3** vec3_ptr = (glm::vec3**)luaL_checkudata(L, 2, "TsoEngine.Vector3");
-//        self->m_Translation = **vec3_ptr;
-//        return 0;
-//    }
-//}
-//
-//namespace RenderableMethods{
-//static Renderable* GetSelf(lua_State* L) {
-//        Renderable** self_ptr = (Renderable**)lua_touserdata(L, 1);
-//        return *self_ptr;
-//    }
-//static void Recalculate(Renderable* render){
-//    render->subTexture->RecalculateCoords(render->spriteSize, render->textureIndex, render->textureSize);
-//}
-//
-//    static int GetSubtextureIndex(lua_State* L){
-//        Renderable* self = GetSelf(L);
-//        Utils::PushComponentPointer(L, &self->textureIndex, "TsoEngine.Vector2");
-//        Recalculate(self);
-//        return 1;
-//    }
-//}
-//
-//// --- Vector3 方法 ---
-//namespace Vector3Methods {
-//    // 使得 Lua 可以写 vec3.x, vec3.y, vec3.z
-//    static int get(lua_State* L) {
-//        glm::vec3** self_ptr = (glm::vec3**)luaL_checkudata(L, 1, "TsoEngine.Vector3");
-//        const char* key = luaL_checkstring(L, 2);
-//        if (strcmp(key, "x") == 0) lua_pushnumber(L, (*self_ptr)->x);
-//        else if (strcmp(key, "y") == 0) lua_pushnumber(L, (*self_ptr)->y);
-//        else if (strcmp(key, "z") == 0) lua_pushnumber(L, (*self_ptr)->z);
-//        else lua_pushnil(L);
-//        return 1;
-//    }
-//
-//    static int set(lua_State* L) {
-//        glm::vec3** self_ptr = (glm::vec3**)luaL_checkudata(L, 1, "TsoEngine.Vector3");
-//        const char* key = luaL_checkstring(L, 2);
-//        float value = luaL_checknumber(L, 3);
-//        if (strcmp(key, "x") == 0) (*self_ptr)->x = value;
-//        else if (strcmp(key, "y") == 0) (*self_ptr)->y = value;
-//        else if (strcmp(key, "z") == 0) (*self_ptr)->z = value;
-//        return 0;
-//    }
-//}
-//
-//namespace Vector2Methods {
-//    // 使得 Lua 可以写 vec2.x, vec2.y
-//    static int get(lua_State* L) {
-//        glm::vec2** self_ptr = (glm::vec2**)luaL_checkudata(L, 1, "TsoEngine.Vector2");
-//        const char* key = luaL_checkstring(L, 2);
-//        if (strcmp(key, "x") == 0) lua_pushnumber(L, (*self_ptr)->x);
-//        else if (strcmp(key, "y") == 0) lua_pushnumber(L, (*self_ptr)->y);
-//        else lua_pushnil(L);
-//        return 1;
-//    }
-//
-//    static int set(lua_State* L) {
-//        glm::vec2** self_ptr = (glm::vec2**)luaL_checkudata(L, 1, "TsoEngine.Vector2");
-//        const char* key = luaL_checkstring(L, 2);
-//        float value = luaL_checknumber(L, 3);
-//        if (strcmp(key, "x") == 0) (*self_ptr)->x = value;
-//        else if (strcmp(key, "y") == 0) (*self_ptr)->y = value;
-//        return 0;
-//    }
-//}
-//==============================Bound Functions======================================================================
-//	void ScriptGlue::RegisterFunctions() {
-//        lua_State* L = ScriptingEngine::GetLuaState();
-//
-//        // === 1. global functions registry ===
-//        lua_newtable(L);
-//        
-//        static const luaL_Reg world_funcs[] = {
-//            //global functions
-//            {"GetEntityByUUID", Global::GetEntityByUUID},
-//            {"Log",             Global::Log},
-//            {"IsKeyPressed",    Global::IsKeyPressed},
-//            {NULL, NULL}
-//        };
-//        
-//        luaL_setfuncs(L, world_funcs, 0);
-//        lua_setglobal(L, "World");
-//        
-//        // === 2. entity registry ===
-//
-//        luaL_newmetatable(L, "TsoEngine.Entity");
-//        lua_pushcfunction(L, [](lua_State* L){ // __gc method
-//            Entity** e = (Entity**)lua_touserdata(L, 1);
-//            (*e)->~Entity(); // 调用析构
-//            return 0;
-//        });
-//        lua_setfield(L, -2, "__gc");
-//        lua_pushvalue(L, -1);
-//        lua_setfield(L, -2, "__index");
-//        luaL_Reg entity_methods[] = {
-//            {"GetComponent", EntityMethod::GetComponent},
-//            {NULL, NULL}
-//        };
-//        luaL_setfuncs(L, entity_methods, 0);
-//        lua_pop(L, 1);
-//        
-//        //TransformComponent
-//        luaL_newmetatable(L, "TsoEngine.TransformComponent");
-//        lua_pushvalue(L, -1);
-//        lua_setfield(L, -2, "__index");
-//        luaL_Reg transform_methods[] = {
-//            {"GetPosition", TransformComponentMethods::GetPosition},
-//            {"SetPosition", TransformComponentMethods::SetPosition},
-//            {NULL, NULL}};
-//        luaL_setfuncs(L, transform_methods, 0);
-//        lua_pop(L, 1);
-//    
-//        //Renderable
-//        luaL_newmetatable(L, "TsoEngine.Renderable");
-//        lua_pushvalue(L, -1);
-//        lua_setfield(L, -2, "__index");
-//        luaL_Reg renderable_methods[] = {
-//            {"GetSubtextureIndex", RenderableMethods::GetSubtextureIndex},
-//            {NULL, NULL}};
-//        luaL_setfuncs(L, renderable_methods, 0);
-//        lua_pop(L, 1);
-//        
-//        //Vector2
-//        luaL_newmetatable(L, "TsoEngine.Vector2");
-//        lua_pushcfunction(L, Vector2Methods::get); lua_setfield(L, -2, "__index");
-//        lua_pushcfunction(L, Vector2Methods::set); lua_setfield(L, -2, "__newindex");
-//        lua_pop(L, 1);
-//    
-//        // Vector3
-//        luaL_newmetatable(L, "TsoEngine.Vector3");
-//        lua_pushcfunction(L, Vector3Methods::get); lua_setfield(L, -2, "__index");
-//        lua_pushcfunction(L, Vector3Methods::set); lua_setfield(L, -2, "__newindex");
-//        lua_pop(L, 1);
-//    
-//	}
 void ScriptGlue::RegisterFunctions() {
     // 获取 sol::state 的引用
     sol::state& lua = ScriptingEngine::GetLuaState();
@@ -302,6 +32,15 @@ void ScriptGlue::RegisterFunctions() {
     };
 
     world["IsKeyPressed"] = &Input::IsKeyPressed;
+    
+    world["CreateEntity"] = [](sol::optional<std::string> tag) -> Entity {
+            Scene* scene = ScriptingEngine::GetSceneContext();
+            if (!scene) return Entity{}; // 返回无效实体
+            if (tag) {
+                return scene->CreateEntity(tag.value());
+            }
+            return scene->CreateEntity();
+        };
 
     world["GetEntityByUUID"] = [](const std::string& uuid_str) -> sol::object {
         Scene* scene = ScriptingEngine::GetSceneContext();
@@ -314,6 +53,20 @@ void ScriptGlue::RegisterFunctions() {
         if (entity) {
             // sol 会自动将 C++ 对象包装成 userdata
             return sol::make_object(ScriptingEngine::GetLuaState(), entity);
+        }
+        return sol::lua_nil;
+    };
+    world["FindEntityByTag"] = [](const std::string& name) -> sol::object {
+        Scene* scene = ScriptingEngine::GetSceneContext();
+        if (!scene) return sol::lua_nil;
+
+        // [MODIFIED] 直接在绑定中处理字符串到UUID的转换
+        auto tagView = scene->GetAllEntitiesWith<TagComponent>();
+        for(auto e : tagView){
+            auto& tag = e.GetComponent<TagComponent>();
+            if(tag.m_Name == name){
+                return sol::make_object(ScriptingEngine::GetLuaState(), e);
+            }
         }
         return sol::lua_nil;
     };
@@ -387,6 +140,55 @@ void ScriptGlue::RegisterFunctions() {
             }
         )
     );
+    
+    lua.new_usertype<TextComponent>("TextComponent",
+        "Text", sol::property(
+            // Getter
+            [](const TextComponent& t) { return t.Text; },
+            // Setter
+            [](TextComponent& t, const std::string& text) {
+                t.Text = text;
+                // [MODIFIED] 业务逻辑也封装在绑定中
+            }
+        )
+    );
+
+    lua.new_usertype<UITransformComponent>("UITransformComponent",
+        "Position", sol::property(
+            // Getter
+             [](const UITransformComponent& ui) { return ui.UIpos; },
+            // Setter
+            [](UITransformComponent& ui, const glm::vec2& pos) {
+                ui.UIpos = pos;
+                // [MODIFIED] 业务逻辑也封装在绑定中
+            }
+        ),
+       "Size", sol::property(
+           // Getter
+           [](const UITransformComponent& ui) { return ui.UISize; },
+           // Setter
+           [](UITransformComponent& ui, const glm::vec2& size) {
+               ui.UISize = size;
+               // [MODIFIED] 业务逻辑也封装在绑定中
+           }
+       )
+    );
+    lua.new_usertype<InputFieldComponent>("InputFieldComponent",
+        "Text", sol::property(
+            // Getter
+            [](const InputFieldComponent& c) { return c.Text; },
+            // Setter
+            [](InputFieldComponent& c, const std::string& text) {
+                c.Text = text;
+                // [MODIFIED] 业务逻辑也封装在绑定中
+            }
+        )
+    );
+    lua.new_usertype<ButtonComponent>("ButtonComponent",
+        "SetOnClick", [](ButtonComponent& self, sol::function func) {
+            self.OnClick = func;
+        }
+    );
 
     // --- 核心类绑定 ---
 
@@ -407,12 +209,159 @@ void ScriptGlue::RegisterFunctions() {
                     return sol::make_object(ScriptingEngine::GetLuaState(), &entity.GetComponent<Renderable>());
                 }
             }
+            else if(componentName == "UITransformComponent"){
+                if(entity.HasComponent<UITransformComponent>()){
+                    return sol::make_object(ScriptingEngine::GetLuaState(), &entity.GetComponent<UITransformComponent>());
+
+                }
+            }
+            else if(componentName == "InputFieldComponent"){
+                if(entity.HasComponent<InputFieldComponent>()){
+                    return sol::make_object(ScriptingEngine::GetLuaState(), &entity.GetComponent<InputFieldComponent>());
+                }
+            }
+            else if(componentName == "TextComponent"){
+                if(entity.HasComponent<TextComponent>()){
+                    auto& tc = entity.GetComponent<TextComponent>();
+                    if(!tc.isUI){
+                        return sol::make_object(ScriptingEngine::GetLuaState(), &entity.GetComponent<TextComponent>());
+                    }
+                }
+            }
+            else if(componentName == "UITextComponent"){
+                if(entity.HasComponent<TextComponent>()){
+                    auto& tc = entity.GetComponent<TextComponent>();
+                    if(tc.isUI){
+                        return sol::make_object(ScriptingEngine::GetLuaState(), &entity.GetComponent<TextComponent>());
+                    }
+                }
+            }
             // ... 在这里添加更多 else if ...
             
             TSO_CORE_WARN("Lua script trying to get unknown or missing component: {}", componentName);
             return sol::lua_nil;
-        }
+        },
+         "IsValid", &Entity::operator bool,
+         "Destroy", [](Entity& entity) {
+             Scene* scene = ScriptingEngine::GetSceneContext();
+             if (scene) scene->DeleteEntity(entity);
+         },
+         "GetTag", [](Entity& entity) ->std::string{
+                return entity.GetComponent<TagComponent>().m_Name;
+//            return sol::make_object(ScriptingEngine::GetLuaState(), &entity.GetComponent<TagComponent>().m_Name);
+        },
+         "AddComponent", [](Entity& entity, const std::string& componentName, sol::optional<sol::table> initial_values) -> sol::object {
+             // 在这里你需要一个组件注册表或一长串 if/else
+             if (componentName == "Script") {
+                 auto& sc = entity.AddComponent<ScriptComponent>();
+//                 sc.ClassName = initial_values.get<std::string>("ScriptName");
+                 if (initial_values) {
+                     sc.ClassName = (*initial_values).get_or("ScriptName", std::string(""));
+                 }
+                 ScriptingEngine::OnCreateEntity(entity);
+                 // ScriptingEngine 会在下一帧的 OnCreateEntity 中处理这个组件
+                 return sol::make_object(ScriptingEngine::GetLuaState(), &sc);
+             }
+             else if(componentName == "UITextComponent"){
+                 auto& tc = entity.AddComponent<TextComponent>();
+                 if(!entity.HasComponent<UITransformComponent>()){
+                     entity.AddComponent<UITransformComponent>();
+                 }
+                 if (initial_values) {
+                     tc.Text = (*initial_values).get_or("Text", std::string(""));
+                 }
+                 tc.isUI = true;
+                 return sol::make_object(ScriptingEngine::GetLuaState(), &tc);
+             }
+             else if(componentName == "InputFieldComponent"){
+                 auto& ic = entity.AddComponent<InputFieldComponent>();
+                 if(!entity.HasComponent<UITransformComponent>()){
+                     entity.AddComponent<UITransformComponent>();
+                 }
+                 auto&tc = entity.AddComponent<TextComponent>();
+                 tc.isUI = true;
+                 return sol::make_object(ScriptingEngine::GetLuaState(), &ic);
+             }
+             else if(componentName == "ButtonComponent"){
+                 auto& bc = entity.AddComponent<ButtonComponent>();
+                 if(!entity.HasComponent<UITransformComponent>()){
+                     entity.AddComponent<UITransformComponent>();
+                 }
+                 return sol::make_object(ScriptingEngine::GetLuaState(), &bc);
+             }
+        
+             // ... 其他组件 ...
+             return sol::lua_nil;
+         },
+         "GetScript", [](Entity& entity) -> sol::object {
+                     auto instance = ScriptingEngine::GetScriptInstance(entity.GetUUID());
+                     if (instance) {
+                         return instance->GetLuaInstance();
+                     }
+                     return sol::lua_nil;
+                 }
     );
+    
+    // --- 绑定 ByteStream (现在同时用于发送和接收) ---
+        lua.new_usertype<ByteStream>("ByteStream",
+            // 构造函数
+            sol::constructors<ByteStream()>(),
+
+            // --- 用于接收 (Read) ---
+            "ReadByte", &ByteStream::read<uint8_t>,
+             "ReadULong", &ByteStream::read<uint64_t>,
+             "ReadString", &ByteStream::readString,
+            
+            // --- 用于发送 (Write) ---
+            // 我们需要返回 *this 来支持链式调用 (e.g., bs:WriteString(...):WriteByte(...))
+            "WriteString", [](ByteStream& self, const std::string& str) -> ByteStream& {
+            self.writeString(str);
+                return self;
+            },
+            "WriteByte", [](ByteStream& self, uint8_t val) -> ByteStream& {
+                self.write(val);
+                return self;
+            },
+             "WriteBool", [](ByteStream& self, bool val) -> ByteStream& {
+                 self.write(val);
+                 return self;
+             },
+
+            // --- 获取最终数据用于发送 ---
+            "GetData", [](const ByteStream& self) {
+                // sol2 会自动将 const uint8_t* + size 转换为 lua_string
+                return std::string_view(
+                    reinterpret_cast<const char*>(self.getRawBuffer()),
+                    self.getRawBufferLength()
+                );
+            }
+        );
+    
+    sol::table network = lua.create_table("Network");
+    network["Connect"] = &NetWorkEngine::Connect;
+    network["DisConnected"] = &NetWorkEngine::DisConnect;
+    network["IsConnected"] = &NetWorkEngine::IsConnect;
+
+        // ...
+        // [MODIFIED] Send现在直接接收 protocolId 和一个二进制字符串
+    network["Send"] = [](uint16_t pid, const std::string& payload_str) {
+        ByteStream payload((const uint8_t*)payload_str.data(), payload_str.length());
+        Tso::NetWorkEngine::Send(pid, payload);
+    };
+    network["RegisterHandler"] = [](uint8_t moduleId, sol::function handler) {
+            if (!handler.valid()) return;
+            // 创建一个包装了Lua function的C++回调对象
+        auto protocolHandler = CreateRef<LuaProtocolHandler>(ScriptingEngine::GetLuaState(), handler);
+        ScriptingEngine::GetLuaProtocolHandlers()[moduleId] = protocolHandler;
+            NetWorkEngine::RegisterHandler(moduleId, protocolHandler.get());
+        };
+        
+        // [实现] UnregisterHandler
+        network["UnregisterHandler"] = [](uint8_t moduleId) {
+            NetWorkEngine::UnregisterHandler(moduleId);
+            ScriptingEngine::GetLuaProtocolHandlers().erase(moduleId);
+        };
+
 }
 
 }
