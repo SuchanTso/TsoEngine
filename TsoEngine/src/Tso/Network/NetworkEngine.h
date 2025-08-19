@@ -14,6 +14,7 @@ namespace Tso {
 		void static Shutdown();
 		bool static Connect(const std::string& ip, const uint16_t& port);
 		bool static DisConnect();
+        bool static IsConnect();
 		void static RegistryProtocol(const uint8_t& protocolID , const std::function<ByteStream(const ByteStream&)>& wrapFunc);
 		void static RegistryProtocol(const std::unordered_map<uint8_t , std::function<ByteStream(const ByteStream&)>>&wrapFuncs);
 		void static RegistryRecvFunction(const uint8_t& funcID, const std::function<void(ByteStream&)>& recvFunc);

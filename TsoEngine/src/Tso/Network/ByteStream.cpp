@@ -156,27 +156,9 @@ namespace Tso {
     }
 
 
-    template<typename T>
-    void ByteStream::write(const T& value) {
-        TSO_CORE_ASSERT(std::is_arithmetic_v<T> || std::is_enum_v<T>,
-            "Only arithmetic types and enums allowed");
-        const char* data = reinterpret_cast<const char*>(&value);
-        buffer.insert(buffer.end(), data, data + sizeof(T));
-    }
-
-    template<typename T>
-    void ByteStream::writeFront(const T& value) {
-        TSO_CORE_ASSERT(std::is_arithmetic_v<T> || std::is_enum_v<T>,
-            "Only arithmetic types and enums allowed");
-        const char* data = reinterpret_cast<const char*>(&value);
-        buffer.insert(buffer.begin(), data, data + sizeof(T));
-    }
 
     // 写入字符串
-    void ByteStream::writeString(const std::string& str) {
-        write<uint32_t>(static_cast<uint32_t>(str.size()));
-        buffer.insert(buffer.end(), str.begin(), str.end());
-    }
+//    void ByteStream::writeString(const std::string& str) 
 
     // 读取基本类型
    

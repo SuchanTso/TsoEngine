@@ -19,13 +19,26 @@ namespace Tso {
     public:
         // 写入基本类型
         template<typename T>
-        void write(const T& value);
+        void write(const T& value){
+            TSO_CORE_ASSERT(std::is_arithmetic_v<T> || std::is_enum_v<T>,
+                "Only arithmetic types and enums allowed");
+            const char* data = reinterpret_cast<const char*>(&value);
+            buffer.insert(buffer.end(), data, data + sizeof(T));
+        }
         //
         template<typename T>
-        void writeFront(const T& value);
+        void writeFront(const T& value) {
+            TSO_CORE_ASSERT(std::is_arithmetic_v<T> || std::is_enum_v<T>,
+                "Only arithmetic types and enums allowed");
+            const char* data = reinterpret_cast<const char*>(&value);
+            buffer.insert(buffer.begin(), data, data + sizeof(T));
+        }
 
         // 写入字符串
-        void writeString(const std::string& str);
+        void writeString(const std::string& str){
+            write<uint32_t>(static_cast<uint32_t>(str.size()));
+            buffer.insert(buffer.end(), str.begin(), str.end());
+        }
 
         // 读取基本类型
         template<typename T>
@@ -53,9 +66,9 @@ namespace Tso {
         ByteStream() = default;
 
         const std::vector<uint8_t>& getBuffer() const { return buffer; }
-        const void* getRawBuffer() { return static_cast<void*>(buffer.data()); }
+        const void* getRawBuffer()const { return static_cast<const void*>(buffer.data()); }
         const void ResetRead() { pos = 0; }
-        size_t getRawBufferLength()& { return buffer.size(); }
+        size_t getRawBufferLength()const& { return buffer.size(); }
         void setBuffer(const std::vector<uint8_t>& newBuffer);
         bool operator==(ByteStream& other);
     private:
