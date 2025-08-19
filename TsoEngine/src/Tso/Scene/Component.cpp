@@ -48,6 +48,12 @@ TagComponent::TagComponent(const std::string& name)
 
 }
 
+TextComponent::TextComponent(){
+    FontPath = Project::GetResourcePath() + "assets/KoseFontP-SC.ttf";
+    TextFont.reset();
+    TextFont = std::make_shared<Font>(FontPath);
+}
+
 TextComponent::TextComponent(const std::string& fontPath)
 :FontPath(fontPath)
 {
@@ -56,11 +62,5 @@ TextComponent::TextComponent(const std::string& fontPath)
     
 }
 
-TextComponent::TextComponent()
-{
-    
-
-    
-}
 
 }

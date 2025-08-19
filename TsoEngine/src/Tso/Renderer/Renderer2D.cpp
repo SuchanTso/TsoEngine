@@ -450,34 +450,226 @@ void Renderer2D::DrawQuad(const glm::vec3& position , const float& rotation , co
 
 //text
 
-void Renderer2D::DrawString(const Ref<Font> font , const glm::mat4& transform , const std::string& text ,const TextParam& textParam , const int& entityID){
+//void Renderer2D::DrawString(const Ref<Font> font , const glm::mat4& transform , const std::string& text ,const TextParam& textParam , const int& entityID){
+//    const auto& fontGeometry = font->GetMSDFData()->FontGeometry;
+//    const auto& metrics = fontGeometry.getMetrics();
+//    Ref<Texture2D> fontAtlas = font->GetAtlasTexture();
+//    s_Data.FontAtlasTexture = fontAtlas;
+//    
+//    double x = 0.0;//cusor
+//    double fsScale = 1.0 / (metrics.ascenderY - metrics.descenderY);
+//    double y = 0.0;//cusor
+//    
+//    const float spaceGlyphAdvance = fontGeometry.getGlyph(' ')->getAdvance();
+//    
+//    float lineSpacing = textParam.LineSpacing;
+//    float characterSpacing = textParam.CharacterSpacing;
+//    
+//    for(size_t i = 0 ; i < text.length() ; i++){
+//        
+//        char character = text[i];
+//        if(character == '\r'){
+//            continue;
+//        }
+//        
+//        if(character == '\n'){
+//            x = 0;
+//            y -= fsScale * metrics.lineHeight + lineSpacing;
+//            continue;
+//        }
+//        if(character == ' '){
+//            float advance = spaceGlyphAdvance;
+//            if(i < text.length() - 1){
+//                char nextCharacter = text[i + 1];
+//                double dAdvance;
+//                fontGeometry.getAdvance(dAdvance, character, nextCharacter);
+//                advance = (float)dAdvance;
+//            }
+//            x += fsScale * advance + characterSpacing;
+//        }
+//        if(character == '\t'){
+//            x += 4.0f * (fsScale * spaceGlyphAdvance + characterSpacing);
+//            continue;
+//        }
+//        
+//        auto glyph = fontGeometry.getGlyph(character);
+//        if(!glyph){
+//            glyph = fontGeometry.getGlyph('?');
+//        }
+//        if(!glyph){
+//            return;
+//        }
+//        
+//        double al , ab , ar , at;
+//        glyph->getQuadAtlasBounds(al, ab, ar, at);
+//        glm::vec2 texCoordMin((float)al , (float)ab);
+//        glm::vec2 texCoordMax((float)ar , (float)at);
+//        
+//        double pl , pb , pr , pt;
+//        glyph->getQuadPlaneBounds(pl, pb , pr, pt);
+//        glm::vec2 quadMin((float)pl , (float)pb);
+//        glm::vec2 quadMax((float)pr , (float)pt);
+//        
+//        quadMin *= fsScale , quadMax *= fsScale;
+//        quadMin += glm::vec2(x , y);
+//        quadMax += glm::vec2(x , y);
+//        
+//        float texelWidth = 1.0f / fontAtlas->GetWidth();
+//        float texelHeight = 1.0f / fontAtlas->GetHeight();
+//        
+//        texCoordMin *= glm::vec2(texelWidth , texelHeight);
+//        texCoordMax *= glm::vec2(texelWidth , texelHeight);
+//        
+//        
+//        s_Data.TextVertexBufferPtr->postion = transform * glm::vec4(quadMin , 0.0f , 1.0f);
+//        s_Data.TextVertexBufferPtr->color = glm::vec4(1.0);
+//        s_Data.TextVertexBufferPtr->texCoord = texCoordMin;
+//        s_Data.TextVertexBufferPtr->entityID = entityID;
+//        s_Data.TextVertexBufferPtr++;
+//        
+//        s_Data.TextVertexBufferPtr->postion = transform * glm::vec4(quadMin.x , quadMax.y , 0.0f , 1.0f);
+//        s_Data.TextVertexBufferPtr->color = glm::vec4(1.0);
+//        s_Data.TextVertexBufferPtr->texCoord = {texCoordMin.x , texCoordMax.y};
+//        s_Data.TextVertexBufferPtr->entityID = entityID;
+//        s_Data.TextVertexBufferPtr++;
+//        
+//        s_Data.TextVertexBufferPtr->postion = transform * glm::vec4(quadMax , 0.0f , 1.0f);
+//        s_Data.TextVertexBufferPtr->color = glm::vec4(1.0);
+//        s_Data.TextVertexBufferPtr->texCoord = texCoordMax;
+//        s_Data.TextVertexBufferPtr->entityID = entityID;
+//        s_Data.TextVertexBufferPtr++;
+//        
+//        s_Data.TextVertexBufferPtr->postion = transform * glm::vec4(quadMax.x , quadMin.y , 0.0f , 1.0f);
+//        s_Data.TextVertexBufferPtr->color = glm::vec4(1.0);
+//        s_Data.TextVertexBufferPtr->texCoord = {texCoordMax.x , texCoordMin.y};
+//        s_Data.TextVertexBufferPtr->entityID = entityID;
+//        s_Data.TextVertexBufferPtr++;
+//
+//        s_Data.TextIndexCount += 6;
+//        s_Data.Stat.QuadCount++;
+//        
+//        if(i < text.length() - 1){
+//            double advance = glyph->getAdvance();
+//            char nextCharacter = text[i + 1];
+//            fontGeometry.getAdvance(advance, character, nextCharacter);
+//            
+//            x += fsScale * advance + characterSpacing;
+//        }
+//    }
+//    
+//
+//}
+
+void Renderer2D::DrawString(const Ref<Font> font, const glm::mat4& transform, const std::string& text, const TextParam& textParam, const int& entityID) {
+    if (text.empty()) {
+        return;
+    }
+
     const auto& fontGeometry = font->GetMSDFData()->FontGeometry;
     const auto& metrics = fontGeometry.getMetrics();
     Ref<Texture2D> fontAtlas = font->GetAtlasTexture();
     s_Data.FontAtlasTexture = fontAtlas;
-    
-    double x = 0.0;//cusor
+
     double fsScale = 1.0 / (metrics.ascenderY - metrics.descenderY);
-    double y = 0.0;//cusor
-    
     const float spaceGlyphAdvance = fontGeometry.getGlyph(' ')->getAdvance();
-    
     float lineSpacing = textParam.LineSpacing;
     float characterSpacing = textParam.CharacterSpacing;
+
+    // =========================================================================
+    // 1. 第一次遍历: 预计算文本的原始边界框 (Bounding Box)
+    // =========================================================================
+    glm::vec2 minBounds(std::numeric_limits<float>::max());
+    glm::vec2 maxBounds(std::numeric_limits<float>::lowest());
     
-    for(size_t i = 0 ; i < text.length() ; i++){
-        
+    double x = 0.0;
+    double y = 0.0;
+
+    for (size_t i = 0; i < text.length(); i++) {
         char character = text[i];
-        if(character == '\r'){
-            continue;
-        }
-        
-        if(character == '\n'){
+        if (character == '\r') continue;
+
+        if (character == '\n') {
             x = 0;
             y -= fsScale * metrics.lineHeight + lineSpacing;
             continue;
         }
-        if(character == ' '){
+        
+        // 特殊字符处理
+        if (character == ' ') {
+            float advance = spaceGlyphAdvance;
+            if (i < text.length() - 1) {
+                char nextCharacter = text[i + 1];
+                double dAdvance;
+                fontGeometry.getAdvance(dAdvance, character, nextCharacter);
+                advance = (float)dAdvance;
+            }
+            x += fsScale * advance + characterSpacing;
+            continue; // 空格不产生几何体，所以continue
+        }
+        if (character == '\t') {
+            x += 4.0f * (fsScale * spaceGlyphAdvance + characterSpacing);
+            continue; // 制表符也不产生几何体
+        }
+
+        auto glyph = fontGeometry.getGlyph(character);
+        if (!glyph) glyph = fontGeometry.getGlyph('?');
+        if (!glyph) continue;
+
+        double pl, pb, pr, pt;
+        glyph->getQuadPlaneBounds(pl, pb, pr, pt);
+        glm::vec2 quadMin((float)pl, (float)pb);
+        glm::vec2 quadMax((float)pr, (float)pt);
+
+        quadMin *= fsScale;
+        quadMax *= fsScale;
+        quadMin += glm::vec2(x, y);
+        quadMax += glm::vec2(x, y);
+        
+        minBounds.x = std::min(minBounds.x, quadMin.x);
+        minBounds.y = std::min(minBounds.y, quadMin.y);
+        maxBounds.x = std::max(maxBounds.x, quadMax.x);
+        maxBounds.y = std::max(maxBounds.y, quadMax.y);
+
+        if (i < text.length() - 1) {
+            double advance = glyph->getAdvance();
+            char nextCharacter = text[i + 1];
+            fontGeometry.getAdvance(advance, character, nextCharacter);
+            x += fsScale * advance + characterSpacing;
+        }
+    }
+        
+    
+    // 如果没有可渲染的字符，直接返回
+    if (minBounds.x > maxBounds.x) {
+        return;
+    }
+
+    // =========================================================================
+    // 2. 计算归一化所需的偏移和缩放
+    // =========================================================================
+    glm::vec2 textBoundsSize = maxBounds - minBounds;
+    // 防止除以零
+    float scaleX = (textBoundsSize.x > 0.0001f) ? (1.0f / textBoundsSize.x) : 1.0f;
+    float scaleY = (textBoundsSize.y > 0.0001f) ? (1.0f / textBoundsSize.y) : 1.0f;
+    glm::vec2 scaleVec(scaleX, scaleY);
+    
+    // =========================================================================
+    // 3. 第二次遍历: 生成顶点并进行归一化
+    // =========================================================================
+    x = 0.0;
+    y = 0.0;
+
+    for (size_t i = 0; i < text.length(); i++) {
+        char character = text[i];
+        if (character == '\r') continue;
+
+        if (character == '\n') {
+            x = 0;
+            y -= fsScale * metrics.lineHeight + lineSpacing;
+            continue;
+        }
+        if (character == ' '){
+            // 这里的逻辑需要和预计算时保持一致
             float advance = spaceGlyphAdvance;
             if(i < text.length() - 1){
                 char nextCharacter = text[i + 1];
@@ -486,77 +678,84 @@ void Renderer2D::DrawString(const Ref<Font> font , const glm::mat4& transform , 
                 advance = (float)dAdvance;
             }
             x += fsScale * advance + characterSpacing;
+            // 注意这里是 continue，因为空格没有顶点数据
+            continue;
         }
-        if(character == '\t'){
+        if (character == '\t') {
             x += 4.0f * (fsScale * spaceGlyphAdvance + characterSpacing);
             continue;
         }
-        
+
         auto glyph = fontGeometry.getGlyph(character);
-        if(!glyph){
-            glyph = fontGeometry.getGlyph('?');
-        }
-        if(!glyph){
-            return;
-        }
-        
-        double al , ab , ar , at;
+        if (!glyph) glyph = fontGeometry.getGlyph('?');
+        if (!glyph) return;
+
+        double al, ab, ar, at;
         glyph->getQuadAtlasBounds(al, ab, ar, at);
-        glm::vec2 texCoordMin((float)al , (float)ab);
-        glm::vec2 texCoordMax((float)ar , (float)at);
+        glm::vec2 texCoordMin((float)al, (float)ab);
+        glm::vec2 texCoordMax((float)ar, (float)at);
+
+        double pl, pb, pr, pt;
+        glyph->getQuadPlaneBounds(pl, pb, pr, pt);
+        glm::vec2 quadMin((float)pl, (float)pb);
+        glm::vec2 quadMax((float)pr, (float)pt);
+
+        quadMin *= fsScale;
+        quadMax *= fsScale;
+        quadMin += glm::vec2(x, y);
+        quadMax += glm::vec2(x, y);
         
-        double pl , pb , pr , pt;
-        glyph->getQuadPlaneBounds(pl, pb , pr, pt);
-        glm::vec2 quadMin((float)pl , (float)pb);
-        glm::vec2 quadMax((float)pr , (float)pt);
-        
-        quadMin *= fsScale , quadMax *= fsScale;
-        quadMin += glm::vec2(x , y);
-        quadMax += glm::vec2(x , y);
-        
+        // --- 核心改动: 归一化坐标 ---
+        // 1. 将文本块左下角移动到原点
+        glm::vec2 normQuadMin = quadMin - minBounds;
+        glm::vec2 normQuadMax = quadMax - minBounds;
+        // 2. 缩放到 [0, 1] 范围
+        normQuadMin *= scaleVec;
+        normQuadMax *= scaleVec;
+        // 3. 移动到 [-0.5, 0.5] 范围，使中心在原点
+        normQuadMin -= glm::vec2(0.5f);
+        normQuadMax -= glm::vec2(0.5f);
+
         float texelWidth = 1.0f / fontAtlas->GetWidth();
         float texelHeight = 1.0f / fontAtlas->GetHeight();
-        
-        texCoordMin *= glm::vec2(texelWidth , texelHeight);
-        texCoordMax *= glm::vec2(texelWidth , texelHeight);
-        
-        
-        s_Data.TextVertexBufferPtr->postion = transform * glm::vec4(quadMin , 0.0f , 1.0f);
-        s_Data.TextVertexBufferPtr->color = glm::vec4(1.0);
+        texCoordMin *= glm::vec2(texelWidth, texelHeight);
+        texCoordMax *= glm::vec2(texelWidth, texelHeight);
+
+        // 使用归一化后的坐标 normQuadMin/Max
+        s_Data.TextVertexBufferPtr->postion = transform * glm::vec4(normQuadMin, 0.0f, 1.0f);
+        s_Data.TextVertexBufferPtr->color = glm::vec4(1.0); // 你可能想从 textParam 中获取颜色
         s_Data.TextVertexBufferPtr->texCoord = texCoordMin;
         s_Data.TextVertexBufferPtr->entityID = entityID;
         s_Data.TextVertexBufferPtr++;
-        
-        s_Data.TextVertexBufferPtr->postion = transform * glm::vec4(quadMin.x , quadMax.y , 0.0f , 1.0f);
+
+        s_Data.TextVertexBufferPtr->postion = transform * glm::vec4(normQuadMin.x, normQuadMax.y, 0.0f, 1.0f);
         s_Data.TextVertexBufferPtr->color = glm::vec4(1.0);
-        s_Data.TextVertexBufferPtr->texCoord = {texCoordMin.x , texCoordMax.y};
+        s_Data.TextVertexBufferPtr->texCoord = {texCoordMin.x, texCoordMax.y};
         s_Data.TextVertexBufferPtr->entityID = entityID;
         s_Data.TextVertexBufferPtr++;
-        
-        s_Data.TextVertexBufferPtr->postion = transform * glm::vec4(quadMax , 0.0f , 1.0f);
+
+        s_Data.TextVertexBufferPtr->postion = transform * glm::vec4(normQuadMax, 0.0f, 1.0f);
         s_Data.TextVertexBufferPtr->color = glm::vec4(1.0);
         s_Data.TextVertexBufferPtr->texCoord = texCoordMax;
         s_Data.TextVertexBufferPtr->entityID = entityID;
         s_Data.TextVertexBufferPtr++;
-        
-        s_Data.TextVertexBufferPtr->postion = transform * glm::vec4(quadMax.x , quadMin.y , 0.0f , 1.0f);
+
+        s_Data.TextVertexBufferPtr->postion = transform * glm::vec4(normQuadMax.x, normQuadMin.y, 0.0f, 1.0f);
         s_Data.TextVertexBufferPtr->color = glm::vec4(1.0);
-        s_Data.TextVertexBufferPtr->texCoord = {texCoordMax.x , texCoordMin.y};
+        s_Data.TextVertexBufferPtr->texCoord = {texCoordMax.x, texCoordMin.y};
         s_Data.TextVertexBufferPtr->entityID = entityID;
         s_Data.TextVertexBufferPtr++;
 
         s_Data.TextIndexCount += 6;
         s_Data.Stat.QuadCount++;
-        
-        if(i < text.length() - 1){
+
+        if (i < text.length() - 1) {
             double advance = glyph->getAdvance();
             char nextCharacter = text[i + 1];
             fontGeometry.getAdvance(advance, character, nextCharacter);
-            
             x += fsScale * advance + characterSpacing;
         }
     }
-    
 
 }
 

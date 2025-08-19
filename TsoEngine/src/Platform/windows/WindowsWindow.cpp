@@ -158,6 +158,29 @@ static void GLFWErrorCallback(int error,const char* description){
         m_Context->SwapBuffers();
 	}
 
+    unsigned int WindowsWindow::GetPosX()const{
+        
+        int xpos, ypos;
+        glfwGetWindowPos(m_Window, &xpos, &ypos);
+        return xpos;
+    }
+
+    unsigned int WindowsWindow::GetPosY()const{
+        
+        int xpos, ypos;
+        glfwGetWindowPos(m_Window, &xpos, &ypos);
+        return ypos;
+    }
+
+//    unsigned int WindowsWindow::GetScreenWidth()const{
+//        const GLFWvidmode * mode = glfwGetVideoMode(pMonitor[i]);
+//                std::cout << "Screen size is X = " << mode->width << ", Y = " << mode->height << std::endl;
+//    }
+
+//    unsigned int WindowsWindow::GetScreenHeight()const{
+//            
+//    }
+
 	void WindowsWindow::SetVSync(bool enabled) {
 		if (enabled)
 			glfwSwapInterval(1);//frame rate,1 means refresh every frame,while n mean refresh every n frame

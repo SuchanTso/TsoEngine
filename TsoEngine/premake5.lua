@@ -17,7 +17,8 @@ project "TsoEngine"
 	defines
 	{
 	    "_CRT_SECURE_NO_WARNINGS", 
-		"YAML_CPP_STATIC_DEFINE"
+		"YAML_CPP_STATIC_DEFINE",
+		"SOL_ALL_SAFETIES_ON"
 	}
 	
 	files
@@ -31,7 +32,9 @@ project "TsoEngine"
 		"third_party/yaml-cpp/include/yaml-cpp/**.h",
 		"third_party/mono/include/**.h",
 		"third_party/readerwriterqueue/readerwriterqueue.h",
-		"third_party/readerwriterqueue/atomicops.h"
+		"third_party/readerwriterqueue/atomicops.h",
+		"third_party/sol2/include/sol/**.hpp",
+		"third_party/utfcpp/**.h",
 	}
 
 	externalincludedirs
@@ -52,7 +55,9 @@ project "TsoEngine"
 		"third_party/msdf-atlas-gen/msdf-atlas-gen",
 		"third_party/msdf-atlas-gen/msdfgen",
 		"third_party/readerwriterqueue",
-        "third_party/lua/src"
+        "third_party/lua/src",
+		"third_party/sol2/include",
+		"third_party/utfcpp"
 
 	}
 

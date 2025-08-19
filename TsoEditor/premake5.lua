@@ -31,7 +31,8 @@ project "TsoEditor"
 		"%{wks.location}/TsoEngine/third_party/msdf-atlas-gen/msdfgen",
 		"%{wks.location}/TsoEngine/third_party/readerwriterqueue",
 		"%{wks.location}/TsoEngine/third_party/lua/src",
-		"%{wks.location}/TsoEngine/third_party/sol2/include"
+		"%{wks.location}/TsoEngine/third_party/sol2/include",
+		"%{wks.location}/TsoEngine/third_party/utfcpp",
 
 	}
 

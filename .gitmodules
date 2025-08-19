@@ -25,3 +25,6 @@
 [submodule "TsoEngine/third_party/sol2"]
 	path = TsoEngine/third_party/sol2
 	url = git@github.com:ThePhD/sol2.git
+[submodule "TsoEngine/third_party/utfcpp"]
+	path = TsoEngine/third_party/utfcpp
+	url = git@github.com:nemtrif/utfcpp.git

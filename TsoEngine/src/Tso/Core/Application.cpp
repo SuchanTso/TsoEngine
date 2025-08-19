@@ -17,7 +17,7 @@ namespace Tso {
         s_Instance = this;
         m_Window = std::unique_ptr<Window>(Window::Create({ windowName ,1280,720}));
 		m_Window->SetEventCallback(BIND_EVENT_FN(Application::OnEvent));
-
+        Input::Init();
         RenderCommand::Init();
         ScriptingEngine::Init();
         NetWorkEngine::Init();
@@ -108,8 +108,9 @@ namespace Tso {
 
 			m_Window->OnUpdate();
 		}
-        ScriptingEngine::ShutDown();
+        m_LayerStack.Clear();
         NetWorkEngine::Shutdown();
+        ScriptingEngine::ShutDown();
 	}
 
 bool Application::OnWindowClosed(const WindowCloseEvent &e){
