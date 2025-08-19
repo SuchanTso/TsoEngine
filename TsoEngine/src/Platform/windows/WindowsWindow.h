@@ -19,6 +19,14 @@ namespace Tso {
 		inline unsigned int GetWidth()const override { return m_Data.Width; }
 
 		inline unsigned int GetHeight()const override { return m_Data.Height; }
+        
+        inline unsigned int GetPosX()const override;
+        
+        inline unsigned int GetPosY()const override;
+        
+//        inline unsigned int GetScreenWidth()const override;
+//
+//        inline unsigned int GetScreenHeight()const override;
 
 		inline void SetEventCallback(const EventCallbackFn& callback)override { m_Data.EventCallback = callback; }
 

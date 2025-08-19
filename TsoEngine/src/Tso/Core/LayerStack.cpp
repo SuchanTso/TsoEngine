@@ -39,6 +39,13 @@ void LayerStack::PopLayer(Layer *layer){
     }
 }
 
+void LayerStack::Clear(){
+    for(auto layer : m_Layers){
+        delete layer;
+        PopLayer(layer);
+    }
+}
+
 void LayerStack::PopOverlay(Layer *overlay){
     auto it = std::find(begin(),end(),overlay);
     if(it != end()){

@@ -13,6 +13,7 @@
 #include "Tso/Renderer/Font.h"
 #include "Tso/Network/NetworkEngine.h"
 #include "Tso/Core/Application.h"
+#include "Tso/UI/UISystem.h"
 
 namespace Utils {
     b2BodyType Rigidbody2DTypeToBox2DBody(Tso::Rigidbody2DComponent::BodyType bodyType)
@@ -33,7 +34,17 @@ namespace Utils {
 namespace Tso {
 
 Scene::Scene(){
-    
+    m_UISystem = new UISystem(this);
+    UICamera = CreateRef<SceneCamera>();
+    UICamera->SetOrthographicSize(UISystem::VirtualResolutionY);
+    UICamera->SetAspectRatio((UISystem::VirtualResolutionX * 1.f) / UISystem::VirtualResolutionY);
+//    UICamera->SetOrthographicNearClip(-1000);
+//    UICamera->SetOrthographicFarClip(1000);
+}
+
+Scene::~Scene(){
+    delete m_UISystem;
+    m_UISystem = nullptr;
 }
 
 
@@ -125,22 +136,21 @@ void Scene::OnUpdate(TimeStep ts)
             }
         }
         //update network here
-        auto view = m_Registry.view<NetworkComponent>(); 
-        for(auto entity : view){
-            Entity e = { entity, this };
-            NetworkComponent& network = e.GetComponent<NetworkComponent>();
-            ByteStream byte = ByteStream::SeriealizeEntity(e , network.protocol);
-            if (byte == network.byte) {
-                //do nothing since we just rewrite operator==
-            }
-            else {
-                NetWorkEngine::HandlerNetwork(network.protocol, byte);//Send by customed protocol
-                network.byte.setBuffer(byte.getBuffer());
-            }
-            //TODO(Suchan):deal with recv msg  
-        }
+//        auto view = m_Registry.view<NetworkComponent>(); 
+//        for(auto entity : view){
+//            Entity e = { entity, this };
+//            NetworkComponent& network = e.GetComponent<NetworkComponent>();
+//            ByteStream byte = ByteStream::SeriealizeEntity(e , network.protocol);
+//            if (byte == network.byte) {
+//                //do nothing since we just rewrite operator==
+//            }
+//            else {
+//                NetWorkEngine::HandlerNetwork(network.protocol, byte);//Send by customed protocol
+//                network.byte.setBuffer(byte.getBuffer());
+//            }
+//            //TODO(Suchan):deal with recv msg  
+//        }
 
-        NetWorkEngine::OnUpdate(ts);
     }
 
     //deal not active entity
@@ -165,6 +175,7 @@ void Scene::OnUpdate(TimeStep ts)
             mainCamera = &camera.m_Camera;
             auto& transfrom = view.get<TransformComponent>(e);
             mainCameraTransfrom = &transfrom.GetTransform();
+            m_MainCameraTransform = mainCameraTransfrom;
         }
     }
 
@@ -173,6 +184,7 @@ void Scene::OnUpdate(TimeStep ts)
         mainCamera = &(m_SceneCamera->GetComponent<CameraComponent>().m_Camera);
         auto& transform = m_SceneCamera->GetComponent<TransformComponent>();
         mainCameraTransfrom = &transform.GetTransform();
+        m_MainCameraTransform = mainCameraTransfrom;
     }
  
     if (mainCamera && mainCameraTransfrom) {
@@ -200,15 +212,22 @@ void Scene::OnUpdate(TimeStep ts)
         auto textGroup = m_Registry.view<TransformComponent, TextComponent>();
         for(auto& e : textGroup){
             const auto& [transComp , textComp] = textGroup.get<TransformComponent, TextComponent>(e);
+            if(textComp.isUI)continue;//ignore UI text;
             if(textComp.TextFont && textComp.Text.length() > 0){
                 Renderer2D::DrawString(textComp.TextFont, transComp.GetTransform(), textComp.Text , textComp.textParam , (int)e);
             }
         }
-        
         Renderer2D::EndScene();
     }
+    if(UICamera && mainCameraTransfrom){
+        Renderer2D::BeginScene(*UICamera, glm::mat4(1.f));
+        m_UISystem->OnUpdate(ts);
+        Renderer2D::EndScene();
+        
+    }
 
-    
+    NetWorkEngine::OnUpdate(ts);
+    Input::EndFrame();
 }
 
 b2Body* Scene::CreatePhysicBody(Entity& entity)
@@ -324,7 +343,10 @@ std::unordered_map<uint64_t, Ref<Entity>> Scene::GetEntityChildren(Entity& paren
 
 Ref<Entity> Scene::GetEntityParent(Entity& child)
 {
-    return m_ParentMap[child.GetUUID()];
+    if(m_ParentMap.find(child.GetUUID()) != m_ParentMap.end()){
+        return m_ParentMap[child.GetUUID()];
+    }
+    return nullptr;
 }
 
 void Scene::SetSceneCamera(const Entity& cameraEntity)

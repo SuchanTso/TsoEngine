@@ -48,6 +48,7 @@ public:
     void SetViewportSize(uint32_t width, uint32_t height);
     
     void SetFixAspectRatio(bool fixAspectRatio){m_FixAspectRatio = fixAspectRatio;}
+    void SetAspectRatio(float aspectRatio){m_AspectRatio = aspectRatio; ReCalculateProjection();}
 
 private:
     void ReCalculateProjection();

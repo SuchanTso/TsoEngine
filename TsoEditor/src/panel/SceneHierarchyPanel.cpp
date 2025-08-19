@@ -10,6 +10,46 @@
 #include "Tso/Project/Project.h"
 
 namespace Tso {
+template<> void SceneHierarchyPanel::DisplayAddComponentEntry<ButtonComponent>(const std::string &entryName){
+    if (!m_SelectedEntity.HasComponent<ButtonComponent>())
+    {
+        if (ImGui::MenuItem(entryName.c_str()))
+        {
+            m_SelectedEntity.AddComponent<ButtonComponent>();
+            m_SelectedEntity.AddComponent<UITransformComponent>();
+            auto& textc = m_SelectedEntity.AddComponent<TextComponent>();
+            textc.isUI = true;
+            ImGui::CloseCurrentPopup();
+        }
+    }
+}
+
+template<> void SceneHierarchyPanel::DisplayAddComponentEntry<InputFieldComponent>(const std::string &entryName){
+    if (!m_SelectedEntity.HasComponent<InputFieldComponent>())
+    {
+        if (ImGui::MenuItem(entryName.c_str()))
+        {
+            m_SelectedEntity.AddComponent<InputFieldComponent>();
+            m_SelectedEntity.AddComponent<UITransformComponent>();
+            auto& textc = m_SelectedEntity.AddComponent<TextComponent>();
+            textc.isUI = true;
+            ImGui::CloseCurrentPopup();
+        }
+    }
+}
+
+template<> void SceneHierarchyPanel::DisplayAddComponentEntry<TextComponent>(const std::string &entryName){
+    if (!m_SelectedEntity.HasComponent<InputFieldComponent>())
+    {
+        if (ImGui::MenuItem(entryName.c_str()))
+        {
+            m_SelectedEntity.AddComponent<TextComponent>();
+            ImGui::CloseCurrentPopup();
+        }
+    }
+}
+
+
 	void SceneHierarchyPanel::OnGuiRender()
 	{
 		ImGui::Begin("SceneNode");
@@ -119,6 +159,9 @@ namespace Tso {
             DisplayAddComponentEntry<BoxCollider2DComponent>("BoxCollider2DComponent");
             DisplayAddComponentEntry<TextComponent>("TextComponent");
             DisplayAddComponentEntry<NetworkComponent>("NetworkComponent");
+            DisplayAddComponentEntry<ButtonComponent>("ButtonComponent");
+            DisplayAddComponentEntry<InputFieldComponent>("InputField");
+
             ImGui::EndPopup();
         }
         
@@ -232,6 +275,22 @@ namespace Tso {
                     if(!comp.FontPath.empty()){
                         ImGui::Text("%s", comp.FontPath.c_str());
                     }
+                    ImGui::Checkbox("IsUI", &comp.isUI);
+                    if(comp.isUI){
+                        if(!entity.HasComponent<UITransformComponent>()){
+                            entity.AddComponent<UITransformComponent>();
+                        }
+                        auto& uitransformc = entity.GetComponent<UITransformComponent>();
+                        ImGui::DragFloat2("pos:", glm::value_ptr(uitransformc.UIpos) , 0.1f);
+                        ImGui::DragFloat3("size:", glm::value_ptr(uitransformc.UISize), 0.1f);
+                    }
+                    else{
+                        if(entity.HasComponent<UITransformComponent>()){
+                            entity.RemoveComponent<UITransformComponent>();
+                        }
+                    }
+                    
+                    
 
                 }
 
@@ -436,6 +495,44 @@ namespace Tso {
             }
         }
         
+        if(entity.HasComponent<ButtonComponent>()){
+            TSO_ASSERT(entity.HasComponent<UITransformComponent>() , "UI lacks virtual Transform component!");
+            if (ImGui::TreeNodeEx("Button", ImGuiTreeNodeFlags_OpenOnArrow)) {
+                auto& uitransformc = entity.GetComponent<UITransformComponent>();
+                auto& comp = entity.GetComponent<ButtonComponent>();
+                auto& pos = uitransformc.UIpos;
+                auto& size = uitransformc.UISize;
+                if (ImGui::DragFloat2("pos:", glm::value_ptr(pos) , 0.1f)) {
+                    uitransformc.UIpos = pos;
+                }
+                if (ImGui::DragFloat3("size:", glm::value_ptr(size), 0.1f)) {
+                    uitransformc.UISize = size;
+                }
+                ImGui::ColorEdit4("color", glm::value_ptr(comp.NormalColor));
+
+                ImGui::TreePop();
+            }
+        }
+        
+        if(entity.HasComponent<InputFieldComponent>()){
+            TSO_ASSERT(entity.HasComponent<UITransformComponent>() , "UI lacks virtual Transform component!");
+            if (ImGui::TreeNodeEx("Input", ImGuiTreeNodeFlags_OpenOnArrow)) {
+                auto& uitransformc = entity.GetComponent<UITransformComponent>();
+                auto& comp = entity.GetComponent<InputFieldComponent>();
+                auto& pos = uitransformc.UIpos;
+                auto& size = uitransformc.UISize;
+                if (ImGui::DragFloat2("pos:", glm::value_ptr(pos) , 0.1f)) {
+                    uitransformc.UIpos = pos;
+                }
+                if (ImGui::DragFloat3("size:", glm::value_ptr(size), 0.1f)) {
+                    uitransformc.UISize = size;
+                }
+                ImGui::ColorEdit4("color", glm::value_ptr(comp.FocusedColor));
+
+                ImGui::TreePop();
+            }
+        }
+        
         
 	}
 
@@ -451,6 +548,8 @@ template<typename T>
             }
         }
     }
+
+
 
 
 }

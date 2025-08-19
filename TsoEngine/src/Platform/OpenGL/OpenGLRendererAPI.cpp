@@ -33,6 +33,16 @@ namespace Tso {
 		glViewport(x , y , width , height);
 	}
 
+    void OpenGLRendererAPI::SetDepthTest(bool enable){
+        if(enable){
+            glEnable(GL_DEPTH_TEST);
+        }
+        else{
+            glDisable(GL_DEPTH_TEST);
+        }
+    }
+
+
 
 
 

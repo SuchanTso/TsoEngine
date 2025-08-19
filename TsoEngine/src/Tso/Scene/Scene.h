@@ -4,20 +4,21 @@
 #include "Tso/Physics/CollideListener.h"
 #include "Tso/Core/UUID.h"
 #include "Tso/Core/Core.h"
-
+#include "glm/glm.hpp"
 class b2World;
 
 namespace Tso {
 	class Entity;
 	class Font;
 	class SceneCamera;
+    class UISystem;
 	class Scene {
 		friend class Entity;
 		friend class SceneHierarchyPanel;
 		friend class Seriealizer;
 	public:
 		Scene();
-		~Scene() {}
+        ~Scene();
 
 		Entity CreateEntity(const std::string& name = "");
         
@@ -50,12 +51,33 @@ namespace Tso {
 		Ref<Entity> GetEntityParent(Entity& child);
 
 		SceneCamera* GetMainCamera();
+        
+        Ref<SceneCamera>GetUICamera(){return UICamera;}
+
+        
+        glm::mat4* GetMainCameraTransform(){return m_MainCameraTransform;}
 
 		void SetSceneCamera(const Entity& cameraEntity);
 
 		void SetUseSceneCamera(bool useSceneCamera);
 
 		bool HasEntity(const UUID& uuid);
+        
+        template <typename... T>
+        std::vector<Entity> GetAllEntitiesWith(){
+            std::vector<Entity> res;
+            auto view = m_Registry.view<T...>();
+            
+            // 预分配内存以提高性能 (可选)
+//            res.reserve(view.size_hint());
+            
+            // [MODIFIED] 使用范围-for循环
+            for (auto entity : view) {
+                res.push_back({entity, this});
+            }
+                
+            return res;
+        }
 
 	private:
 		entt::registry m_Registry;
@@ -81,6 +103,12 @@ namespace Tso {
 		Ref<Entity> m_SceneCamera = nullptr;
 
 		SceneCamera* mainCamera = nullptr;
+        
+        Ref<SceneCamera> UICamera = nullptr;
+        
+        glm::mat4* m_MainCameraTransform = nullptr;
+        
+        UISystem* m_UISystem = nullptr;
 
 
 	};

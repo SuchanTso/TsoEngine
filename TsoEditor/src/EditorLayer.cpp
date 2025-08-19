@@ -11,7 +11,7 @@
 #include "Tso/Project/Project.h"
 #include "Tso/Scripting/ScriptingEngine.h"
 #include "Tso/Network/NetworkEngine.h"
-
+#include "Tso/Renderer/ViewportManager.h"
 
 namespace Tso {
     EditorLayer::EditorLayer()
@@ -228,10 +228,17 @@ namespace Tso {
                 auto viewportOffset = ImGui::GetWindowPos();
                 m_ViewportBounds[0] = { viewportMinRegion.x + viewportOffset.x, viewportMinRegion.y + viewportOffset.y };
                 m_ViewportBounds[1] = { viewportMaxRegion.x + viewportOffset.x, viewportMaxRegion.y + viewportOffset.y };
-
+                Input::SetViewportBound(m_ViewportBounds[0].x, m_ViewportBounds[0].y , m_ViewportBounds[1].x, m_ViewportBounds[1].y);
+//                TSO_CORE_INFO("viewportBounds:[{},{}] , [{},{}]",viewportMinRegion.x, viewportMinRegion.y , viewportMaxRegion.x, viewportMaxRegion.y);
+//                auto viewportSize = m_ViewportBounds[1] - m_ViewportBounds[0];
+//                auto windowPosX = Application::Get().GetWindow().GetPosX();
+//                auto windowPosY = Application::Get().GetWindow().GetPosY();
+//                TSO_CORE_INFO("viewportSize:[{},{}]",viewportSize.x , viewportSize.y);
+//                TSO_CORE_INFO("windowPos:[{},{}]",viewportOffset.x , viewportOffset.y);
+//                TSO_CORE_INFO("viewportPos:[{},{}]",m_ViewportBounds[0].x , m_ViewportBounds[0].y + viewportSize.y);
 
                 Application::Get().GetGUILayer()->BlockEvents(!(m_GameViewFocused || m_ViewportFocused));
-
+                
 
                 auto content = ImGui::GetContentRegionAvail();
                 if (content.x > 0.f && content.y > 0.f && (content.x != m_SceneVeiwSize.x || content.y != m_SceneVeiwSize.y)) {
@@ -239,10 +246,12 @@ namespace Tso {
                     m_UpdateViewportSize = true;
                 }
                 if (m_UpdateViewportSize && m_Scene && m_Scene->GetMainCamera()) {
-                    TSO_CORE_INFO("update scene view size!!");
+                    TSO_CORE_INFO("update scene view size [{} , {}]" , m_SceneVeiwSize.x , m_SceneVeiwSize.y);
                     m_FrameBuffer->Resize(uint32_t(m_SceneVeiwSize.x), uint32_t(m_SceneVeiwSize.y));
                     m_Scene->GetMainCamera()->SetViewportSize(uint32_t(m_SceneVeiwSize.x), uint32_t(m_SceneVeiwSize.y));
                     RenderCommand::SetViewPort(0, 0, m_SceneVeiwSize.x, m_SceneVeiwSize.y);
+                    ViewportManager::SetViewportInfo({m_ViewportBounds[0].x , 0.f}, m_SceneVeiwSize);
+                    // ignore ypos for now: TODO: add screen size fetch when have time to add file watcher
                     m_UpdateViewportSize = false;
                 }
                 uint32_t fbId = m_FrameBuffer->GetColorAttachment(0);
@@ -283,7 +292,8 @@ namespace Tso {
                 if (m_UpdateViewportSize && m_Scene && m_Scene->GetMainCamera()) {
                     TSO_CORE_INFO("update game view size!!");
                     m_Scene->GetMainCamera()->SetViewportSize(uint32_t(m_GameViewSize.x), uint32_t(m_GameViewSize.y));
-                    RenderCommand::SetViewPort(0, 0, m_SceneVeiwSize.x, m_SceneVeiwSize.y);
+                    RenderCommand::SetViewPort(0, 0, m_GameViewSize.x, m_GameViewSize.y);
+                    ViewportManager::SetViewportInfo({gameViewMinRegion.x , gameViewMinRegion.y}, m_GameViewSize);
                     m_UpdateViewportSize = false;
                 }
                 fbId = m_FrameBuffer->GetColorAttachment(0);
@@ -310,11 +320,15 @@ namespace Tso {
         m_Scene->OnUpdate(ts);
         
         auto [mx , my] = ImGui::GetMousePos();
+//        TSO_INFO("GUI pos [{},{}] , Input pos [{},{}]" , mx , my , Input::GetMouseX() , Input::GetMouseY());
+//        TSO_INFO("viewportbound [{} , {}] , [{} , {}]" , m_ViewportBounds[0].x , m_ViewportBounds[0].y , m_ViewportBounds[1].x , m_ViewportBounds[1].y);
+
         mx -= m_ViewportBounds[0].x ;
         my -= m_ViewportBounds[0].y;
         
         glm::vec2 viewportSize = m_ViewportBounds[1] - m_ViewportBounds[0];
         my = viewportSize.y - my;
+//        TSO_INFO("GUI pos [{},{}]" , mx , my);
         int mouseX = (int)mx;
         int mouseY = (int)my;
         if(m_ViewportFocused && mouseX > 0 && mouseY > 0 && m_Scene){

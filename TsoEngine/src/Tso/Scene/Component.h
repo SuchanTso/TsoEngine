@@ -10,6 +10,7 @@
 #include "Tso/Core/UUID.h"
 #include "Tso/Scene/Seriealizer.h"
 #include "Tso/Network/ByteStream.h"
+#include "sol/sol.hpp"
 
 namespace Tso {
 
@@ -198,6 +199,7 @@ namespace Tso {
         std::string FontPath = "";
         Ref<Font> TextFont = nullptr;
         TextParam textParam;
+        bool isUI = false;
 
     };
 
@@ -217,6 +219,49 @@ namespace Tso {
 		uint8_t protocol = 0; // see more information in networkEngine.h
 		
 	};
+
+    struct ButtonComponent {
+        // 状态
+        bool IsHovered = false;
+        bool IsPressed = false;
+        
+        // 视觉属性
+        glm::vec4 NormalColor = {0.8f, 0.8f, 0.8f, 1.0f};
+        glm::vec4 HoverColor = {0.9f, 0.9f, 0.9f, 1.0f};
+        glm::vec4 PressedColor = {0.7f, 0.7f, 0.7f, 1.0f};
+        
+        // 回调
+        sol::function OnClick;
+        
+        // 构造函数，以便在AddComponent时使用
+        ButtonComponent() = default;
+        ButtonComponent(const ButtonComponent&) = default;
+    };
+
+    struct InputFieldComponent {
+        std::string Text;
+        std::string PlaceholderText = "Enter text...";
+        bool IsFocused = false;
+        
+        // 视觉属性 (例如，聚焦时的背景色)
+        glm::vec4 FocusedColor = {1.0f, 1.0f, 1.0f, 1.0f};
+        //tem UItransform, separate to a new component later
+        
+        // 回调
+        sol::function OnValueChanged;
+        sol::function OnSubmit; // 例如按回车时
+        
+        InputFieldComponent() = default;
+        InputFieldComponent(const InputFieldComponent&) = default;
+    };
+
+struct UITransformComponent{
+   //all values here are based on virtual resolution canvas.
+    //(0,0) for left bottom and (UISystem::VirutalResolutionX , UISystem::VirutalResolutionX) for right top.
+    glm::vec2 UIpos = {1000.f , 1000.f};
+    glm::vec2 UISize = {100.f , 100.f};
+    float Rotation_Z = 0.f;
+};
 
 
 	template<typename... Component>
