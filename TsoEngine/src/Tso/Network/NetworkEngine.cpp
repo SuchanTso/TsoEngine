@@ -4,6 +4,7 @@
 #include "ByteStream.h"
 #include "thread"
 #include "IProtocol.h"
+#include "Tso/Protocol/SystemProtocol.h"
 namespace Tso {
 	//void NetWorkEngine::TestSend(const std::string& ip, const uint16_t& port, char* msg)
 	//{
@@ -52,6 +53,11 @@ namespace Tso {
 		}
 		
 	}
+
+    bool  NetWorkEngine::IsConnect(){
+        return s_NetworkEngine != nullptr && s_NetworkEngine->m_TCPChannel != nullptr && s_NetworkEngine->m_TCPChannel->IsConnected();
+    }
+
 
 	void NetWorkEngine::RegistryProtocol(const uint8_t& protocolID , const std::function<ByteStream(const ByteStream&)>& wrapFunc)
 	{	
@@ -125,6 +131,7 @@ namespace Tso {
         if (payloadSize > 0) {
             memcpy(sendBuffer.data() + ByteStream::HEADER_SIZE , payload.getRawBuffer(), payloadSize);
         }
+        TSO_CORE_INFO("Send {} size , protocolID:{} , payloadSize:{}" , sendBuffer.size() , protocolId , payloadSize);
 
         s_NetworkEngine->m_TCPChannel->Send(sendBuffer.data(), totalSize);
     }
@@ -132,7 +139,7 @@ namespace Tso {
     void NetWorkEngine::RegisterHandler(uint8_t moduleId, IProtocolHandler* handler) {
         TSO_CORE_ASSERT(s_NetworkEngine != nullptr, "NetworkEngine not initialized");
         if (s_NetworkEngine->m_Handlers.count(moduleId)) {
-            TSO_CORE_WARN("Handler for module ID %u overwritten.", moduleId);
+            TSO_CORE_WARN("Handler for module ID {} overwritten.", moduleId);
         }
         s_NetworkEngine->m_Handlers[moduleId] = handler;
     }
@@ -169,12 +176,12 @@ namespace Tso {
         uint16_t protocolId = stream.read<uint16_t>();
         uint8_t moduleId = (protocolId >> 8) & 0xFF;
         uint8_t commandId = protocolId & 0xFF;
-
+        TSO_CORE_INFO("Recved message protcol[{}] , module[{}] , command[{}]" , protocolId , moduleId , commandId);
         auto it = m_Handlers.find(moduleId);
         if (it != m_Handlers.end() && it->second != nullptr) {
             it->second->HandleNetworkMessage(commandId, stream);
         } else {
-            TSO_CORE_WARN("No handler for module ID: %u", moduleId);
+            TSO_CORE_WARN("No handler for module ID: {}", moduleId);
         }
     }
 
@@ -230,6 +237,7 @@ namespace Tso {
 
             if (buffer.size() < totalPacketSize) {
                 // incomplete data
+                TSO_CORE_INFO("Network: recved incomplete data {}/{}" , buffer.size() / totalPacketSize);
                 break;
             }
             
@@ -251,7 +259,10 @@ namespace Tso {
             if(std::chrono::duration_cast<std::chrono::seconds>(now - m_TCPChannel->GetLastSend()) > std::chrono::seconds(durationSeconds)){
                 std::vector<uint8_t> content = {255};
                 ByteStream heartByte(content);
-                ByteStream::PackHeader(heartByte, {protocolID , heartByte.getRawBufferLength() + ByteStream::HEADER_SIZE});
+//                ByteStream::PackHeader(heartByte, {protocolID , heartByte.getRawBufferLength() + ByteStream::HEADER_SIZE});
+                heartByte.writeFront<uint16_t>(Modules::System::MakeProtocolID(Modules::System::C2S_HeartBeat));
+                heartByte.writeFront<uint32_t>(ByteStream::HEADER_SIZE + 1);
+                
                 m_TCPChannel->Send(heartByte.getRawBuffer(), heartByte.getRawBufferLength());
                 TSO_CORE_INFO("heart beating");
             }
