@@ -48,8 +48,10 @@ project "TsoEditor"
 	filter  "system:macosx"
 		postbuildcommands
 		{
-			"cp -ru \"%{wks.location}/TsoEditor/assets/.\" \"%{cfg.targetdir}/assets/\"",
-			"{COPY} %{wks.location}/TsoEditor/imgui.ini %{cfg.targetdir}/assets"
+			"mkdir -p \"%{cfg.targetdir}/%{cfg.targetname}/TsoEditor.app/Contents/Resources/\"",
+			"mkdir -p \"%{cfg.targetdir}/%{cfg.targetname}/TsoEditor.app/Contents/Resources/assets\"",
+			"cp -R \"%{wks.location}/TsoEditor/assets/.\" \"%{cfg.targetdir}/%{cfg.targetname}/TsoEditor.app/Contents/Resources/assets\"",
+			"{COPY} %{wks.location}/TsoEditor/imgui.ini %{cfg.targetdir}/%{cfg.targetname}/TsoEditor.app/Contents/Resources"
 		}
 
 
