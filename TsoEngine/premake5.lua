@@ -18,7 +18,8 @@ project "TsoEngine"
 	{
 	    "_CRT_SECURE_NO_WARNINGS", 
 		"YAML_CPP_STATIC_DEFINE",
-		"SOL_ALL_SAFETIES_ON"
+		"SOL_ALL_SAFETIES_ON",
+		"UTF_CPP_CPLUSPLUS=201703L"
 	}
 	
 	files
@@ -67,7 +68,7 @@ project "TsoEngine"
 			symbols "On"
 			runtime "Debug" -- ����ʱ���ӵ�dll��debug���͵�	
 			if _ACTION == "vs2022" then
-				buildoptions "/MTd"
+				buildoptions { "/bigobj" , "/MTd" }
 			end
 			-- in VS2019 that is Additional Library Directories
 			
@@ -86,7 +87,7 @@ project "TsoEngine"
 			optimize "On"
 			runtime "Release" -- ����ʱ���ӵ�dll��release���͵�
 		if _ACTION == "vs2022" then
-			buildoptions "/MT"
+			buildoptions { "/bigobj" , "/MT" }
 		end
 		-- in VS2019 that is Additional Library Directories
 		
@@ -98,7 +99,7 @@ project "TsoEngine"
 			defines { "TSO_DIST"}
 			optimize "On"
 		if _ACTION == "vs2022" then
-			buildoptions "/MT"
+			buildoptions { "/bigobj" , "/MT" }
 		end
 
 	filter  "system:windows" 

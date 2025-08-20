@@ -200,7 +200,7 @@ namespace Utils {
         sol::table package = s_Data->L["package"];
         std::string current_path = package["path"];
         package["path"] = rootPath + "/?.lua;" + rootPath + "/?/init.lua;" + current_path;
-        TSO_CORE_INFO("Lua package.path updated to: {}", (std::string)package["path"]);
+        //TSO_CORE_INFO("Lua package.path updated to: {}", (std::string)package["path"]);
     }
 
 

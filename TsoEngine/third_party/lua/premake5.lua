@@ -21,6 +21,31 @@ project "Lua"
     filter "system:windows"
         defines { "_CRT_SECURE_NO_WARNINGS" }
 
+    filter { "configurations:Debug" }
+			defines { "TSO_DEBUG"}
+			symbols "On"
+			runtime "Debug" -- ����ʱ���ӵ�dll��debug���͵�	
+			if _ACTION == "vs2022" then
+				buildoptions { "/bigobj" , "/MTd" }
+			end
+
+		
+
+		filter { "configurations:Release"}
+			defines { "TSO_RELEASE"}
+			optimize "On"
+			runtime "Release" -- ����ʱ���ӵ�dll��release���͵�
+		if _ACTION == "vs2022" then
+			buildoptions { "/bigobj" , "/MT" }
+		end		
+
+		filter { "configurations:Dist"}
+			defines { "TSO_DIST"}
+			optimize "On"
+		if _ACTION == "vs2022" then
+			buildoptions { "/bigobj" , "/MT" }
+		end
+
 
 -- ----------------------------------------------------
 -- 定义我们的游戏引擎主程序项目
