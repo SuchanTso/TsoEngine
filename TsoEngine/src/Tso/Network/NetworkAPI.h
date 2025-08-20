@@ -21,7 +21,7 @@ namespace Tso {
         bool Send(const void* data, const size_t& length);
         virtual size_t Receive(void* buffer, const size_t& size) override;
         virtual bool IsConnected() override { return m_Connect; }
-        bool TCPChannel::InitializeWSA();
+        bool InitializeWSA();
         bool Connect(const InetAddress& serverAddress);
         bool Connect(const std::string& ip , const uint16_t& port);
         InetAddress GetLocalAddress() const;
