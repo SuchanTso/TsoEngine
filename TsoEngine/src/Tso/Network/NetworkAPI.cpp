@@ -82,6 +82,36 @@ private:
         return true;
     }
 
+    int TCPChannel::ReceiveNonBlocking(void* buffer, size_t length) {
+        if (!m_Connect || socketFd_ == INVALID_SOCKET) {
+            // It's better to return an error code if the socket is not valid
+            return SOCKET_ERROR;
+        }
+
+        // The socket is already set to non-blocking in the Connect() method.
+        // We need to cast length to int for the recv function signature.
+        int received = recv(socketFd_, static_cast<char*>(buffer), static_cast<int>(length), 0);
+
+        if (received == SOCKET_ERROR) {
+            int error = WSAGetLastError();
+            if (error == WSAEWOULDBLOCK) {
+                // This is the expected "error" for a non-blocking socket when there is no data.
+                // It's not a real error, so we return 0 to indicate "0 bytes received".
+                return 0;
+            }
+            else {
+                // This is a real network error.
+                TSO_CORE_ERROR("ReceiveNonBlocking failed with a real error: {}", error);
+                return SOCKET_ERROR; // Return -1 to signal a fatal error.
+            }
+        }
+
+        // if received == 0, the peer has performed an orderly shutdown.
+        // if received > 0, it's the number of bytes received.
+        // In both cases, returning the value from recv is the correct behavior.
+        return received;
+    }
+
     bool TCPChannel::Connect(const InetAddress& serverAddress)
     {
         // Initialize WSA for each connection attempt for simplicity, or manage it globally
@@ -177,7 +207,7 @@ private:
     }
     
     bool TCPChannel::Send(void* data, const size_t& length, const InetAddress& IPAddress) {
-        return Send(data, length, *remoteAddr_);
+        return Send(data, length);
     }
 
 
