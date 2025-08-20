@@ -293,6 +293,11 @@ private:
         return true;
     }
 
+    bool TCPChannel::InitializeWSA(){
+        
+    }
+
+
     bool TCPChannel::Connect(const std::string& ip, const uint16_t& port)
     {
         InetAddress serverAddress(ip, port);
