@@ -49,7 +49,7 @@ TagComponent::TagComponent(const std::string& name)
 }
 
 TextComponent::TextComponent(){
-    FontPath = Project::GetResourcePath() + "assets/KoseFontP-SC.ttf";
+    FontPath = Project::GetResourcePath() + "assets/TimesNewRoman.ttf";
     TextFont.reset();
     TextFont = std::make_shared<Font>(FontPath);
 }

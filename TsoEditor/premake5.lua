@@ -38,6 +38,21 @@ project "TsoEditor"
 
 	links { "TsoEngine" }
 
+	filter  "system:windows"
+		postbuildcommands
+		{
+			"xcopy \"%{wks.location}/TsoEditor/assets\" \"%{cfg.targetdir}/assets\" /S /E /Y /I",
+			"{COPY} %{wks.location}/TsoEditor/imgui.ini %{cfg.targetdir}/assets"
+		}
+
+	filter  "system:macosx"
+		postbuildcommands
+		{
+			"cp -ru \"%{wks.location}/TsoEditor/assets/.\" \"%{cfg.targetdir}/assets/\"",
+			"{COPY} %{wks.location}/TsoEditor/imgui.ini %{cfg.targetdir}/assets"
+		}
+
+
 	filter { "configurations:Debug"}
 		defines { "DEBUG"}
 		symbols "On"
@@ -100,4 +115,4 @@ project "TsoEditor"
 			print("%{prj.name}")
             buildaction "Embed"
 
-
+	
