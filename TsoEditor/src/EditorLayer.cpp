@@ -205,7 +205,7 @@ namespace Tso {
             if (Project::GetActive() && ImGui::Button("reload")) {
                 m_Scene->OnSceneStop();
                 std::filesystem::path resourcePath = std::filesystem::path(Project::GetResourcePath());
-                ScriptingEngine::LoadAllScripts((resourcePath / Project::GetActive()->GetConfig().ScriptModulePath).string());
+                ScriptingEngine::LoadAllScripts((resourcePath / Project::GetActive()->GetConfig().ScriptModulePath).string() , false);
                 m_Scene->OnScenePlay();
             }
 
@@ -438,7 +438,7 @@ namespace Tso {
             m_ScenePath = LoadScene(startScenePath);
             //m_ContentBrowserPanel = CreateScope<ContentBrowserPanel>();
             std::filesystem::path resourcePath = std::filesystem::path(Project::GetResourcePath());
-            ScriptingEngine::LoadAllScripts((resourcePath / Project::GetActive()->GetConfig().ScriptModulePath).string());
+            ScriptingEngine::LoadAllScripts((resourcePath / Project::GetActive()->GetConfig().ScriptModulePath).string() , false);
 
         }
     }

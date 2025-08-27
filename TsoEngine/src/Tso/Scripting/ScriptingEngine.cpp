@@ -139,13 +139,18 @@ namespace Utils {
         LoadAllScripts(Project::GetResourcePath() + "assets/scripts"); // [MODIFIED] 假设脚本路径在这里
     }
 
-    void ScriptingEngine::LoadAllScripts(const std::string& directory) {
+    void ScriptingEngine::LoadAllScripts(const std::string& directory , bool reset) {
         // 遍历指定目录下的所有 .lua 文件
-        s_Data->EntityClasses.clear();
+        if(reset){
+            s_Data->EntityClasses.clear();
+        }
         if(std::filesystem::exists(directory)){
             for (auto& entry : std::filesystem::directory_iterator(directory)) {
                 if (entry.path().extension() == ".lua") {
                     LoadScriptClasses(entry.path());
+                }
+                else if(entry.is_directory()){
+                    LoadAllScripts(entry.path().string() , false);
                 }
             }
         }

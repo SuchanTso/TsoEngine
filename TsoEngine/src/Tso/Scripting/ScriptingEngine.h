@@ -77,7 +77,7 @@ namespace Tso {
 		ScriptingEngine() = default;
 		~ScriptingEngine() = default;
 		static void Init();
-        static void LoadAllScripts(const std::string& directory);
+        static void LoadAllScripts(const std::string& directory , bool reset = true);
 		static void ShutDown();
 		static bool EntityClassExists(const std::string& className);
         static bool EntityInstanceExists(const UUID& uuid);
