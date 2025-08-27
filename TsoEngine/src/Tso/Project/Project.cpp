@@ -1,6 +1,7 @@
 #include "TPch.h"
 #include "Project.h"
 #include "ProjectSerielizer.h"
+#include "Scripting/ScriptingEngine.h"
 #ifdef __APPLE__
 #include <CoreFoundation/CoreFoundation.h>
 #endif
@@ -22,6 +23,12 @@ namespace Tso {
 		{
 			project->m_ProjectDirectory = path.parent_path();
 			s_Project = project;
+            std::string scriptPath = project->m_ProjectDirectory / project->GetConfig().ScriptModulePath;
+            bool exist = std::filesystem::exists(scriptPath);
+            if((!scriptPath.empty()) && std::filesystem::exists(scriptPath)){
+                ScriptingEngine::SetLuaPackagePath(scriptPath);
+                ScriptingEngine::LoadAllScripts(scriptPath , false);
+            }
 			return s_Project;
 		}
 

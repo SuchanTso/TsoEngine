@@ -56,7 +56,7 @@ void ScriptGlue::RegisterFunctions() {
         }
         return sol::lua_nil;
     };
-    world["FindEntityByTag"] = [](const std::string& name) -> sol::object {
+    world["FindEntityByName"] = [](const std::string& name) -> sol::object {
         Scene* scene = ScriptingEngine::GetSceneContext();
         if (!scene) return sol::lua_nil;
 
@@ -137,6 +137,17 @@ void ScriptGlue::RegisterFunctions() {
                 r.textureIndex = index;
                 // [MODIFIED] 业务逻辑也封装在绑定中
                 r.subTexture->RecalculateCoords(r.spriteSize, r.textureIndex, r.textureSize);
+            }
+        )
+    );
+    lua.new_usertype<IDComponent>("UUIDComponent",
+        "uuid", sol::property(
+            // Getter
+              [](const IDComponent& uuid) { return std::to_string(uuid.ID); },
+            // Setter
+            [](IDComponent& uuidComponent, const std::string& uuid) {
+                TSO_CORE_WARN("setting uuid to an entity, which is unlikely to do so. if u are sure about this, ignore this warning");
+                uuidComponent.ID = strtoull(uuid.c_str(), NULL, 10);
             }
         )
     );
@@ -235,6 +246,11 @@ void ScriptGlue::RegisterFunctions() {
                         return sol::make_object(ScriptingEngine::GetLuaState(), &entity.GetComponent<TextComponent>());
                     }
                 }
+            }
+            else if(componentName == "UUIDComponent"){
+                auto& UUIDc = entity.GetComponent<IDComponent>();
+                return sol::make_object(ScriptingEngine::GetLuaState(), &entity.GetComponent<IDComponent>());
+;
             }
             // ... 在这里添加更多 else if ...
             
