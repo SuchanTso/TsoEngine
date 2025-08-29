@@ -85,6 +85,7 @@ namespace Tso {
         glm::vec2 spriteSize = {1.0 , 1.0};
         glm::vec2 textureIndex = {0.0 , 0.0};
         glm::vec2 textureSize = {1.0 , 1.0};
+        bool uiview = false;
 	};
 
 	struct TagComponent  {

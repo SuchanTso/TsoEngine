@@ -52,6 +52,7 @@ OpenGLTexture2D::OpenGLTexture2D(const std::string& path)
     Invalidate(data);
     
     stbi_image_free(data);
+    TSO_CORE_INFO("create texture id {}" , m_RendererID);
     
 }
 

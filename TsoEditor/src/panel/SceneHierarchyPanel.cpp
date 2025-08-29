@@ -351,6 +351,20 @@ template<> void SceneHierarchyPanel::DisplayAddComponentEntry<TextComponent>(con
                         }
                     }
                 }
+                bool& uiview = comp.uiview;
+                ImGui::Checkbox("UIView", &uiview);
+                if(uiview && !entity.HasComponent<UITransformComponent>()){
+                    entity.AddComponent<UITransformComponent>();
+                    
+                }
+                if(!uiview && entity.HasComponent<UITransformComponent>()){
+                    entity.RemoveComponent<UITransformComponent>();
+                }
+                if(entity.HasComponent<UITransformComponent>()){
+                    auto& uitransformc = entity.GetComponent<UITransformComponent>();
+                    ImGui::DragFloat2("pos:", glm::value_ptr(uitransformc.UIpos) , 0.1f);
+                    ImGui::DragFloat3("size:", glm::value_ptr(uitransformc.UISize), 0.1f);
+                }
                 if (ImGui::MenuItem("Remove component"))
                     removeComponent = true;
                 ImGui::TreePop();

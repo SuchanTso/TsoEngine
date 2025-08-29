@@ -10,7 +10,7 @@
 #include "Network/ByteStream.h"
 #include "Network/NetworkEngine.h"
 #include "Tso/Protocol/LuaBridge.h"
-
+#include "Tso/Project/Resource.h"
 
 
 namespace Tso {
@@ -112,6 +112,26 @@ void ScriptGlue::RegisterFunctions() {
             [](glm::vec3& v, float z) { v.z = z; }
         )
     );
+    
+    lua.new_usertype<glm::vec4>("Vector4",
+        sol::constructors<glm::vec4(), glm::vec4(float), glm::vec4(float, float, float, float)>(),
+        "x", sol::property(
+            [](const glm::vec4& v) { return v.x; },
+            [](glm::vec4& v, float x) { v.x = x; }
+        ),
+        "y", sol::property(
+            [](const glm::vec4& v) { return v.y; },
+            [](glm::vec4& v, float y) { v.y = y; }
+        ),
+        "z", sol::property(
+            [](const glm::vec4& v) { return v.z; },
+            [](glm::vec4& v, float z) { v.z = z; }
+        ),
+        "2", sol::property(
+            [](const glm::vec4& v) { return v.w; },
+            [](glm::vec4& v, float w) { v.w = w; }
+        )
+    );
 
 
     // --- 组件绑定 ---
@@ -129,16 +149,64 @@ void ScriptGlue::RegisterFunctions() {
 
     // 绑定 Renderable
     lua.new_usertype<Renderable>("Renderable",
-        "spriteIndex", sol::property(
+        "color", sol::property(
             // Getter
-            [](const Renderable& r) { return r.textureIndex; },
+           [](const Renderable& r) { return r.m_Color; },
             // Setter
-            [](Renderable& r, const glm::vec2& index) {
+            [](Renderable& r, const glm::vec4& color) {
+                r.m_Color = color;
+            }
+        ),
+         "is_subtexture" , sol::property(
+             [](const Renderable& r){return r.isSubtexture;},
+             [](Renderable& r , bool isSubtexture){
+                 r.isSubtexture = isSubtexture;
+             }
+         ),
+         "type" , sol::property(
+            [](const Renderable& r){return r.type;},
+            [](Renderable& r , uint8_t type){
+                r.type = RenderType(type);
+                
+             }
+         ),
+         "sprite_index" , sol::property(
+        [](const Renderable& r){return r.textureIndex;},
+        [](Renderable& r , glm::vec2& index){
                 r.textureIndex = index;
-                // [MODIFIED] 业务逻辑也封装在绑定中
+            if(r.subTexture){
                 r.subTexture->RecalculateCoords(r.spriteSize, r.textureIndex, r.textureSize);
             }
-        )
+             }
+         ),
+         "sprite_size" , sol::property(
+       [](const Renderable& r){return r.spriteSize;},
+        [](Renderable& r , glm::vec2& spriteSize){
+                r.spriteSize = spriteSize;
+            if(r.subTexture){
+                r.subTexture->RecalculateCoords(r.spriteSize, r.textureIndex, r.textureSize);
+            }
+             }
+         ),
+         "texture_size" , sol::property(
+        [](const Renderable& r){return r.textureSize;},
+        [](Renderable& r , glm::vec2& texture_size){
+            r.textureSize = texture_size;
+            if(r.subTexture){
+                r.subTexture->RecalculateCoords(r.spriteSize, r.textureIndex, r.textureSize);
+            }
+            }
+         ),
+         "texture_path" , sol::property(
+        [](const Renderable& r){return "";},
+        [](Renderable& r , std::string texturePath){
+            auto path = Project::GetActive()->GetResourcePath() + "/" + texturePath;
+            auto texture = Resource::GetTextureByPath(path);
+            if(texture){
+                r.subTexture = SubTexture2D::CreateByCoord(texture, r.spriteSize, r.textureIndex, r.textureSize);
+            }
+             }
+         )
     );
     lua.new_usertype<IDComponent>("UUIDComponent",
         "uuid", sol::property(
@@ -304,6 +372,17 @@ void ScriptGlue::RegisterFunctions() {
                      entity.AddComponent<UITransformComponent>();
                  }
                  return sol::make_object(ScriptingEngine::GetLuaState(), &bc);
+             }
+             else if(componentName == "ImageView"){
+                 if(!entity.HasComponent<Renderable>()){
+                     entity.AddComponent<Renderable>();
+                 }
+                 if(!entity.HasComponent<UITransformComponent>()){
+                     entity.AddComponent<UITransformComponent>();
+                 }
+                 auto& r = entity.GetComponent<Renderable>();
+                 r.uiview = true;
+                 return sol::make_object(ScriptingEngine::GetLuaState(), &r);
              }
         
              // ... 其他组件 ...
