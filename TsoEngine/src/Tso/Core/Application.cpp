@@ -4,6 +4,7 @@
 #include "Tso/Renderer/Renderer.h"
 #include "Tso/Scripting/ScriptingEngine.h"
 #include "Tso/Network/NetworkEngine.h"
+#include "Tso/Project/Resource.h"
 
 //temp
 // 
@@ -18,6 +19,7 @@ namespace Tso {
         m_Window = std::unique_ptr<Window>(Window::Create({ windowName ,1280,720}));
 		m_Window->SetEventCallback(BIND_EVENT_FN(Application::OnEvent));
         Input::Init();
+        Resource::Init();
         RenderCommand::Init();
         ScriptingEngine::Init();
         NetWorkEngine::Init();

@@ -1,7 +1,7 @@
 #include "TPch.h"
 #include "Component.h"
 #include "Tso/Renderer/Renderer2D.h"
-
+#include "Tso/Project/Resource.h"
 namespace Tso {
 
 
@@ -49,9 +49,18 @@ TagComponent::TagComponent(const std::string& name)
 }
 
 TextComponent::TextComponent(){
-    FontPath = Project::GetResourcePath() + "assets/TimesNewRoman.ttf";
-    TextFont.reset();
-    TextFont = std::make_shared<Font>(FontPath);
+
+    if(TextFont){
+        TextFont.reset();
+    }
+    auto resource = Resource::GetResource();
+    if(resource && resource->font){
+        TextFont = resource->font;
+    }
+    else{
+        FontPath = Project::GetResourcePath() + "assets/TimesNewRoman.ttf";
+        TextFont = std::make_shared<Font>(FontPath);
+    }
 }
 
 TextComponent::TextComponent(const std::string& fontPath)
