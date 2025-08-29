@@ -21,7 +21,9 @@ SubTexture2D::SubTexture2D(const Ref<Texture2D>& texture , const glm::vec2& min 
     
 }
 Ref<SubTexture2D> SubTexture2D::CreateByCoord(const Ref<Texture2D>& texture , const glm::vec2& spriteSize , const glm::vec2& index , const glm::vec2& size){
-    
+    //index: offset for the whole texture
+    // spriteSize: the smallest unit size in the whole texture
+    // size: when u render an entity , it may occupy more than one unit. so u may need size to specify how many units ur subtexture obtains.
     auto texWidth = texture->GetWidth();
     auto texHeight = texture->GetHeight();
     glm::vec2 min = { index.x * spriteSize.x / texWidth  , index.y * spriteSize.y / texHeight };

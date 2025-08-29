@@ -194,6 +194,7 @@ void Scene::OnUpdate(TimeStep ts)
         for (auto& entity : group) {
             const auto& [render, trans] = group.get<Renderable, TransformComponent>(entity);
             Entity tEntity = Entity(entity , this);
+            if(tEntity.HasComponent<UITransformComponent>())continue;//ignore UI
             glm::mat4 transform = tEntity.GetWorldTransform();
             if(render.type == RenderType::PureColor){
                 Renderer2D::DrawQuad(transform,render.m_Color , (int)entity);

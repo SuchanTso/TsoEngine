@@ -285,6 +285,40 @@ void UISystem::Render(Scene*scene) {
             // ... 在文本末尾绘制一个闪烁的竖线 ...
         }
     }
+    // 渲染UI image
+    auto imageView = scene->GetAllEntitiesWith<TransformComponent, Renderable , UITransformComponent>();
+    for (auto e : imageView) {
+        auto& transform = e.GetComponent<TransformComponent>();
+        auto& render = e.GetComponent<Renderable>();
+        auto& uiTransformc = e.GetComponent<UITransformComponent>();
+
+        
+        glm::vec2 layoutPos = uiTransformc.UIpos;
+        glm::vec2 layoutSize = uiTransformc.UISize;
+        float layoutRotation = uiTransformc.Rotation_Z;
+        
+        glm::vec3 worldPos;
+        worldPos.x = layoutPos.x - UISystem::VirtualResolutionX * 0.5f + layoutSize.x * 0.5;
+        worldPos.y = layoutPos.y - UISystem::VirtualResolutionY * 0.5f + layoutSize.y * 0.5f;
+        worldPos.z = transform.GetPos().z;
+        
+        glm::mat4 worldTransfrom = glm::translate(glm::mat4(1.0f), worldPos)
+        * glm::rotate(glm::mat4(1.0f), glm::radians(layoutRotation), {0, 0, 1})
+        * glm::scale(glm::mat4(1.0f), {layoutSize.x, layoutSize.y, 1.0f});
+        
+        if(render.type == RenderType::PureColor){
+            Renderer2D::DrawQuad(worldTransfrom,render.m_Color , (int)3);
+        }
+        else{
+            if(render.isSubtexture){
+                Renderer2D::DrawQuad(worldTransfrom,render.subTexture , (int)3);
+            }
+            else{
+                if(render.subTexture && render.subTexture->GetTexture())
+                    Renderer2D::DrawQuad(worldTransfrom,render.subTexture->GetTexture() , (int)3);
+            }
+        }
+    }
 
     }
 }
