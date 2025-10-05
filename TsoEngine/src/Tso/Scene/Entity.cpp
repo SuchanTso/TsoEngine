@@ -12,6 +12,12 @@ Entity::Entity(const entt::entity& entityId, Scene* scene, const std::string& na
 	{
 	}
 
+Entity::~Entity(){
+    
+//    TSO_CORE_INFO("entity {} has destroyed" , uint32_t(m_EntityID));
+    
+}
+
 glm::mat4 Entity::GetWorldTransform()
 {
 	TSO_CORE_ASSERT(HasComponent<TransformComponent>(), "an entity without transformcomponent is not allowed");

@@ -11,7 +11,7 @@
 #include "Network/NetworkEngine.h"
 #include "Tso/Protocol/LuaBridge.h"
 #include "Tso/Project/Resource.h"
-
+#include "Tso/Scripting/ScriptTaskManager.h"
 
 namespace Tso {
 
@@ -35,7 +35,10 @@ void ScriptGlue::RegisterFunctions() {
     
     world["CreateEntity"] = [](sol::optional<std::string> tag) -> Entity {
             Scene* scene = ScriptingEngine::GetSceneContext();
-            if (!scene) return Entity{}; // 返回无效实体
+            if (!scene) {
+                TSO_CORE_ERROR("No scripting context when creating entity");
+                return Entity{}; // 返回无效实体
+            }
             if (tag) {
                 return scene->CreateEntity(tag.value());
             }
@@ -61,7 +64,7 @@ void ScriptGlue::RegisterFunctions() {
         if (!scene) return sol::lua_nil;
 
         // [MODIFIED] 直接在绑定中处理字符串到UUID的转换
-        auto tagView = scene->GetAllEntitiesWith<TagComponent>();
+        auto tagView = scene->GetAllEntitiesWith<TagComponent>(true);
         for(auto e : tagView){
             auto& tag = e.GetComponent<TagComponent>();
             if(tag.m_Name == name){
@@ -69,6 +72,9 @@ void ScriptGlue::RegisterFunctions() {
             }
         }
         return sol::lua_nil;
+    };
+    world["RunLater"] = [](sol::protected_function func, float delay) {
+        ScriptTaskManager::Get().AddTask(func, delay);
     };
 
 
@@ -127,7 +133,7 @@ void ScriptGlue::RegisterFunctions() {
             [](const glm::vec4& v) { return v.z; },
             [](glm::vec4& v, float z) { v.z = z; }
         ),
-        "2", sol::property(
+        "w", sol::property(
             [](const glm::vec4& v) { return v.w; },
             [](glm::vec4& v, float w) { v.w = w; }
         )
@@ -314,26 +320,63 @@ void ScriptGlue::RegisterFunctions() {
                         return sol::make_object(ScriptingEngine::GetLuaState(), &entity.GetComponent<TextComponent>());
                     }
                 }
+                else{
+                    entt::entity eid = (entt::entity)entity.GetEntityID();
+                    auto en = Entity(eid , ScriptingEngine::GetSceneContext());
+                    if(en.HasComponent<IDComponent>()){
+                        auto uuid = en.GetUUID();
+                    }
+                    TSO_WARN("entity doesn't has UITextComponent");
+                }
             }
             else if(componentName == "UUIDComponent"){
-                auto& UUIDc = entity.GetComponent<IDComponent>();
                 return sol::make_object(ScriptingEngine::GetLuaState(), &entity.GetComponent<IDComponent>());
-;
             }
+            else if(componentName == "ImageView"){
+                if(entity.HasComponent<Renderable>()){
+                    auto& r = entity.GetComponent<Renderable>();
+                    if(r.uiview){
+                        return sol::make_object(ScriptingEngine::GetLuaState(), &entity.GetComponent<Renderable>());
+                    }
+                }
+                return sol::lua_nil;
+            }
+            
             // ... 在这里添加更多 else if ...
             
             TSO_CORE_WARN("Lua script trying to get unknown or missing component: {}", componentName);
             return sol::lua_nil;
         },
-         "IsValid", &Entity::operator bool,
+         "IsValid", [](Entity& entity){
+            bool res = entity.HasComponent<IDComponent>();
+            if(!res){
+                TSO_WARN("entity {} is not valid" , entity.GetEntityID());
+            }
+        return res;
+    },
          "Destroy", [](Entity& entity) {
              Scene* scene = ScriptingEngine::GetSceneContext();
+//            TSO_INFO("entity {} destroyed itself" , uint32_t(entity));
              if (scene) scene->DeleteEntity(entity);
+             else{
+                 TSO_CORE_ERROR("Didn't get scripting engine context when destroying entity");
+             }
          },
          "GetTag", [](Entity& entity) ->std::string{
-                return entity.GetComponent<TagComponent>().m_Name;
+        if(entity.HasComponent<TagComponent>()){
+            return entity.GetComponent<TagComponent>().m_Name;
+        }
+        else{
+            TSO_WARN("failed to get tag component for entity");
+            return "";
+        }
 //            return sol::make_object(ScriptingEngine::GetLuaState(), &entity.GetComponent<TagComponent>().m_Name);
         },
+         "SetActive", [](Entity& entity , bool active) ->void{
+        TSO_INFO("Set entity : {} as {}" , entity.GetUUID() , active);
+            entity.GetComponent<ActiveComponent>().Active = active;
+        },
+                             
          "AddComponent", [](Entity& entity, const std::string& componentName, sol::optional<sol::table> initial_values) -> sol::object {
              // 在这里你需要一个组件注册表或一长串 if/else
              if (componentName == "Script") {
@@ -383,6 +426,15 @@ void ScriptGlue::RegisterFunctions() {
                  auto& r = entity.GetComponent<Renderable>();
                  r.uiview = true;
                  return sol::make_object(ScriptingEngine::GetLuaState(), &r);
+             }
+             else if(componentName == "CameraComponent"){
+                 if(!entity.HasComponent<CameraComponent>()){
+                     auto& camera = entity.AddComponent<CameraComponent>();
+                     if (initial_values) {
+                         camera.m_Pramiary = (*initial_values).get_or("isMain", false);
+                     }
+                     return sol::make_object(ScriptingEngine::GetLuaState(), &camera);
+                 }
              }
         
              // ... 其他组件 ...

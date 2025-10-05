@@ -14,6 +14,7 @@
 #include "Tso/Network/NetworkEngine.h"
 #include "Tso/Core/Application.h"
 #include "Tso/UI/UISystem.h"
+#include "Tso/Scripting/ScriptTaskManager.h"
 
 namespace Utils {
     b2BodyType Rigidbody2DTypeToBox2DBody(Tso::Rigidbody2DComponent::BodyType bodyType)
@@ -81,6 +82,15 @@ bool Scene::EntityExist(const UUID& uuid)
     
     return m_EntityMap.find(uint64_t(uuid)) != m_EntityMap.end();
 }
+
+bool Scene::IsEntityActive(entt::entity e){
+    Entity entity = {e , this};
+    bool res = entity.GetComponent<ActiveComponent>().Active;
+//    TSO_INFO("entity : {} is {}" , entity.GetUUID() , res);
+
+    return res;
+}
+
 
 void Scene::OnUpdate(TimeStep ts)
 {
@@ -155,15 +165,15 @@ void Scene::OnUpdate(TimeStep ts)
 
     //deal not active entity
     //delete them
-    auto activeView = m_Registry.view<ActiveComponent>();
-    for (auto& e : activeView) {
-        Entity entity = { e, this };
-
-        auto& activeC = entity.GetComponent<ActiveComponent>();
-        if (!activeC.Active) {
-            DeleteEntity(entity);
-        }
-    }
+//    auto activeView = m_Registry.view<ActiveComponent>();
+//    for (auto& e : activeView) {
+//        Entity entity = { e, this };
+//
+//        auto& activeC = entity.GetComponent<ActiveComponent>();
+//        if (!activeC.Active) {
+//            DeleteEntity(entity);
+//        }
+//    }
 
 
     auto view = m_Registry.view<TransformComponent, CameraComponent>();
@@ -226,7 +236,7 @@ void Scene::OnUpdate(TimeStep ts)
         Renderer2D::EndScene();
         
     }
-
+    ScriptTaskManager::Get().OnUpdate(m_Time);
     NetWorkEngine::OnUpdate(ts);
     Input::EndFrame();
 }
@@ -374,6 +384,7 @@ void Scene::DeleteEntity(Entity entity){
         m_PhysicWorld->DestroyBody(body);
         
     }
+//    TSO_CORE_INFO("entity {} has deleted" , uint32_t(entity));
     m_EntityMap.erase(entity.GetUUID());
     m_Registry.destroy(entity);
     ScriptingEngine::OnDeleteEntity(entity);

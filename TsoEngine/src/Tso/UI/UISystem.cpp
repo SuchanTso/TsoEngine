@@ -203,6 +203,7 @@ void UISystem::Render(Scene*scene) {
     // 渲染按钮
     auto buttonView = scene->GetAllEntitiesWith<TransformComponent, ButtonComponent , UITransformComponent>();
     for (auto e : buttonView) {
+//        TSO_CORE_INFO("rendering button {} " , e.GetUUID());
         auto& transform = e.GetComponent<TransformComponent>();
         auto& button = e.GetComponent<ButtonComponent>();
         auto& uiTransformc = e.GetComponent<UITransformComponent>();
