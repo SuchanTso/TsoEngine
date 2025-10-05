@@ -651,7 +651,7 @@ void Renderer2D::DrawString(const Ref<Font> font, const glm::mat4& transform, co
     // 防止除以零
     float scaleX = (textBoundsSize.x > 0.0001f) ? (1.0f / textBoundsSize.x) : 1.0f;
     float scaleY = (textBoundsSize.y > 0.0001f) ? (1.0f / textBoundsSize.y) : 1.0f;
-    glm::vec2 scaleVec(scaleX, scaleY);
+    glm::vec2 scaleVec(std::min(scaleX,1.f), std::min(scaleY,1.f));
     
     // =========================================================================
     // 3. 第二次遍历: 生成顶点并进行归一化

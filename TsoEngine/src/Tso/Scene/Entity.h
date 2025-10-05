@@ -12,6 +12,7 @@ namespace Tso {
 	public:
 		Entity() {}
 		Entity(const entt::entity& entityId , Scene* scene , const std::string& name = std::string());
+        ~Entity();
 
 		template<typename T , typename... Arg>
         T& AddComponent(Arg&& ...arg){

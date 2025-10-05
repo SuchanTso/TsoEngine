@@ -64,7 +64,7 @@ namespace Tso {
 		bool HasEntity(const UUID& uuid);
         
         template <typename... T>
-        std::vector<Entity> GetAllEntitiesWith(){
+        std::vector<Entity> GetAllEntitiesWith(bool inactiveIncluded = false){
             std::vector<Entity> res;
             auto view = m_Registry.view<T...>();
             
@@ -73,7 +73,9 @@ namespace Tso {
             
             // [MODIFIED] 使用范围-for循环
             for (auto entity : view) {
-                res.push_back({entity, this});
+                if(inactiveIncluded || IsEntityActive(entity)){
+                    res.push_back({entity, this});
+                }
             }
                 
             return res;
@@ -95,6 +97,8 @@ namespace Tso {
 		std::unordered_map<uint64_t, std::unordered_map<uint64_t, Ref<Entity>>> m_ChildrenMap;
 
 		std::unordered_map<uint64_t, Ref<Entity>> m_ParentMap;
+        
+        bool IsEntityActive(entt::entity e);
 
 		bool m_Pause = true;
 
