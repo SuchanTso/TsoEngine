@@ -8,6 +8,28 @@
 
 namespace Tso {
 
+
+    const char* OpenGLShader::GetShaderStageName(unsigned int stage){
+        switch (stage) {
+            case 0x8B31: return "Vertex Shader";   // GL_VERTEX_SHADER
+            case 0x8B30: return "Fragment Shader"; // GL_FRAGMENT_SHADER
+            case 0x8B32: return "Geometry Shader"; // GL_GEOMETRY_SHADER
+            // 添加其他阶段...
+        }
+        return "Unknown Shader";
+    }
+
+    static const char* GLShaderStageToString(GLenum stage) {
+        switch (stage) {
+            case GL_VERTEX_SHADER:   return "vertex";
+            case GL_FRAGMENT_SHADER: return "fragment";
+            case GL_GEOMETRY_SHADER: return "geometry";
+            case GL_COMPUTE_SHADER:  return "compute";
+        }
+        TSO_CORE_ASSERT(false, "Unknown shader stage!");
+        return "unknown";
+    }
+
 	static GLenum StringToGLEnum(const std::string& type) {
 
 		if (type == "vertex" || type == "Vertex")
@@ -23,19 +45,19 @@ namespace Tso {
 		: m_Name(name)
 	{
 		
-		std::unordered_map<GLenum, std::string> shaderMap;
-		shaderMap[GL_VERTEX_SHADER] = vertexSrc;
-		shaderMap[GL_FRAGMENT_SHADER] = fragmentSrc;
+        m_Source[GL_VERTEX_SHADER] = vertexSrc;
+        m_Source[GL_FRAGMENT_SHADER] = fragmentSrc;
 
-		Compile(shaderMap);
+		Compile(m_Source);
 
 	}
 
 	OpenGLShader::OpenGLShader(const std::string& filePath)
+    :m_filePath(filePath)
 	{
 		std::string shaderSrcs = ReadFile(filePath);
-		auto shaderMap = PreProcess(shaderSrcs);
-		Compile(shaderMap);
+		m_Source = PreProcess(shaderSrcs);
+		Compile(m_Source);
 
 		auto last_slash = filePath.find_last_of("/\\");
 		auto start = last_slash == std::string::npos ? 0 : last_slash + 1;
@@ -240,6 +262,96 @@ void OpenGLShader::SetMatrix4(const std::string& name , const glm::mat4& matrix)
 
 
 	}
+
+    bool OpenGLShader::Recompile(const std::unordered_map<unsigned int, std::string>& newSources) {
+        // 1. 尝试编译新代码
+        auto newProgram = glCreateProgram();
+        bool compiled = true;
+        std::unordered_map<GLenum, unsigned int>shaderIds;
+        for (auto& kv : newSources) {
+            GLenum type = kv.first;
+            std::string shaderSrc = kv.second;
+
+
+            unsigned int shader = glCreateShader(type);
+            shaderIds[type] = shader;
+
+            const char* source = shaderSrc.c_str();
+            glShaderSource(shader, 1, &source, 0);
+
+            glCompileShader(shader);
+
+            int isCompiled = 0;
+            glGetShaderiv(shader, GL_COMPILE_STATUS, &isCompiled);
+            if (isCompiled == GL_FALSE) {
+                int maxLength = 0;
+                glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &maxLength);
+                std::vector<char>infoLog(maxLength);
+                glGetShaderInfoLog(shader, maxLength, &maxLength, &infoLog[0]);
+
+                TSO_CORE_ERROR("[shader] vertex shader error : {0}", infoLog.data());
+
+                glDeleteShader(shader);
+                compiled = false;
+            
+                
+            }
+            glAttachShader(newProgram, shader);
+
+        }
+        
+        
+        if (newProgram == 0 || !compiled) {
+            return false; // 编译失败，保持原样
+        }
+
+        // 2. 编译成功：替换 GPU 资源
+        glDeleteProgram(m_RendererId);
+        m_RendererId = newProgram;
+
+        // 3. 更新内存中的源码缓存（这一步很重要！）
+        // 如果不更新，下次获取 GetSource() 还是旧代码
+        // m_OpenGLSourceCode 是你在类里存储源码的成员变量
+        m_Source = newSources;
+        
+        if (!m_filePath.empty()) {
+            bool saved = SaveToFile(m_filePath, newSources);
+            if (saved) {
+                TSO_CORE_INFO("Shader source saved to '{0}'", m_filePath);
+            }
+        } else {
+            TSO_CORE_WARN("Shader recompiled but NOT saved: FilePath is empty (created from string?)");
+        }
+
+        return true;
+    }
+
+bool OpenGLShader::SaveToFile(const std::string& filepath, const std::unordered_map<GLenum, std::string>& sources) {
+    std::ofstream out(filepath);
+    if (!out.is_open()) {
+        TSO_CORE_ERROR("Could not open file '{0}' for writing shader", filepath);
+        return false;
+    }
+
+    for (auto& [stage, source] : sources) {
+        std::string stageName = GLShaderStageToString(stage);
+        
+        // 1. 写入分隔标记
+        out << "#type " << stageName << "\n";
+        
+        // 2. 写入源码
+        // 注意：InputText 有可能删除了换行符，或者多加了换行符，这里最好保证格式整洁
+        out << source;
+        
+        // 保证每个阶段之间有换行
+        if (source.empty() || source.back() != '\n') {
+            out << "\n";
+        }
+    }
+
+    out.close();
+    return true;
+}
 
 	std::string OpenGLShader::ReadFile(const std::string& filePath)
 	{

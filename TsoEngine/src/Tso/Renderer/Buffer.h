@@ -129,8 +129,8 @@ namespace Tso {
 		virtual void SetLayout(const BufferLayout& layout) = 0;
 		virtual const BufferLayout& GetLayout()const = 0;
 
-		static VertexBuffer* Create(float* vertices, uint32_t size);
-		static VertexBuffer* Create(uint32_t size);
+		static Ref<VertexBuffer> Create(float* vertices, uint32_t size);
+		static Ref<VertexBuffer> Create(uint32_t size);
 
 	};
 
@@ -142,7 +142,7 @@ namespace Tso {
 		virtual void UnBind() const = 0;
 		virtual uint32_t GetCount() = 0;
 
-		static IndexBuffer* Create(uint32_t* indices, uint32_t count);
+		static Ref<IndexBuffer>Create(uint32_t* indices, uint32_t count);
 
 	};
 }

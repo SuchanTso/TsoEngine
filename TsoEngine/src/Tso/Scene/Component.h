@@ -11,6 +11,7 @@
 #include "Tso/Scene/Seriealizer.h"
 #include "Tso/Network/ByteStream.h"
 #include "sol/sol.hpp"
+#include "Renderer/Material.h"
 
 namespace Tso {
 
@@ -81,6 +82,7 @@ namespace Tso {
         bool isSubtexture = false;
 		glm::vec4 m_Color = glm::vec4(0.3 , 0.8 , 0.2 , 1.0);
         Ref<SubTexture2D> subTexture;
+        Ref<Material> material = nullptr;
         
         glm::vec2 spriteSize = {1.0 , 1.0};
         glm::vec2 textureIndex = {0.0 , 0.0};

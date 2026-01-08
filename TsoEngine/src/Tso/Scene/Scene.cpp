@@ -3,6 +3,7 @@
 #include "Entity.h"
 #include "Component.h"
 #include "Tso/Renderer/Renderer2D.h"
+#include "Tso/Renderer/Renderer2DMaterial.h"
 #include "Tso/Scripting/ScriptingEngine.h"
 
 #include "box2d/b2_world.h"
@@ -198,7 +199,7 @@ void Scene::OnUpdate(TimeStep ts)
     }
  
     if (mainCamera && mainCameraTransfrom) {
-        Renderer2D::BeginScene(*mainCamera, *mainCameraTransfrom);
+        Renderer2DMaterial::BeginScene(*mainCamera, *mainCameraTransfrom);
         
         auto group = m_Registry.view<Renderable , TransformComponent>();
         for (auto& entity : group) {
@@ -206,36 +207,39 @@ void Scene::OnUpdate(TimeStep ts)
             Entity tEntity = Entity(entity , this);
             if(tEntity.HasComponent<UITransformComponent>())continue;//ignore UI
             glm::mat4 transform = tEntity.GetWorldTransform();
-            if(render.type == RenderType::PureColor){
-                Renderer2D::DrawQuad(transform,render.m_Color , (int)entity);
-            }
-            else{
-                if(render.isSubtexture){
-                    Renderer2D::DrawQuad(transform,render.subTexture , (int)entity);
-                }
-                else{
-                    if(render.subTexture && render.subTexture->GetTexture())
-                        Renderer2D::DrawQuad(transform,render.subTexture->GetTexture() , (int)entity);
-                }
-            }
+            std::vector<glm::vec2> defaultTextCoord = { {0,0}, {1,0}, {1,1}, {0,1} };
+            std::vector<glm::vec2> texCoord = render.subTexture ? render.subTexture->GetTexCoords() : defaultTextCoord;
+            Renderer2DMaterial::DrawQuad(transform,texCoord,(int)entity , render.material);
+//            if(render.type == RenderType::PureColor){
+//                Renderer2D::DrawQuad(transform,render.m_Color , (int)entity);
+//            }
+//            else{
+//                if(render.isSubtexture){
+//                    Renderer2D::DrawQuad(transform,render.subTexture , (int)entity);
+//                }
+//                else{
+//                    if(render.subTexture && render.subTexture->GetTexture())
+//                        Renderer2D::DrawQuad(transform,render.subTexture->GetTexture() , (int)entity);
+//                }
+//            }
         }
         
-        auto textGroup = m_Registry.view<TransformComponent, TextComponent>();
-        for(auto& e : textGroup){
-            const auto& [transComp , textComp] = textGroup.get<TransformComponent, TextComponent>(e);
-            if(textComp.isUI)continue;//ignore UI text;
-            if(textComp.TextFont && textComp.Text.length() > 0){
-                Renderer2D::DrawString(textComp.TextFont, transComp.GetTransform(), textComp.Text , textComp.textParam , (int)e);
-            }
-        }
-        Renderer2D::EndScene();
+//        auto textGroup = m_Registry.view<TransformComponent, TextComponent>();
+//        for(auto& e : textGroup){
+//            const auto& [transComp , textComp] = textGroup.get<TransformComponent, TextComponent>(e);
+//            if(textComp.isUI)continue;//ignore UI text;
+//            if(textComp.TextFont && textComp.Text.length() > 0){
+//                Renderer2D::DrawString(textComp.TextFont, transComp.GetTransform(), textComp.Text , textComp.textParam , (int)e);
+//            }
+//        }
+        Renderer2DMaterial::EndScene();
     }
-    if(UICamera && mainCameraTransfrom){
-        Renderer2D::BeginScene(*UICamera, glm::mat4(1.f));
-        m_UISystem->OnUpdate(ts);
-        Renderer2D::EndScene();
-        
-    }
+//    if(UICamera && mainCameraTransfrom){
+//        Renderer2DMaterial::BeginScene(*UICamera, glm::mat4(1.f));
+//        m_UISystem->OnUpdate(ts);
+//        Renderer2DMaterial::EndScene();
+//        
+//    }
     ScriptTaskManager::Get().OnUpdate(m_Time);
     NetWorkEngine::OnUpdate(ts);
     Input::EndFrame();

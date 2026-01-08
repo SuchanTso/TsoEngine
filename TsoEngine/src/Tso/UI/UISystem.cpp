@@ -176,29 +176,29 @@ void UISystem::Render(Scene*scene) {
 //    auto windowPosX = Application::Get().GetWindow().GetPosX();
 //    auto viewportSize = ViewportManager::GetSize();
 //    auto viewportPos = ViewportManager::GetPosition();
-    auto UITxetView = scene->GetAllEntitiesWith<TextComponent , UITransformComponent>();
-    for(auto e : UITxetView){
-        if(e.HasComponent<ButtonComponent>() || e.HasComponent<InputFieldComponent>())continue;//deal them below
-        auto& transform = e.GetComponent<TransformComponent>();
-        auto& uiTransformc = e.GetComponent<UITransformComponent>();
-        
-        glm::vec2 layoutPos = uiTransformc.UIpos;
-        glm::vec2 layoutSize = uiTransformc.UISize;
-        float layoutRotation = uiTransformc.Rotation_Z;
-        
-        glm::vec3 worldPos;
-        worldPos.x = layoutPos.x - UISystem::VirtualResolutionX * 0.5f + layoutSize.x * 0.5;
-        worldPos.y = layoutPos.y - UISystem::VirtualResolutionY * 0.5f + layoutSize.y * 0.5f;
-        worldPos.z = transform.GetPos().z;
-        
-        glm::mat4 worldTransfrom = glm::translate(glm::mat4(1.0f), worldPos)
-        * glm::rotate(glm::mat4(1.0f), glm::radians(layoutRotation), {0, 0, 1})
-        * glm::scale(glm::mat4(1.0f), {layoutSize.x, layoutSize.y, 1.0f});
-        auto& textComp = e.GetComponent<TextComponent>();
-        if(textComp.TextFont){
-            Renderer2D::DrawString(textComp.TextFont, worldTransfrom, textComp.Text , textComp.textParam , (int)(e));
-        }
-    }
+//    auto UITxetView = scene->GetAllEntitiesWith<TextComponent , UITransformComponent>();
+//    for(auto e : UITxetView){
+//        if(e.HasComponent<ButtonComponent>() || e.HasComponent<InputFieldComponent>())continue;//deal them below
+//        auto& transform = e.GetComponent<TransformComponent>();
+//        auto& uiTransformc = e.GetComponent<UITransformComponent>();
+//        
+//        glm::vec2 layoutPos = uiTransformc.UIpos;
+//        glm::vec2 layoutSize = uiTransformc.UISize;
+//        float layoutRotation = uiTransformc.Rotation_Z;
+//        
+//        glm::vec3 worldPos;
+//        worldPos.x = layoutPos.x - UISystem::VirtualResolutionX * 0.5f + layoutSize.x * 0.5;
+//        worldPos.y = layoutPos.y - UISystem::VirtualResolutionY * 0.5f + layoutSize.y * 0.5f;
+//        worldPos.z = transform.GetPos().z;
+//        
+//        glm::mat4 worldTransfrom = glm::translate(glm::mat4(1.0f), worldPos)
+//        * glm::rotate(glm::mat4(1.0f), glm::radians(layoutRotation), {0, 0, 1})
+//        * glm::scale(glm::mat4(1.0f), {layoutSize.x, layoutSize.y, 1.0f});
+//        auto& textComp = e.GetComponent<TextComponent>();
+//        if(textComp.TextFont){
+//            Renderer2D::DrawString(textComp.TextFont, worldTransfrom, textComp.Text , textComp.textParam , (int)(e));
+//        }
+//    }
     
     // 渲染按钮
     auto buttonView = scene->GetAllEntitiesWith<TransformComponent, ButtonComponent , UITransformComponent>();
@@ -228,15 +228,15 @@ void UISystem::Render(Scene*scene) {
         Renderer2D::DrawQuad(worldTransfrom, color , int(e));
         
         // 如果按钮上有文字
-        if (e.HasComponent<TextComponent>()) {
-            auto& textComp = e.GetComponent<TextComponent>();
-            if(textComp.TextFont){
-                glm::mat4 textTransform = glm::translate(glm::mat4(1.0f), glm::vec3(worldPos.x , worldPos.y , worldPos.z + 0.01f))
-                * glm::rotate(glm::mat4(1.0f), glm::radians(layoutRotation), {0, 0, 1})
-                * glm::scale(glm::mat4(1.0f), {layoutSize.x, layoutSize.y, 1.0f});
-                Renderer2D::DrawString(textComp.TextFont, textTransform, textComp.Text , textComp.textParam , (int)(e));
-            }
-        }
+//        if (e.HasComponent<TextComponent>()) {
+//            auto& textComp = e.GetComponent<TextComponent>();
+//            if(textComp.TextFont){
+//                glm::mat4 textTransform = glm::translate(glm::mat4(1.0f), glm::vec3(worldPos.x , worldPos.y , worldPos.z + 0.01f))
+//                * glm::rotate(glm::mat4(1.0f), glm::radians(layoutRotation), {0, 0, 1})
+//                * glm::scale(glm::mat4(1.0f), {layoutSize.x, layoutSize.y, 1.0f});
+//                Renderer2D::DrawString(textComp.TextFont, textTransform, textComp.Text , textComp.textParam , (int)(e));
+//            }
+//        }
     }
     
     // 渲染输入框

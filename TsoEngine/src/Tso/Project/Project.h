@@ -18,6 +18,9 @@ namespace Tso {
 		static Ref<Project> LoadProject(const std::filesystem::path& path);
 		static bool SaveActive(const std::filesystem::path& path);
 		ProjectConfig& GetConfig() { return m_Config; }
+        
+        
+        static void CloseActive(){s_Project = nullptr;}
 
 		static std::filesystem::path& GetProjectDirectory() {
 			TSO_CORE_ASSERT(s_Project != nullptr, "there is no project opening");

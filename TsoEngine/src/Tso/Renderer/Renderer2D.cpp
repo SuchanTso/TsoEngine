@@ -200,7 +200,7 @@ Ref<IndexBuffer> Renderer2D::GenIndexBuffer(const uint32_t& maxIndexCounts)
     }
 
     Ref<IndexBuffer> indexBuffer;
-    indexBuffer.reset(IndexBuffer::Create(quadIndices, s_Data.maxIndices));
+    indexBuffer = IndexBuffer::Create(quadIndices, s_Data.maxIndices);
     delete[]quadIndices;
     return indexBuffer;
 }
@@ -209,8 +209,8 @@ template<typename T>
 void Renderer2D::InitRenderer(Ref<Shader>& shader, Ref<VertexArray>& vertexArray, Ref<VertexBuffer>& vertexBuffer, T** vertexBase , Ref<IndexBuffer>& indexBuffer,const RendererSpec& rendererSpec)
 {
     shader = Shader::Create(rendererSpec.shaderPath.string());
-    vertexArray.reset(Tso::VertexArray::Create());
-    vertexBuffer.reset(Tso::VertexBuffer::Create(s_Data.maxVertices * sizeof(T)));
+    vertexArray = Tso::VertexArray::Create();
+    vertexBuffer = Tso::VertexBuffer::Create(s_Data.maxVertices * sizeof(T));
     vertexBuffer->SetLayout(rendererSpec.layout);
     vertexArray->AddVertexBuffer(vertexBuffer);
     vertexArray->SetIndexBuffer(indexBuffer);
@@ -371,8 +371,6 @@ void Renderer2D::DrawQuad(const glm::mat4& transform , Ref<Texture2D> texture , 
 
 void Renderer2D::DrawQuad(const glm::vec3& position , const float& rotation , const glm::vec2& scale , Ref<Texture2D> texture , const int& entityID){
 
-    
-
     glm::mat4 transform = glm::translate(glm::mat4(1.0), position) * glm::rotate(glm::mat4(1.0), glm::radians(rotation), glm::vec3(0.0, 0.0, 1.0))
         * glm::scale(glm::mat4(1.0), glm::vec3(scale, 1.0f));
     
@@ -449,116 +447,6 @@ void Renderer2D::DrawQuad(const glm::vec3& position , const float& rotation , co
 }
 
 //text
-
-//void Renderer2D::DrawString(const Ref<Font> font , const glm::mat4& transform , const std::string& text ,const TextParam& textParam , const int& entityID){
-//    const auto& fontGeometry = font->GetMSDFData()->FontGeometry;
-//    const auto& metrics = fontGeometry.getMetrics();
-//    Ref<Texture2D> fontAtlas = font->GetAtlasTexture();
-//    s_Data.FontAtlasTexture = fontAtlas;
-//    
-//    double x = 0.0;//cusor
-//    double fsScale = 1.0 / (metrics.ascenderY - metrics.descenderY);
-//    double y = 0.0;//cusor
-//    
-//    const float spaceGlyphAdvance = fontGeometry.getGlyph(' ')->getAdvance();
-//    
-//    float lineSpacing = textParam.LineSpacing;
-//    float characterSpacing = textParam.CharacterSpacing;
-//    
-//    for(size_t i = 0 ; i < text.length() ; i++){
-//        
-//        char character = text[i];
-//        if(character == '\r'){
-//            continue;
-//        }
-//        
-//        if(character == '\n'){
-//            x = 0;
-//            y -= fsScale * metrics.lineHeight + lineSpacing;
-//            continue;
-//        }
-//        if(character == ' '){
-//            float advance = spaceGlyphAdvance;
-//            if(i < text.length() - 1){
-//                char nextCharacter = text[i + 1];
-//                double dAdvance;
-//                fontGeometry.getAdvance(dAdvance, character, nextCharacter);
-//                advance = (float)dAdvance;
-//            }
-//            x += fsScale * advance + characterSpacing;
-//        }
-//        if(character == '\t'){
-//            x += 4.0f * (fsScale * spaceGlyphAdvance + characterSpacing);
-//            continue;
-//        }
-//        
-//        auto glyph = fontGeometry.getGlyph(character);
-//        if(!glyph){
-//            glyph = fontGeometry.getGlyph('?');
-//        }
-//        if(!glyph){
-//            return;
-//        }
-//        
-//        double al , ab , ar , at;
-//        glyph->getQuadAtlasBounds(al, ab, ar, at);
-//        glm::vec2 texCoordMin((float)al , (float)ab);
-//        glm::vec2 texCoordMax((float)ar , (float)at);
-//        
-//        double pl , pb , pr , pt;
-//        glyph->getQuadPlaneBounds(pl, pb , pr, pt);
-//        glm::vec2 quadMin((float)pl , (float)pb);
-//        glm::vec2 quadMax((float)pr , (float)pt);
-//        
-//        quadMin *= fsScale , quadMax *= fsScale;
-//        quadMin += glm::vec2(x , y);
-//        quadMax += glm::vec2(x , y);
-//        
-//        float texelWidth = 1.0f / fontAtlas->GetWidth();
-//        float texelHeight = 1.0f / fontAtlas->GetHeight();
-//        
-//        texCoordMin *= glm::vec2(texelWidth , texelHeight);
-//        texCoordMax *= glm::vec2(texelWidth , texelHeight);
-//        
-//        
-//        s_Data.TextVertexBufferPtr->postion = transform * glm::vec4(quadMin , 0.0f , 1.0f);
-//        s_Data.TextVertexBufferPtr->color = glm::vec4(1.0);
-//        s_Data.TextVertexBufferPtr->texCoord = texCoordMin;
-//        s_Data.TextVertexBufferPtr->entityID = entityID;
-//        s_Data.TextVertexBufferPtr++;
-//        
-//        s_Data.TextVertexBufferPtr->postion = transform * glm::vec4(quadMin.x , quadMax.y , 0.0f , 1.0f);
-//        s_Data.TextVertexBufferPtr->color = glm::vec4(1.0);
-//        s_Data.TextVertexBufferPtr->texCoord = {texCoordMin.x , texCoordMax.y};
-//        s_Data.TextVertexBufferPtr->entityID = entityID;
-//        s_Data.TextVertexBufferPtr++;
-//        
-//        s_Data.TextVertexBufferPtr->postion = transform * glm::vec4(quadMax , 0.0f , 1.0f);
-//        s_Data.TextVertexBufferPtr->color = glm::vec4(1.0);
-//        s_Data.TextVertexBufferPtr->texCoord = texCoordMax;
-//        s_Data.TextVertexBufferPtr->entityID = entityID;
-//        s_Data.TextVertexBufferPtr++;
-//        
-//        s_Data.TextVertexBufferPtr->postion = transform * glm::vec4(quadMax.x , quadMin.y , 0.0f , 1.0f);
-//        s_Data.TextVertexBufferPtr->color = glm::vec4(1.0);
-//        s_Data.TextVertexBufferPtr->texCoord = {texCoordMax.x , texCoordMin.y};
-//        s_Data.TextVertexBufferPtr->entityID = entityID;
-//        s_Data.TextVertexBufferPtr++;
-//
-//        s_Data.TextIndexCount += 6;
-//        s_Data.Stat.QuadCount++;
-//        
-//        if(i < text.length() - 1){
-//            double advance = glyph->getAdvance();
-//            char nextCharacter = text[i + 1];
-//            fontGeometry.getAdvance(advance, character, nextCharacter);
-//            
-//            x += fsScale * advance + characterSpacing;
-//        }
-//    }
-//    
-//
-//}
 
 void Renderer2D::DrawString(const Ref<Font> font, const glm::mat4& transform, const std::string& text, const TextParam& textParam, const int& entityID) {
     if (text.empty()) {

@@ -12,12 +12,14 @@
 #include "Tso/Scripting/ScriptingEngine.h"
 #include "Tso/Network/NetworkEngine.h"
 #include "Tso/Renderer/ViewportManager.h"
+#include "Tso/Renderer/Renderer2DMaterial.h"
 
 namespace Tso {
     EditorLayer::EditorLayer()
         :Layer("EditorLayer")
     {
-        Renderer2D::Init();
+        Renderer2DMaterial::Init();
+//        Renderer2D::Init();
         m_Scene = std::make_shared<Scene>();
         m_Panel.SetContext(m_Scene);
 
@@ -36,199 +38,290 @@ namespace Tso {
         
     }
 
+void EditorLayer::DrawStartScreen()
+{
+    // 使用全屏窗口标志
+    const ImGuiViewport* viewport = ImGui::GetMainViewport();
+    ImGui::SetNextWindowPos(viewport->WorkPos);
+    ImGui::SetNextWindowSize(viewport->WorkSize);
+    ImGui::SetNextWindowViewport(viewport->ID);
 
-    void EditorLayer::OnImGuiRender()
+    // >>> 修改点：去掉了 ImGuiWindowFlags_NoBackground <<<
+    // 这样窗口会有背景色，覆盖掉之前的界面残留
+    ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoDocking | ImGuiWindowFlags_NoTitleBar |
+                                    ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize |
+                                    ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoBringToFrontOnFocus |
+                                    ImGuiWindowFlags_NoNavFocus;
+
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
+    // 这里的 Begin 会绘制一个全屏的深色矩形背景
+    ImGui::Begin("StartScreenBackground", nullptr, window_flags);
+    ImGui::PopStyleVar();
+
+    // 在背景之上绘制一个居中的模态窗口风格的面板
+    ImVec2 center = viewport->GetCenter();
+    ImGui::SetNextWindowPos(center, ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
+    ImGui::SetNextWindowSize(ImVec2(400, 300));
+
+    ImGuiWindowFlags panel_flags = ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoDocking;
+    
+    if (ImGui::Begin("Welcome to TsoEngine", nullptr, panel_flags))
     {
+        float windowWidth = ImGui::GetWindowSize().x;
+        float textWidth = ImGui::CalcTextSize("Project Manager").x;
+        ImGui::SetCursorPosX((windowWidth - textWidth) * 0.5f);
+        ImGui::Text("Project Manager");
+        
+        ImGui::Separator();
+        ImGui::Spacing();
+        ImGui::Spacing();
 
+        float buttonWidth = 200.0f;
+        float buttonHeight = 40.0f;
+        ImGui::SetCursorPosX((windowWidth - buttonWidth) * 0.5f);
 
-        //    static bool show = true;
-        //    ImGui::ShowDemoWindow(&show);
-
-            // If you strip some features of, this demo is pretty much equivalent to calling DockSpaceOverViewport()!
-            // In most cases you should be able to just call DockSpaceOverViewport() and ignore all the code below!
-            // In this specific demo, we are not using DockSpaceOverViewport() because:
-            // - we allow the host window to be floating/moveable instead of filling the viewport (when opt_fullscreen == false)
-            // - we allow the host window to have padding (when opt_padding == true)
-            // - we have a local menu bar in the host window (vs. you could use BeginMainMenuBar() + DockSpaceOverViewport() in your code!)
-            // TL;DR; this demo is more complicated than what you would normally use.
-            // If we removed all the options we are showcasing, this demo would become:
-            //     void ShowExampleAppDockSpace()
-            //     {
-            //         ImGui::DockSpaceOverViewport(ImGui::GetMainViewport());
-            //     }
-
-        static bool opt_fullscreen = true;
-        static bool opt_padding = false;
-        static bool dockSpaceOpen = true;
-        static ImGuiDockNodeFlags dockspace_flags = ImGuiDockNodeFlags_None;
-
-        // We are using the ImGuiWindowFlags_NoDocking flag to make the parent window not dockable into,
-        // because it would be confusing to have two docking targets within each others.
-        ImGuiWindowFlags window_flags = ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoDocking;
-        if (opt_fullscreen)
-        {
-            const ImGuiViewport* viewport = ImGui::GetMainViewport();
-            ImGui::SetNextWindowPos(viewport->WorkPos);
-            ImGui::SetNextWindowSize(viewport->WorkSize);
-            ImGui::SetNextWindowViewport(viewport->ID);
-            ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
-            ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
-            window_flags |= ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove;
-            window_flags |= ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus;
-        }
-        else
-        {
-            dockspace_flags &= ~ImGuiDockNodeFlags_PassthruCentralNode;
+        if (ImGui::Button("New Project", ImVec2(buttonWidth, buttonHeight))) {
+            NewProject();
+            m_Project = Project::GetActive();
         }
 
-        // When using ImGuiDockNodeFlags_PassthruCentralNode, DockSpace() will render our background
-        // and handle the pass-thru hole, so we ask Begin() to not render a background.
-        if (dockspace_flags & ImGuiDockNodeFlags_PassthruCentralNode)
-            window_flags |= ImGuiWindowFlags_NoBackground;
+        ImGui::Spacing();
+        ImGui::SetCursorPosX((windowWidth - buttonWidth) * 0.5f);
 
-        // Important: note that we proceed even if Begin() returns false (aka window is collapsed).
-        // This is because we want to keep our DockSpace() active. If a DockSpace() is inactive,
-        // all active windows docked into it will lose their parent and become undocked.
-        // We cannot preserve the docking relationship between an active window and an inactive docking, otherwise
-        // any change of dockspace/settings would lead to windows being stuck in limbo and never being visible.
-        if (!opt_padding)
-            ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
-        ImGui::Begin("DockSpace Demo", &dockSpaceOpen, window_flags);
-        if (!opt_padding)
-            ImGui::PopStyleVar();
-
-        if (opt_fullscreen)
-            ImGui::PopStyleVar(2);
-
-        // Submit the DockSpace
-        ImGuiIO& io = ImGui::GetIO();
-        if (io.ConfigFlags & ImGuiConfigFlags_DockingEnable)
-        {
-            ImGuiID dockspace_id = ImGui::GetID("MyDockSpace");
-            ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), dockspace_flags);
+        if (ImGui::Button("Load Project", ImVec2(buttonWidth, buttonHeight))) {
+            OpenProject();
+            m_Project = Project::GetActive();
         }
-        else
-        {
+        
+        ImGui::Spacing();
+        ImGui::SetCursorPosX((windowWidth - buttonWidth) * 0.5f);
+        if (ImGui::Button("Exit", ImVec2(buttonWidth, buttonHeight))) {
+             Application::Get().OnClose();
         }
 
-        if (ImGui::BeginMenuBar())
-        {
-            if (ImGui::BeginMenu("Project"))
+        ImGui::End();
+    }
+
+    ImGui::End(); // End StartScreenBackground
+}
+
+
+    void EditorLayer::OnImGuiRender(){
+        if (!Project::GetActive())
             {
-                if (ImGui::MenuItem("New Project", NULL, false)) {
-                    NewProject();
-                    m_Project = Project::GetActive();
+                DrawStartScreen();
+            }
+            else
+            {
+                DrawEditorInterface();
+            }
+    }
+
+void EditorLayer::DrawEditorInterface(){
+    
+    
+    //    static bool show = true;
+    //    ImGui::ShowDemoWindow(&show);
+
+        // If you strip some features of, this demo is pretty much equivalent to calling DockSpaceOverViewport()!
+        // In most cases you should be able to just call DockSpaceOverViewport() and ignore all the code below!
+        // In this specific demo, we are not using DockSpaceOverViewport() because:
+        // - we allow the host window to be floating/moveable instead of filling the viewport (when opt_fullscreen == false)
+        // - we allow the host window to have padding (when opt_padding == true)
+        // - we have a local menu bar in the host window (vs. you could use BeginMainMenuBar() + DockSpaceOverViewport() in your code!)
+        // TL;DR; this demo is more complicated than what you would normally use.
+        // If we removed all the options we are showcasing, this demo would become:
+        //     void ShowExampleAppDockSpace()
+        //     {
+        //         ImGui::DockSpaceOverViewport(ImGui::GetMainViewport());
+        //     }
+
+    static bool opt_fullscreen = true;
+    static bool opt_padding = false;
+    static bool dockSpaceOpen = true;
+    static ImGuiDockNodeFlags dockspace_flags = ImGuiDockNodeFlags_None;
+
+    // We are using the ImGuiWindowFlags_NoDocking flag to make the parent window not dockable into,
+    // because it would be confusing to have two docking targets within each others.
+    ImGuiWindowFlags window_flags = ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoDocking;
+    if (opt_fullscreen)
+    {
+        const ImGuiViewport* viewport = ImGui::GetMainViewport();
+        ImGui::SetNextWindowPos(viewport->WorkPos);
+        ImGui::SetNextWindowSize(viewport->WorkSize);
+        ImGui::SetNextWindowViewport(viewport->ID);
+        ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.0f);
+        ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.0f);
+        window_flags |= ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove;
+        window_flags |= ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus;
+    }
+    else
+    {
+        dockspace_flags &= ~ImGuiDockNodeFlags_PassthruCentralNode;
+    }
+
+    // When using ImGuiDockNodeFlags_PassthruCentralNode, DockSpace() will render our background
+    // and handle the pass-thru hole, so we ask Begin() to not render a background.
+    if (dockspace_flags & ImGuiDockNodeFlags_PassthruCentralNode)
+        window_flags |= ImGuiWindowFlags_NoBackground;
+
+    // Important: note that we proceed even if Begin() returns false (aka window is collapsed).
+    // This is because we want to keep our DockSpace() active. If a DockSpace() is inactive,
+    // all active windows docked into it will lose their parent and become undocked.
+    // We cannot preserve the docking relationship between an active window and an inactive docking, otherwise
+    // any change of dockspace/settings would lead to windows being stuck in limbo and never being visible.
+    if (!opt_padding)
+        ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
+    ImGui::Begin("DockSpace Demo", &dockSpaceOpen, window_flags);
+    if (!opt_padding)
+        ImGui::PopStyleVar();
+
+    if (opt_fullscreen)
+        ImGui::PopStyleVar(2);
+
+    // Submit the DockSpace
+    ImGuiIO& io = ImGui::GetIO();
+    if (io.ConfigFlags & ImGuiConfigFlags_DockingEnable)
+    {
+        ImGuiID dockspace_id = ImGui::GetID("MyDockSpace");
+        ImGui::DockSpace(dockspace_id, ImVec2(0.0f, 0.0f), dockspace_flags);
+    }
+    else
+    {
+    }
+
+    if (ImGui::BeginMenuBar())
+    {
+        if (ImGui::BeginMenu("Project"))
+        {
+            if (ImGui::MenuItem("New Project", NULL, false)) {
+                NewProject();
+                m_Project = Project::GetActive();
+            }
+            if (ImGui::MenuItem("Load Project", NULL, false)) {
+                OpenProject();
+                m_Project = Project::GetActive();
+            }
+            if (ImGui::MenuItem("Save Project", NULL, false , m_Project != nullptr && !m_ScenePath.empty())) {
+                SaveProject();
+            }
+            if (ImGui::MenuItem("Close Project")) {
+                // 关闭当前项目
+                if (Project::GetActive()) {
+                    // 或者
+                    m_Project = nullptr;
+                    // 还需要重置 Scene
+                    m_Scene = std::make_shared<Scene>();
+                    m_Panel.SetContext(m_Scene);
+                    
+                    // 重置 Project 单例（根据你的 Project 类实现）
+                    // 这一步很关键，否则下一帧还是会进入编辑器界面
+                     Project::CloseActive();
                 }
-                if (ImGui::MenuItem("Load Project", NULL, false)) {
-                    OpenProject();
-                    m_Project = Project::GetActive();
+            }
+                        
+            if (ImGui::MenuItem("Exit Engine")) {
+                Application::Get().OnClose();
+            }
+        ImGui::EndMenu();
+
+        }
+        if (ImGui::BeginMenu("Scene"))
+        {
+            // Disabling fullscreen would allow the window to be moved to the front of other windows,
+            // which we can't undo at the moment without finer window depth/z control.
+
+                if (ImGui::MenuItem("New", NULL, false , m_Project != nullptr)) {
+                    m_Scene.reset();
+                    m_Scene = std::make_shared<Scene>();
+                    m_Panel.SetContext(m_Scene);
                 }
-                if (ImGui::MenuItem("Save Project", NULL, false , m_Project != nullptr && !m_ScenePath.empty())) {
-                    SaveProject();
+
+                if (ImGui::MenuItem("Save", "Ctrl + S" , false , m_Project != nullptr)) {
+                    SaveScene();
                 }
-                if (ImGui::MenuItem("Close", NULL, false)) {
-                    dockSpaceOpen = false;
-                    Application::Get().OnClose();
+
+                if (ImGui::MenuItem("Save As..", "Ctrl + S" , false, m_Project != nullptr)) {
+                    SaveSceneAs();
                 }
+
+                if (ImGui::MenuItem("Load", "Ctrl + L" , false, m_Project != nullptr)) {
+                    m_ScenePath = LoadScene();
+                }
+
             ImGui::EndMenu();
-
-            }
-            if (ImGui::BeginMenu("Scene"))
-            {
-                // Disabling fullscreen would allow the window to be moved to the front of other windows,
-                // which we can't undo at the moment without finer window depth/z control.
-
-                    if (ImGui::MenuItem("New", NULL, false , m_Project != nullptr)) {
-                        m_Scene.reset();
-                        m_Scene = std::make_shared<Scene>();
-                        m_Panel.SetContext(m_Scene);
-                    }
-
-                    if (ImGui::MenuItem("Save", "Ctrl + S" , false , m_Project != nullptr)) {
-                        SaveScene();
-                    }
-
-                    if (ImGui::MenuItem("Save As..", "Ctrl + S" , false, m_Project != nullptr)) {
-                        SaveSceneAs();
-                    }
-
-                    if (ImGui::MenuItem("Load", "Ctrl + L" , false, m_Project != nullptr)) {
-                        m_ScenePath = LoadScene();
-                    }
-
-                ImGui::EndMenu();
-            }
-
-            ImGui::EndMenuBar();
         }
+
+        ImGui::EndMenuBar();
+    }
 {
 
-            ImGui::Begin("RenderInfo");
+        ImGui::Begin("RenderInfo");
 
-            ImGui::Text("Render2DInfo");
+        ImGui::Text("Render2DInfo");
 
-            auto stat = Renderer2D::GetStat();
+        auto stat = Renderer2D::GetStat();
 
-            ImGui::Text("DrawCalls : %d ", stat.DrawCalls);
-            ImGui::Text("QuadsCount : %d ", stat.QuadCount);
-            ImGui::Text("QuadVertices : %d", stat.GetTotalVertexCount());
-            ImGui::Text("QuadIndices : %d", stat.GetTotalIndexCount());
+        ImGui::Text("DrawCalls : %d ", stat.DrawCalls);
+        ImGui::Text("QuadsCount : %d ", stat.QuadCount);
+        ImGui::Text("QuadVertices : %d", stat.GetTotalVertexCount());
+        ImGui::Text("QuadIndices : %d", stat.GetTotalIndexCount());
 
-            if (ImGui::Button("Play")) {
-                m_StartScene = !m_StartScene;
-                if (m_StartScene) {
-                    m_Scene->OnScenePlay();
-                }
-                else {
-                    m_Scene->OnSceneStop();
-                }
-            }
-            ImGui::SameLine();
-            ImGui::Text("%s", m_StartScene ? "play" : "stop");
-
-            if (ImGui::Button("connect")) {
-
-                /*NetWorkEngine::TestSend("127.0.0.1", 6000, "this is the first message");*/
-                if (NetWorkEngine::Connect("127.0.0.1", 6000)) {
-                    TSO_INFO("connect sucussfully");
-                }
-            }
-            if (ImGui::Button("disconnect")) {
-                /*NetWorkEngine::TestSend("127.0.0.1", 6000, "this is the first message");*/
-                if (NetWorkEngine::DisConnect()) {
-                    TSO_INFO("disconnect sucussfully");
-                }
-                else {
-                    TSO_ERROR("unable to disconnect");
-                }
-            }
-            if (Project::GetActive() && ImGui::Button("reload")) {
-                m_Scene->OnSceneStop();
-                std::filesystem::path resourcePath = std::filesystem::path(Project::GetResourcePath());
-                ScriptingEngine::LoadAllScripts((resourcePath / Project::GetActive()->GetConfig().ScriptModulePath).string() , false);
+        if (ImGui::Button("Play")) {
+            m_StartScene = !m_StartScene;
+            if (m_StartScene) {
                 m_Scene->OnScenePlay();
             }
-
-            ImGui::End();
-    
-
-
-            ImGui::Begin("scene view");
-            m_ViewportFocused = ImGui::IsWindowFocused();
-            m_ViewportHovered = ImGui::IsWindowHovered();
-            if (m_ViewportFocused) {
-                if (m_Focus != FocusWindow::Sceneview) {
-                    m_UpdateViewportSize = true;
-                }
-                m_Scene->SetUseSceneCamera(true);
-                m_Focus = FocusWindow::Sceneview;
+            else {
+                m_Scene->OnSceneStop();
             }
-                auto viewportMinRegion = ImGui::GetWindowContentRegionMin();
-                auto viewportMaxRegion = ImGui::GetWindowContentRegionMax();
-                auto viewportOffset = ImGui::GetWindowPos();
-                m_ViewportBounds[0] = { viewportMinRegion.x + viewportOffset.x, viewportMinRegion.y + viewportOffset.y };
-                m_ViewportBounds[1] = { viewportMaxRegion.x + viewportOffset.x, viewportMaxRegion.y + viewportOffset.y };
-                Input::SetViewportBound(m_ViewportBounds[0].x, m_ViewportBounds[0].y , m_ViewportBounds[1].x, m_ViewportBounds[1].y);
+        }
+        ImGui::SameLine();
+        ImGui::Text("%s", m_StartScene ? "play" : "stop");
+
+        if (ImGui::Button("connect")) {
+
+            /*NetWorkEngine::TestSend("127.0.0.1", 6000, "this is the first message");*/
+            if (NetWorkEngine::Connect("127.0.0.1", 6000)) {
+                TSO_INFO("connect sucussfully");
+            }
+        }
+        if (ImGui::Button("disconnect")) {
+            /*NetWorkEngine::TestSend("127.0.0.1", 6000, "this is the first message");*/
+            if (NetWorkEngine::DisConnect()) {
+                TSO_INFO("disconnect sucussfully");
+            }
+            else {
+                TSO_ERROR("unable to disconnect");
+            }
+        }
+        if (Project::GetActive() && ImGui::Button("reload")) {
+            m_Scene->OnSceneStop();
+            std::filesystem::path resourcePath = std::filesystem::path(Project::GetResourcePath());
+            ScriptingEngine::LoadAllScripts((resourcePath / Project::GetActive()->GetConfig().ScriptModulePath).string() , false);
+            m_Scene->OnScenePlay();
+        }
+
+        ImGui::End();
+
+
+
+        ImGui::Begin("scene view");
+        m_ViewportFocused = ImGui::IsWindowFocused();
+        m_ViewportHovered = ImGui::IsWindowHovered();
+        if (m_ViewportFocused) {
+            if (m_Focus != FocusWindow::Sceneview) {
+                m_UpdateViewportSize = true;
+            }
+            m_Scene->SetUseSceneCamera(true);
+            m_Focus = FocusWindow::Sceneview;
+        }
+            auto viewportMinRegion = ImGui::GetWindowContentRegionMin();
+            auto viewportMaxRegion = ImGui::GetWindowContentRegionMax();
+            auto viewportOffset = ImGui::GetWindowPos();
+            m_ViewportBounds[0] = { viewportMinRegion.x + viewportOffset.x, viewportMinRegion.y + viewportOffset.y };
+            m_ViewportBounds[1] = { viewportMaxRegion.x + viewportOffset.x, viewportMaxRegion.y + viewportOffset.y };
+            Input::SetViewportBound(m_ViewportBounds[0].x, m_ViewportBounds[0].y , m_ViewportBounds[1].x, m_ViewportBounds[1].y);
 //                TSO_CORE_INFO("viewportBounds:[{},{}] , [{},{}]",viewportMinRegion.x, viewportMinRegion.y , viewportMaxRegion.x, viewportMaxRegion.y);
 //                auto viewportSize = m_ViewportBounds[1] - m_ViewportBounds[0];
 //                auto windowPosX = Application::Get().GetWindow().GetPosX();
@@ -237,73 +330,74 @@ namespace Tso {
 //                TSO_CORE_INFO("windowPos:[{},{}]",viewportOffset.x , viewportOffset.y);
 //                TSO_CORE_INFO("viewportPos:[{},{}]",m_ViewportBounds[0].x , m_ViewportBounds[0].y + viewportSize.y);
 
-                Application::Get().GetGUILayer()->BlockEvents(!(m_GameViewFocused || m_ViewportFocused));
-                
-
-                auto content = ImGui::GetContentRegionAvail();
-                if (content.x > 0.f && content.y > 0.f && (content.x != m_SceneVeiwSize.x || content.y != m_SceneVeiwSize.y)) {
-                    m_SceneVeiwSize = { content.x , content.y };
-                    m_UpdateViewportSize = true;
-                }
-                if (m_UpdateViewportSize && m_Scene && m_Scene->GetMainCamera()) {
-                    TSO_CORE_INFO("update scene view size [{} , {}]" , m_SceneVeiwSize.x , m_SceneVeiwSize.y);
-                    m_FrameBuffer->Resize(uint32_t(m_SceneVeiwSize.x), uint32_t(m_SceneVeiwSize.y));
-                    m_Scene->GetMainCamera()->SetViewportSize(uint32_t(m_SceneVeiwSize.x), uint32_t(m_SceneVeiwSize.y));
-                    RenderCommand::SetViewPort(0, 0, m_SceneVeiwSize.x, m_SceneVeiwSize.y);
-                    ViewportManager::SetViewportInfo({m_ViewportBounds[0].x , 0.f}, m_SceneVeiwSize);
-                    // ignore ypos for now: TODO: add screen size fetch when have time to add file watcher
-                    m_UpdateViewportSize = false;
-                }
-                uint32_t fbId = m_FrameBuffer->GetColorAttachment(0);
-
-                ImGui::Image((void*)fbId, ImVec2{ m_SceneVeiwSize.x , m_SceneVeiwSize.y }, ImVec2{ 0, 1 }, ImVec2{ 1, 0 });
+            Application::Get().GetGUILayer()->BlockEvents(!(m_GameViewFocused || m_ViewportFocused));
             
-            ImGui::End();
 
-
-            ImGui::Begin("game view");
-
-            m_GameViewFocused = ImGui::IsWindowFocused();
-            m_GameViewHovered = ImGui::IsWindowHovered();
-
-            if (m_GameViewFocused) {
-                if (m_Focus != FocusWindow::GameView) {
-                    m_UpdateViewportSize = true;
-                }
-                m_Scene->SetUseSceneCamera(false);
-                m_Focus = FocusWindow::GameView;
+            auto content = ImGui::GetContentRegionAvail();
+            if (content.x > 0.f && content.y > 0.f && (content.x != m_SceneVeiwSize.x || content.y != m_SceneVeiwSize.y)) {
+                m_SceneVeiwSize = { content.x , content.y };
+                m_UpdateViewportSize = true;
             }
-                auto gameViewMinRegion = ImGui::GetWindowContentRegionMin();
-                auto gameViewMaxRegion = ImGui::GetWindowContentRegionMax();
-                auto gameViewOffset = ImGui::GetWindowPos();
+            if (m_UpdateViewportSize && m_Scene && m_Scene->GetMainCamera()) {
+                TSO_CORE_INFO("update scene view size [{} , {}]" , m_SceneVeiwSize.x , m_SceneVeiwSize.y);
+                m_FrameBuffer->Resize(uint32_t(m_SceneVeiwSize.x), uint32_t(m_SceneVeiwSize.y));
+                m_Scene->GetMainCamera()->SetViewportSize(uint32_t(m_SceneVeiwSize.x), uint32_t(m_SceneVeiwSize.y));
+                RenderCommand::SetViewPort(0, 0, m_SceneVeiwSize.x, m_SceneVeiwSize.y);
+                ViewportManager::SetViewportInfo({m_ViewportBounds[0].x , 0.f}, m_SceneVeiwSize);
+                // ignore ypos for now: TODO: add screen size fetch when have time to add file watcher
+                m_UpdateViewportSize = false;
+            }
+            uint32_t fbId = m_FrameBuffer->GetColorAttachment(0);
 
-                bool gameViewFocused = ImGui::IsWindowFocused();
-                bool gameViewHovered = ImGui::IsWindowHovered();
-                m_GameViewBounds[0] = { gameViewMinRegion.x + gameViewOffset.x, gameViewMinRegion.y + gameViewOffset.y };
-                m_GameViewBounds[1] = { gameViewMaxRegion.x + gameViewOffset.x, gameViewMaxRegion.y + gameViewOffset.y };
-                Application::Get().GetGUILayer()->BlockEvents(!(m_GameViewFocused || m_ViewportFocused));
-                auto gameViewcontent = ImGui::GetContentRegionAvail();
-                if (gameViewcontent.x > 0.f && gameViewcontent.y > 0.f && (gameViewcontent.x != m_GameViewSize.x || gameViewcontent.y != m_GameViewSize.y)) {
-                    m_GameViewSize = { gameViewcontent.x , gameViewcontent.y };
-                    m_FrameBuffer->Resize(uint32_t(m_GameViewSize.x), uint32_t(m_GameViewSize.y));
-                    m_UpdateViewportSize = true;
-                }
-
-                if (m_UpdateViewportSize && m_Scene && m_Scene->GetMainCamera()) {
-                    TSO_CORE_INFO("update game view size!!");
-                    m_Scene->GetMainCamera()->SetViewportSize(uint32_t(m_GameViewSize.x), uint32_t(m_GameViewSize.y));
-                    RenderCommand::SetViewPort(0, 0, m_GameViewSize.x, m_GameViewSize.y);
-                    ViewportManager::SetViewportInfo({gameViewMinRegion.x , gameViewMinRegion.y}, m_GameViewSize);
-                    m_UpdateViewportSize = false;
-                }
-                fbId = m_FrameBuffer->GetColorAttachment(0);
-                ImGui::Image((void*)fbId, ImVec2{ m_GameViewSize.x , m_GameViewSize.y }, ImVec2{ 0, 1 }, ImVec2{ 1, 0 });
-            
-            ImGui::End();
-}
-        m_Panel.OnGuiRender();
+            ImGui::Image((void*)fbId, ImVec2{ m_SceneVeiwSize.x , m_SceneVeiwSize.y }, ImVec2{ 0, 1 }, ImVec2{ 1, 0 });
+        
         ImGui::End();
-    }
+
+
+        ImGui::Begin("game view");
+
+        m_GameViewFocused = ImGui::IsWindowFocused();
+        m_GameViewHovered = ImGui::IsWindowHovered();
+
+        if (m_GameViewFocused) {
+            if (m_Focus != FocusWindow::GameView) {
+                m_UpdateViewportSize = true;
+            }
+            m_Scene->SetUseSceneCamera(false);
+            m_Focus = FocusWindow::GameView;
+        }
+            auto gameViewMinRegion = ImGui::GetWindowContentRegionMin();
+            auto gameViewMaxRegion = ImGui::GetWindowContentRegionMax();
+            auto gameViewOffset = ImGui::GetWindowPos();
+
+            bool gameViewFocused = ImGui::IsWindowFocused();
+            bool gameViewHovered = ImGui::IsWindowHovered();
+            m_GameViewBounds[0] = { gameViewMinRegion.x + gameViewOffset.x, gameViewMinRegion.y + gameViewOffset.y };
+            m_GameViewBounds[1] = { gameViewMaxRegion.x + gameViewOffset.x, gameViewMaxRegion.y + gameViewOffset.y };
+            Application::Get().GetGUILayer()->BlockEvents(!(m_GameViewFocused || m_ViewportFocused));
+            auto gameViewcontent = ImGui::GetContentRegionAvail();
+            if (gameViewcontent.x > 0.f && gameViewcontent.y > 0.f && (gameViewcontent.x != m_GameViewSize.x || gameViewcontent.y != m_GameViewSize.y)) {
+                m_GameViewSize = { gameViewcontent.x , gameViewcontent.y };
+                m_FrameBuffer->Resize(uint32_t(m_GameViewSize.x), uint32_t(m_GameViewSize.y));
+                m_UpdateViewportSize = true;
+            }
+
+            if (m_UpdateViewportSize && m_Scene && m_Scene->GetMainCamera()) {
+                TSO_CORE_INFO("update game view size!!");
+                m_Scene->GetMainCamera()->SetViewportSize(uint32_t(m_GameViewSize.x), uint32_t(m_GameViewSize.y));
+                RenderCommand::SetViewPort(0, 0, m_GameViewSize.x, m_GameViewSize.y);
+                ViewportManager::SetViewportInfo({gameViewMinRegion.x , gameViewMinRegion.y}, m_GameViewSize);
+                m_UpdateViewportSize = false;
+            }
+            fbId = m_FrameBuffer->GetColorAttachment(0);
+            ImGui::Image((void*)fbId, ImVec2{ m_GameViewSize.x , m_GameViewSize.y }, ImVec2{ 0, 1 }, ImVec2{ 1, 0 });
+        
+        ImGui::End();
+}
+    m_Panel.OnGuiRender();
+    ImGui::End();
+}
+    
 
 
 
@@ -426,6 +520,7 @@ namespace Tso {
     void EditorLayer::NewProject()
     {
         Project::New();
+        SaveProject();
     }
 
     void EditorLayer::OpenProject(const std::filesystem::path& path)
@@ -449,7 +544,12 @@ namespace Tso {
         if (projPath.empty()) {
             projPath = FileDialogs::SaveFile("Tso Project(*.tproj)\0 * .tproj\0");
         }
-        auto projDir = projPath.parent_path();
+        auto projDir = projPath;
+        if(m_ScenePath.empty()){
+            auto rootPath = std::filesystem::path(projPath).parent_path();
+            m_ScenePath = rootPath.string() + "/newScene.teScene";
+        }
+        SaveScene();
         Project::GetActive()->GetConfig().FirstScene = std::filesystem::path(m_ScenePath).lexically_relative(projDir);
         Project::SaveActive(projPath);
     }

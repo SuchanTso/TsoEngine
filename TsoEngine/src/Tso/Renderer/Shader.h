@@ -1,5 +1,6 @@
 #pragma once
 #include "glm/glm.hpp"
+#include "Tso/Core/UUID.h"
 
 namespace Tso {
 	class Shader
@@ -9,6 +10,8 @@ namespace Tso {
 		static Ref<Shader> Create(const std::string& filePath);
 
 		virtual std::string GetName() = 0;
+        
+        virtual void SetName(const std::string& name) = 0;
 
 		virtual ~Shader(){}
 
@@ -27,6 +30,20 @@ namespace Tso {
         
         virtual void SetMatrix3(const std::string& name , const glm::mat3& matrix) = 0;
         virtual void SetMatrix4(const std::string& name , const glm::mat4& matrix) = 0;
+        
+        virtual std::unordered_map<unsigned int, std::string>& GetSource() = 0;
+        
+        virtual const char* GetShaderStageName(unsigned int stage) = 0;
+        
+        virtual bool Recompile(const std::unordered_map<unsigned int, std::string>& newSources) = 0;
+        
+        virtual std::string& GetPath() = 0;
+        
+        virtual void SetPath(const std::string& filePath) = 0;
+        
+        virtual void SetUUID(const UUID& uuid) = 0;
+        
+        virtual UUID& GetUUID() = 0;
 
 	};
 

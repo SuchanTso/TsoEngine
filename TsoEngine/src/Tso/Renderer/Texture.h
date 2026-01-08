@@ -45,11 +45,19 @@ struct TextureSpecification{
         
         virtual uint32_t GetTextureID() = 0;
 
-		static Ref<Texture2D> Create(std::string& path);
+		static Ref<Texture2D> Create(const std::string& path);
         
         static Ref<Texture2D> Create(const int& width , const int& height);
         
         static Ref<Texture2D> Create(const TextureSpecification& spec);
+        
+        virtual std::string& GetName() = 0;
+        
+        virtual void SetName(const std::string& name)=0;
+        
+        virtual void SetUUID(const UUID& uuid) = 0;
+        
+        virtual UUID& GetUUID() = 0;
 
 	};
 
