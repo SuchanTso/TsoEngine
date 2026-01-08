@@ -19,12 +19,11 @@ namespace Tso {
 		Ref<Project> project = CreateRef<Project>();
 
 		ProjectSerielizer serializer(project);
+        project->m_ProjectDirectory = path.parent_path();
+        s_Project = project;
 		if (serializer.Deserieleze(path.string()))
 		{
-			project->m_ProjectDirectory = path.parent_path();
-			s_Project = project;
             std::string scriptPath = project->m_ProjectDirectory / project->GetConfig().ScriptModulePath;
-            bool exist = std::filesystem::exists(scriptPath);
             if((!scriptPath.empty()) && std::filesystem::exists(scriptPath)){
                 ScriptingEngine::SetLuaPackagePath(scriptPath);
                 ScriptingEngine::LoadAllScripts(scriptPath , false);

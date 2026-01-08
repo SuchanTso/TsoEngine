@@ -6,7 +6,7 @@
 #include "yaml-cpp/yaml.h"
 #include "Tso/Renderer/Texture.h"
 #include <filesystem>
-
+#include "Tso/Project/Resource.h"
 
 namespace Utils{
 static std::string GetCurrentRelativePath(const std::string& filePath){
@@ -208,11 +208,12 @@ namespace Tso {
                     texturePath = std::filesystem::absolute(texturePath);
                 }
             
-                out << YAML::Key << "TexturePath" << YAML::Value << std::filesystem::relative(texturePath, currentFilePath).string();
+                out << YAML::Key << "Texture" << YAML::Value << comp.subTexture->GetTexture()->GetUUID();
                 out << YAML::Key << "SubTexture" << YAML::Value << comp.isSubtexture;
                 out << YAML::Key << "SpriteSize" << YAML::Value << comp.spriteSize;
                 out << YAML::Key << "SpriteIndex" << YAML::Value << comp.textureIndex;
                 out << YAML::Key << "TextureSize" << YAML::Value << comp.textureSize;
+                out << YAML::Key << "Material" << YAML::Value << comp.material->GetUUID();
             
             }
             out << YAML::EndMap; // RenderableComponent
@@ -372,9 +373,9 @@ namespace Tso {
                     renderComp.m_Color = renderComponent["Color"] ? renderComponent["Color"].as<glm::vec4>() : glm::vec4(1.0f);
                     renderComp.type = (RenderType)(renderComponent["Type"] ? renderComponent["Type"].as<int>() : 0);
                     renderComp.isSubtexture = renderComponent["SubTexture"] ? renderComponent["SubTexture"].as<bool>() : false;
-                    if(renderComponent["TexturePath"]){
-                        auto texturePath = Project::GetResourcePath() + renderComponent["TexturePath"].as<std::string>();
-                        auto texture = GetTextureByPath(texturePath);
+                    if(renderComponent["Texture"]){
+                        auto textureUUID = renderComponent["Texture"].as<uint64_t>();
+                        auto texture = Resource::GetTexture(textureUUID);
                         glm::vec2 spriteSize = renderComponent["SpriteSize"] ? renderComponent["SpriteSize"].as<glm::vec2>() : glm::vec2(1.0f , 1.0f);
                         glm::vec2 spriteIndex = renderComponent["SpriteIndex"] ? renderComponent["SpriteIndex"].as<glm::vec2>() : glm::vec2(0.0f , 0.0f);
                         glm::vec2 texSize = renderComponent["TextureSize"] ? renderComponent["TextureSize"].as<glm::vec2>() : glm::vec2(1.0f , 1.0f);
@@ -382,6 +383,11 @@ namespace Tso {
                         renderComp.textureIndex = spriteIndex;
                         renderComp.textureSize = texSize;
                         renderComp.subTexture = SubTexture2D::CreateByCoord(texture, spriteSize, spriteIndex, texSize);
+                    }
+                    if(renderComponent["Material"]){
+                        auto matUUID = renderComponent["Material"].as<uint64_t>();
+                        auto material = Resource::GetMaterial(matUUID);
+                        renderComp.material = material;
                     }
                 }
 

@@ -1,5 +1,6 @@
 #pragma once
 #include "Tso/Renderer/Shader.h"
+#include "Tso/Core/UUID.h"
 
 typedef unsigned int GLenum;
 namespace Tso {
@@ -15,6 +16,8 @@ namespace Tso {
 		virtual void UnBind()override;
 
 		virtual std::string GetName() override { return m_Name; }
+        
+        virtual void SetName(const std::string& name){m_Name = name;}
 
 		void UploadMatrix3(const std::string& name, const glm::mat3& matrix);
 		void UploadMatrix4(const std::string& name, const glm::mat4& matrix);
@@ -39,12 +42,29 @@ namespace Tso {
         
         virtual void SetMatrix3(const std::string& name , const glm::mat3& matrix)override;
         virtual void SetMatrix4(const std::string& name , const glm::mat4& matrix)override;
+        virtual std::unordered_map<unsigned int, std::string>& GetSource()override{return m_Source;}
+        
+        virtual const char* GetShaderStageName(unsigned int stage) override;
+        
+        virtual bool Recompile(const std::unordered_map<unsigned int, std::string>& newSources)override;
+        
+        virtual std::string& GetPath()override{return m_filePath;}
+        
+        virtual void SetPath(const std::string& filePath)override{m_filePath = filePath;}
+        
+        virtual void SetUUID(const UUID& uuid)override{m_UUID = uuid;}
+        
+        virtual UUID& GetUUID()override{return m_UUID;}
+        
+        
 
 	private:
 		void Compile(const std::unordered_map<GLenum, std::string>& shaderSource);
 		std::string ReadFile(const std::string& filePath);
 		std::unordered_map<GLenum, std::string> PreProcess(const std::string& shaderSources);
         int GetUniformLocation(const std::string& name);
+        
+        bool SaveToFile(const std::string& filepath, const std::unordered_map<GLenum, std::string>& sources);
 
 
 
@@ -54,6 +74,8 @@ namespace Tso {
 		uint32_t m_RendererId;
         std::unordered_map<std::string, int>m_UniformCache;
 		std::string m_Name;
-
+        std::string m_filePath;
+        std::unordered_map<GLenum, std::string> m_Source;
+        UUID m_UUID;
 	};
 }

@@ -56,6 +56,12 @@ namespace Tso {
         bool OpenProject();
 
         std::string SaveSceneAs();
+        
+        void DrawStartScreen();
+        
+        void DrawEditorInterface();
+
+
 
     private:
 

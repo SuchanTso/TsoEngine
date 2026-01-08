@@ -30,7 +30,7 @@ namespace std {
     template <typename T> struct thash;
 
     template<>
-    struct thash<Tso::UUID>
+    struct hash<Tso::UUID>
     {
         std::size_t operator()(const Tso::UUID& uuid) const
         {

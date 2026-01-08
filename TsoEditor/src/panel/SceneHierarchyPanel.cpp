@@ -8,6 +8,9 @@
 #include "Tso/Scene/ScriptableEntity.h"
 #include "Tso/Scripting/ScriptingEngine.h"
 #include "Tso/Project/Project.h"
+#include "Tso/Project/Resource.h"
+#include "Tso/Core/UUID.h"
+#include <fstream>
 
 namespace Tso {
 template<> void SceneHierarchyPanel::DisplayAddComponentEntry<ButtonComponent>(const std::string &entryName){
@@ -48,6 +51,717 @@ template<> void SceneHierarchyPanel::DisplayAddComponentEntry<TextComponent>(con
         }
     }
 }
+
+static const char* s_UniformTypes[] = {
+        "Float", "Int", "Vec2", "Vec3", "Vec4", "Color (Vec3)", "Color (Vec4)" , "Texture"
+    };
+
+
+// 在类成员中添加状态变量
+// bool m_ShowCreateMaterialPopup = false;
+
+    void SceneHierarchyPanel::CreateMaterialPrompt() {
+        ImGui::OpenPopup("Create Material");
+    }
+
+    void SceneHierarchyPanel::CreateShaderPrompt() {
+        // 触发 ImGui 的弹窗打开状态
+        ImGui::OpenPopup("Create New Shader");
+    }
+
+    void SceneHierarchyPanel::DrawCreateShaderPopup() {
+        // 设置弹窗居中
+        ImVec2 center = ImGui::GetMainViewport()->GetCenter();
+        ImGui::SetNextWindowPos(center, ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
+
+        if (ImGui::BeginPopupModal("Create New Shader", NULL, ImGuiWindowFlags_AlwaysAutoResize)) {
+            
+            static char nameBuf[64] = "NewShader";
+            ImGui::InputText("Name", nameBuf, sizeof(nameBuf));
+            
+            ImGui::Text("This will create a basic flat color shader.");
+            ImGui::Separator();
+
+            if (ImGui::Button("Create", ImVec2(120, 0))) {
+                std::string shaderName = nameBuf;
+                if (!shaderName.empty()) {
+                    
+                    // --- 1. 定义默认的 Shader 模板代码 ---
+                    std::string vertexSrc = R"(
+#version 330 core
+       
+layout(location = 0) in vec3 a_Position;
+layout(location = 1) in vec2 a_TexCoord;
+layout(location = 2) in vec4 a_Color;
+layout(location = 3) in float a_TexIndex;
+layout(location = 4) in int a_EntityID;
+
+
+
+uniform mat4 u_ProjViewMat;
+//uniform mat4 u_Transform;
+
+out vec3 v_Position;
+out vec2 v_TexCoord;
+out vec4 v_Color;
+out float v_TexIndex;
+flat out int v_EntityID;
+
+void main(){
+v_Position = a_Position;
+v_TexCoord = a_TexCoord;
+v_Color = a_Color;
+v_TexIndex = a_TexIndex;
+v_EntityID = a_EntityID;
+gl_Position = u_ProjViewMat * vec4(a_Position , 1.0);
+}
+                        )";
+                    std::string fragmentSrc = R"(
+#version 330 core
+           
+layout(location = 0) out vec4 color;
+layout(location = 1) out int o_EntityID;
+in vec3 v_Position;
+in vec2 v_TexCoord;
+in vec4 v_Color;
+in float v_TexIndex;
+flat in int v_EntityID;
+
+
+
+uniform sampler2D u_Textures[16];
+
+void main(){
+    color =  texture(u_Textures[int(v_TexIndex)] , v_TexCoord) * v_Color;
+    o_EntityID = v_EntityID;
+}
+                        )";
+                    std::string fullSource = "#type vertex\n" + vertexSrc + "#type fragment\n" + fragmentSrc;
+
+                    // --- 2. 创建 Shader 对象 ---
+                    // 这里有两种路径：
+                    // 路径 A: 直接在内存创建 (如果有 Shader::CreateFromString 接口)
+                     Ref<Shader> newShader = Shader::Create(shaderName, vertexSrc , fragmentSrc);
+                    
+                    // 路径 B: (推荐) 保存到磁盘文件然后加载
+                    std::filesystem::path projDir = Project::GetProjectDirectory(); // 获取项目根目录
+                    std::string fileName = shaderName + ".glsl";
+                    std::filesystem::path filePath = projDir / "assets" / "shader" / fileName;
+                    
+                    // 确保目录存在
+                    std::filesystem::create_directories(filePath.parent_path());
+                    
+                    // 写入文件
+                    
+                    std::ofstream out(filePath.string());
+                    if (out.is_open()) {
+                        out << fullSource;
+                        out.close();
+                        
+                        if (newShader) {
+                            Resource::AddResource(shaderName , UUID(),newShader);
+                            newShader->SetPath(filePath.string());
+                            TSO_CORE_INFO("Created new shader: {0}", filePath.string());
+                        }
+                    } else {
+                        TSO_CORE_ERROR("Failed to create shader file: {0}", filePath.string());
+                    }
+                    
+                }
+                ImGui::CloseCurrentPopup();
+            }
+            
+            ImGui::SameLine();
+            
+            if (ImGui::Button("Cancel", ImVec2(120, 0))) {
+                ImGui::CloseCurrentPopup();
+            }
+
+            ImGui::EndPopup();
+        }
+    }
+
+    void SceneHierarchyPanel::DrawCreateMaterialPopup() {
+        // 居中显示
+        ImVec2 center = ImGui::GetMainViewport()->GetCenter();
+        ImGui::SetNextWindowPos(center, ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
+
+        if (ImGui::BeginPopupModal("Create Material", NULL, ImGuiWindowFlags_AlwaysAutoResize)) {
+            static char nameBuf[64] = "NewMaterial";
+            ImGui::InputText("Name", nameBuf, sizeof(nameBuf));
+
+            // 选择 Shader (可选)
+            static std::string selectedShaderName = "None";
+            static UUID selectedShaderUUID = 0;
+            
+            if (ImGui::BeginCombo("Shader", selectedShaderName.c_str())) {
+                for (auto& [uuid, shader] : Resource::GetAllShaders()) {
+                    bool isSelected = (selectedShaderUUID == uuid);
+                    if (ImGui::Selectable(shader->GetName().c_str(), isSelected)) {
+                        selectedShaderUUID = uuid;
+                        selectedShaderName = shader->GetName();
+                    }
+                }
+                ImGui::EndCombo();
+            }
+
+            ImGui::Separator();
+
+            if (ImGui::Button("Create", ImVec2(120, 0))) {
+                std::string matName = nameBuf;
+                if (!matName.empty()) {
+                    Ref<Shader> shader = Resource::GetShader(selectedShaderUUID);
+                    // 如果没选 Shader，可能需要由 Material::Create 处理默认情况
+                    if (!shader) {
+                        // shader = Resource::GetDefaultShader(); // 建议有个默认紫色 Shader
+                    }
+                    
+                    if (shader) {
+                        Ref<Material> newMat = Material::Create(shader, matName);
+                        // 重要：这里需要将新材质注册到全局资源管理器中
+                        Resource::AddResource("" , UUID() , newMat);
+                        std::filesystem::path projDir = Project::GetProjectDirectory(); // 获取项目根目录
+                        std::string fileName = matName + ".mat";
+                        std::filesystem::path filePath = projDir / "assets" / "material" / fileName;
+                        
+                        // 确保目录存在
+                        std::filesystem::create_directories(filePath.parent_path());
+                        newMat->SetPath(filePath.string());
+                        newMat->Serealize();
+                        
+                    
+                    }
+                }
+                ImGui::CloseCurrentPopup();
+            }
+            
+            ImGui::SameLine();
+            
+            if (ImGui::Button("Cancel", ImVec2(120, 0))) {
+                ImGui::CloseCurrentPopup();
+            }
+
+            ImGui::EndPopup();
+        }
+    }
+
+    // --- 1. 资源列表窗口 ---
+    void SceneHierarchyPanel::DrawResourceList() {
+        ImGui::Begin("Resources");
+
+        // 1. Shaders
+        if (ImGui::CollapsingHeader("Shaders", ImGuiTreeNodeFlags_DefaultOpen)) {
+            auto& shaders = Resource::GetAllShaders();
+            for (auto& [uuid, shader] : shaders) {
+                bool isSelected = (m_SelectedResourceUUID == uuid);
+                if (ImGui::Selectable(shader->GetName().c_str(), isSelected)) {
+                    m_SelectedResourceUUID = uuid;
+                    m_SelectedType = ResourceType::Shader;
+                }
+            }
+        }
+
+        // 2. Textures
+        if (ImGui::CollapsingHeader("Textures", ImGuiTreeNodeFlags_DefaultOpen)) {
+            auto& textures = Resource::GetAllTextures();
+            for (auto& [uuid, tex] : textures) {
+                bool isSelected = (m_SelectedResourceUUID == uuid);
+                
+                // 显示名称
+                if (ImGui::Selectable(tex->GetName().c_str(), isSelected)) {
+                    m_SelectedResourceUUID = uuid;
+                    m_SelectedType = ResourceType::Texture;
+                }
+
+                // --- 拖拽源 (Drag Source) ---
+                // 允许将这个 Texture 拖动到 Material 的插槽中
+                if (ImGui::BeginDragDropSource()) {
+                    // 传递 UUID 数据
+                    ImGui::SetDragDropPayload("RESOURCE_TEXTURE", &uuid, sizeof(UUID));
+                    ImGui::Text("%s", tex->GetName().c_str()); // 拖动时显示的预览图
+                    ImGui::EndDragDropSource();
+                }
+            }
+        }
+
+        // 3. Materials
+        if (ImGui::CollapsingHeader("Materials", ImGuiTreeNodeFlags_DefaultOpen)) {
+            auto& materials = Resource::GetAllMaterials();
+            for (auto& [uuid, mat] : materials) {
+                bool isSelected = (m_SelectedResourceUUID == uuid);
+                if (ImGui::Selectable(mat->GetName().c_str(), isSelected)) {
+                    m_SelectedResourceUUID = uuid;
+                    m_SelectedType = ResourceType::Material;
+                }
+                if (ImGui::BeginDragDropSource()) {
+                    // 参数1: 标签 (必须与 Target 端一致)
+                    // 参数2: 数据指针 (这里传 UUID 的地址)
+                    // 参数3: 数据大小
+                    ImGui::SetDragDropPayload("RESOURCE_MATERIAL", &uuid, sizeof(UUID));
+
+                    // 3. 设置拖拽时的预览图/文字 (跟在鼠标旁边的那个提示)
+                    ImGui::Text("Material: %s", mat->GetName().c_str());
+                    // 如果你想做得更花哨，可以在这里绘制材质的缩略图
+                    
+                    ImGui::EndDragDropSource();
+                }
+            }
+        }
+        
+        if (ImGui::BeginPopupContextWindow(nullptr, ImGuiPopupFlags_MouseButtonRight | ImGuiPopupFlags_NoOpenOverItems)) {
+                
+            if (ImGui::MenuItem("Create Material")) {
+                m_NextAction = DeferredAction::CreateMaterial;
+            }
+
+            if (ImGui::MenuItem("Import Texture...")) {
+                m_NextAction = DeferredAction::ImportTexture;
+            }
+
+            if (ImGui::MenuItem("Import Shader...")) {
+                m_NextAction = DeferredAction::ImportShader;
+            }
+            
+            if (ImGui::MenuItem("Create Empty Shader")) {
+                 m_NextAction = DeferredAction::CreateShader;
+            }
+
+            ImGui::EndPopup();
+        }
+
+            // --- 2. 在右键菜单作用域之外，处理延迟的动作 ---
+            // 这样做可以确保 ContextWindow 已经关闭，ImGui 栈是干净的，
+            // 且原生文件对话框不会阻塞 ContextWindow 的渲染提交。
+            
+        if (m_NextAction != DeferredAction::None) {
+            switch (m_NextAction) {
+                case DeferredAction::CreateMaterial:
+                    CreateMaterialPrompt(); // 打开 ImGui 弹窗
+                    break;
+                case DeferredAction::CreateShader:
+                    CreateShaderPrompt();   // 打开 ImGui 弹窗
+                    break;
+                case DeferredAction::ImportTexture: {
+                    // 原生对话框：阻塞操作
+                    std::string filepath = FileDialogs::OpenFile("Image Files (*.png *.jpg)\0*.png;*.jpg\0");
+                    std::filesystem::path p(filepath);
+                    std::string filename = p.stem().string();
+                    if (!filepath.empty()) {
+                        auto tex = Texture2D::Create(filepath); // 加载纹理
+                        Resource::AddResource(filename , UUID(), tex);
+                        
+                    }
+                    break;
+                }
+                case DeferredAction::ImportShader: {
+                    // 原生对话框：阻塞操作
+                    std::string filepath = FileDialogs::OpenFile("Shader Files (*.glsl *.shader)\0*.glsl;*.shader\0");
+                    if (!filepath.empty()) {
+                        // Resource::LoadShader(filepath);
+                        auto shader = Shader::Create(filepath);
+                        std::filesystem::path p(filepath);
+                        std::string shaderName = p.stem().string();
+                        Resource::AddResource(shaderName, UUID(), shader);
+                    }
+                    break;
+                }
+                default: break;
+            }
+                
+                // 动作执行完后重置
+                m_NextAction = DeferredAction::None;
+            }
+
+            // --- 3. 绘制 ImGui 模态弹窗 ---
+            // 这些函数内部有 BeginPopupModal，必须放在根层级调用
+            DrawCreateMaterialPopup();
+            DrawCreateShaderPopup();
+
+        ImGui::End();
+    }
+
+    // --- 2. 资源属性面板窗口 ---
+    void SceneHierarchyPanel::DrawResourceInspector() {
+        ImGui::Begin("Resource Inspector");
+
+        if (m_SelectedResourceUUID == 0 || m_SelectedType == ResourceType::None) {
+            ImGui::Text("No resource selected.");
+            ImGui::End();
+            return;
+        }
+
+        switch (m_SelectedType) {
+            case ResourceType::Texture: {
+                // 获取资源 (需自行实现 Resource::GetTexture(uuid))
+                Ref<Texture2D> tex = Resource::GetTexture(m_SelectedResourceUUID);
+                if (tex) DrawTextureNode(tex);
+                break;
+            }
+            case ResourceType::Material: {
+                Ref<Material> mat = Resource::GetMaterial(m_SelectedResourceUUID);
+                if (mat) DrawMaterialNode(mat);
+                break;
+            }
+            case ResourceType::Shader: {
+                Ref<Shader> shader = Resource::GetShader(m_SelectedResourceUUID);
+                if (shader) DrawShaderNode(shader);
+                break;
+            }
+            default: break;
+        }
+        
+        if (m_RequestSelectTexture) {
+            // 1. 打开弹窗选择 (纯 ImGui)
+            ImGui::OpenPopup("SelectTexturePopup");
+            // 2. 或者打开文件对话框 (Native)
+            // FileDialogs::OpenFile(...)
+            
+            m_RequestSelectTexture = false; // 消费掉事件
+        }
+
+
+        ImGui::End();
+    }
+
+    // --- 辅助函数具体实现 ---
+
+    void SceneHierarchyPanel::DrawTextureNode(Ref<Texture2D> texture) {
+        ImGui::Text("Name: %s", texture->GetName().c_str());
+        ImGui::Text("Path: %s", texture->GetPath().c_str());
+        ImGui::Text("Size: %d x %d", texture->GetWidth(), texture->GetHeight());
+        ImGui::Separator();
+
+        // 计算缩略图大小（保持宽高比）
+        float regionWidth = ImGui::GetContentRegionAvail().x;
+        float aspect = (float)texture->GetHeight() / (float)texture->GetWidth();
+        float imgHeight = regionWidth * aspect;
+
+        // ImGui::Image 需要传入纹理 ID (void*)
+        // 注意：OpenGL ID 需要强转为 void*
+        // ImVec2(0, 1), ImVec2(1, 0) 是为了翻转 UV，因为 OpenGL 和 ImGui 坐标系 Y 轴相反
+        ImGui::Image((void*)(uintptr_t)texture->GetTextureID(),
+                     ImVec2(regionWidth, imgHeight),
+                     ImVec2(0, 1), ImVec2(1, 0));
+    }
+
+    void SceneHierarchyPanel::SyncShaderToCache(Ref<Shader> shader) {
+        // 只有当 ID 变了，或者缓存是空的，才从 Shader 实例拉取数据
+        // 假设 Shader 有一个 GetUUID() 或者我们用 m_SelectedResourceUUID
+        if (m_ShaderCache.ShaderUUID != m_SelectedResourceUUID) {
+            m_ShaderCache.ShaderUUID = m_SelectedResourceUUID;
+            m_ShaderCache.SourceBuffers.clear();
+            m_ShaderCache.IsDirty = false;
+
+            auto& sources = shader->GetSource(); // 这里获取的是原始数据的引用或拷贝
+            for (auto& [stage, code] : sources) {
+                m_ShaderCache.SourceBuffers[stage] = code;
+            }
+        }
+    }
+
+void SceneHierarchyPanel::DrawShaderNode(Ref<Shader> shader) {
+    // 1. 同步状态：确保 m_ShaderCache 里的内容是当前 Shader 的代码
+    SyncShaderToCache(shader);
+    
+    ImGui::Text("Shader Name: %s", shader->GetName().c_str());
+    
+    // 2. 编译按钮
+    // 如果代码被修改过（Dirty），按钮变色提醒用户保存
+    if (m_ShaderCache.IsDirty) {
+        ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0.8f, 0.4f, 0.1f, 1.0f)); // 橙色
+        if (ImGui::Button("Compile & Save Changes")) {
+            // --- 核心操作：调用 Shader 的重编译接口 ---
+            // 这里我们需要修改 Shader 基类，添加 Recompile(map) 接口
+            bool success = shader->Recompile(m_ShaderCache.SourceBuffers);
+            
+            if (success) {
+                m_ShaderCache.IsDirty = false; // 重置 Dirty 标记
+                TSO_CORE_INFO("Shader recompiled successfully!");
+            } else {
+                TSO_CORE_ERROR("Shader compilation failed!");
+            }
+        }
+        ImGui::PopStyleColor();
+    } else {
+        if (ImGui::Button("Recompile")) {
+            // 即使没修改，也允许强制重编译（可能为了测试随机性或外部因素）
+            shader->Recompile(m_ShaderCache.SourceBuffers);
+        }
+    }
+    
+    ImGui::SameLine();
+    
+    // 还原按钮：放弃修改，重新从 Shader 对象拉取代码
+    if (ImGui::Button("Reset")) {
+        m_ShaderCache.ShaderUUID = 0; // 强制 SyncShaderToCache 下次执行
+        SyncShaderToCache(shader);
+    }
+    
+    ImGui::Separator();
+    
+    // 3. 多标签页编辑器
+    if (ImGui::BeginTabBar("ShaderStages")) {
+        
+        for (auto& [stage, buffer] : m_ShaderCache.SourceBuffers) {
+            if (ImGui::BeginTabItem(shader->GetShaderStageName(stage))) {
+                
+                // ImGui::InputTextMultiline 需要 char*
+                // 为了支持动态扩容，ImGui 提供了 Callback 机制，但这里我们用简单的 resize 策略
+                // 预留一些 buffer 空间，防止用户打几个字就溢出
+                if (buffer.capacity() < buffer.size() + 1024) {
+                    buffer.resize(buffer.size() + 1024); // 简单粗暴的扩容
+                }
+                
+                // 计算高度：填满窗口，留出底部一点空隙
+                ImVec2 contentRegion = ImGui::GetContentRegionAvail();
+                contentRegion.y -= 10.0f;
+                
+                ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.8f, 0.8f, 0.8f, 1.0f)); // 浅灰色代码
+                
+                // 这里的 buffer.data() 是可读写的
+                // 注意：InputTextMultiline 返回 true 表示内容被修改了
+                if (ImGui::InputTextMultiline(("##src" + std::to_string(stage)).c_str(),
+                                              buffer.data(),
+                                              buffer.capacity(),
+                                              contentRegion,
+                                              ImGuiInputTextFlags_AllowTabInput)) {
+                    
+                    // 重新计算实际 string 长度 (InputText 会写入 \0)
+                    // 必须这一步，否则 string::size 还是原来扩容后的大小
+                    buffer.resize(strlen(buffer.data()));
+                    
+                    m_ShaderCache.IsDirty = true;
+                }
+                
+                ImGui::PopStyleColor();
+                ImGui::EndTabItem();
+            }
+        }
+        ImGui::EndTabBar();
+    }
+}
+
+template<typename T, typename UIFunction>
+    static bool DrawMaterialPropertyRow(const std::string& name, T& value, UIFunction uiFunction) {
+        bool deleted = false;
+        
+        ImGui::TableNextRow();
+        
+        // 第一列：名称 (Name)
+        ImGui::TableSetColumnIndex(0);
+        ImGui::AlignTextToFramePadding(); // 让文字垂直居中
+        ImGui::Text("%s", name.c_str());
+
+        // 第二列：数值控件 (Value)
+        ImGui::TableSetColumnIndex(1);
+        ImGui::PushItemWidth(-1); // 填满列宽
+        
+        //为了避免 ID 冲突，这里必须 PushID
+        ImGui::PushID(name.c_str());
+        uiFunction(value); // 调用具体的绘制回调
+        ImGui::PopID();
+        
+        ImGui::PopItemWidth();
+
+        // 第三列：删除按钮 (Delete)
+        ImGui::TableSetColumnIndex(2);
+        ImGui::PushID(("del_" + name).c_str());
+        if (ImGui::Button("X")) {
+            deleted = true;
+        }
+        ImGui::PopID();
+
+        return deleted;
+    }
+
+    void SceneHierarchyPanel::DrawMaterialNode(Ref<Material> material) {
+        ImGui::Text("Material: %s", material->GetName().c_str());
+        std::string shaderName = material->GetShader() ? material->GetShader()->GetName() : "None";
+        ImGui::Text("Shader: %s", shaderName.c_str());
+        ImGui::Separator();
+
+        ImGui::Text("Properties:");
+
+        // 用于记录当前正在点击哪个 Texture Slot 进行编辑
+        static std::string s_TextureSlotToEdit = "";
+
+        static ImGuiTableFlags table_flags = ImGuiTableFlags_BordersInnerV | ImGuiTableFlags_BordersOuterH | ImGuiTableFlags_Resizable | ImGuiTableFlags_RowBg;
+        
+        if (ImGui::BeginTable("MaterialPropsTable", 3, table_flags)) {
+            ImGui::TableSetupColumn("Name", ImGuiTableColumnFlags_WidthStretch);
+            ImGui::TableSetupColumn("Value", ImGuiTableColumnFlags_WidthStretch);
+            ImGui::TableSetupColumn("Del", ImGuiTableColumnFlags_WidthFixed, 24.0f);
+
+            // --- 1. Float Params (保持不变) ---
+            auto& floatParams = material->GetFloatParams();
+            for (auto it = floatParams.begin(); it != floatParams.end(); ) {
+                bool deleted = DrawMaterialPropertyRow(it->first, it->second, [](float& val){
+                    ImGui::DragFloat("##v", &val, 0.1f);
+                });
+                if (deleted) it = floatParams.erase(it); else ++it;
+            }
+
+            // --- 2. Vec3 / Color Params (保持不变) ---
+            auto& vec3Params = material->GetVec3Params();
+            for (auto it = vec3Params.begin(); it != vec3Params.end(); ) {
+                bool deleted = DrawMaterialPropertyRow(it->first, it->second, [](glm::vec3& val){
+                    ImGui::ColorEdit3("##v", &val.x);
+                });
+                if (deleted) it = vec3Params.erase(it); else ++it;
+            }
+
+            // --- 3. Texture Params (修改部分) ---
+            auto& texParams = material->GetTextureParams();
+            for (auto it = texParams.begin(); it != texParams.end(); ) {
+                bool deleted = false;
+                ImGui::TableNextRow();
+                
+                // Col 0: Name
+                ImGui::TableSetColumnIndex(0);
+                ImGui::AlignTextToFramePadding();
+                ImGui::Text("%s", it->first.c_str());
+
+                // Col 1: Value (Image Button)
+                ImGui::TableSetColumnIndex(1);
+                ImGui::PushID(it->first.c_str());
+                
+                Ref<Texture2D> tex = it->second;
+                // 注意：GetTextureID() 还是 GetRendererID() 取决于你的 API 封装，这里沿用你之前的写法
+                ImTextureID texID = tex ? (void*)(uintptr_t)tex->GetTextureID() : 0;
+                
+                // >>> 修改点 2: 点击图片按钮打开选择弹窗 <<<
+                if (ImGui::ImageButton(texID, ImVec2(16, 16), ImVec2(0,1), ImVec2(1,0))) {
+                    m_RequestSelectTexture = true;
+                    m_TextureSlotToChange = it->first;
+                }
+                // 鼠标悬停显示 Tooltip 提示可以点击
+                if (ImGui::IsItemHovered()) {
+                    ImGui::SetTooltip("Click to select texture");
+                }
+                
+                // 接收拖拽 (保持不变)
+                if (ImGui::BeginDragDropTarget()) {
+                    if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("RESOURCE_TEXTURE")) {
+                        UUID texUUID = *(const UUID*)payload->Data;
+                        it->second = Resource::GetTexture(texUUID);
+                    }
+                    ImGui::EndDragDropTarget();
+                }
+                
+                ImGui::SameLine();
+                ImGui::Text(tex ? tex->GetName().c_str() : "Empty"); // 显示纹理名字
+                ImGui::PopID();
+
+                // Col 2: Delete
+                ImGui::TableSetColumnIndex(2);
+                ImGui::PushID(("del_" + it->first).c_str());
+                if (ImGui::Button("X")) deleted = true;
+                ImGui::PopID();
+
+                if (deleted) it = texParams.erase(it);
+                else ++it;
+            }
+
+            ImGui::EndTable();
+        }
+
+        // >>> 修改点 2 (续): 纹理选择弹窗实现 <<<
+        if (ImGui::BeginPopup("SelectTexturePopup")) {
+            ImGui::Text("Select Texture for '%s'", m_TextureSlotToChange.c_str());
+            ImGui::Separator();
+
+            // 提供一个 "None" 选项来清空纹理
+            if (ImGui::Selectable("None")) {
+                material->SetTexture(m_TextureSlotToChange, nullptr);
+                ImGui::CloseCurrentPopup();
+            }
+
+            // 遍历所有资源中的纹理
+            auto& allTextures = Resource::GetAllTextures();
+            for (auto& [uuid, tex] : allTextures) {
+                // 可选：显示小图标
+                ImGui::Image((void*)(uintptr_t)tex->GetTextureID(), ImVec2(16, 16), ImVec2(0,1), ImVec2(1,0));
+                ImGui::SameLine();
+                
+                if (ImGui::Selectable(tex->GetName().c_str())) {
+                    // 选中后赋值
+                    material->SetTexture(m_TextureSlotToChange, tex);
+                    ImGui::CloseCurrentPopup();
+                }
+            }
+            ImGui::EndPopup();
+        }
+
+        ImGui::Separator();
+
+        // --- 添加 Uniform 的逻辑 ---
+
+        if (ImGui::Button("Add Uniform...")) {
+            ImGui::OpenPopup("AddUniformPopup");
+        }
+
+        static char s_NewNameBuffer[64] = "u_NewProp";
+        static int s_SelectedTypeIndex = 0;
+        static bool s_ShouldFocusInput = true;
+
+        ImVec2 center = ImGui::GetMainViewport()->GetCenter();
+        ImGui::SetNextWindowPos(center, ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
+
+        if (ImGui::BeginPopupModal("AddUniformPopup", NULL, ImGuiWindowFlags_AlwaysAutoResize)) {
+            ImGui::Text("Add new property to Material");
+            ImGui::Separator();
+
+            if (s_ShouldFocusInput) {
+                ImGui::SetKeyboardFocusHere();
+                s_ShouldFocusInput = false;
+            }
+            ImGui::InputText("Name", s_NewNameBuffer, sizeof(s_NewNameBuffer));
+            
+            // 类型选择
+            ImGui::Combo("Type", &s_SelectedTypeIndex, s_UniformTypes, IM_ARRAYSIZE(s_UniformTypes));
+
+            ImGui::Separator();
+
+            if (ImGui::Button("Add", ImVec2(120, 0))) {
+                std::string newName = std::string(s_NewNameBuffer);
+                
+                if (!newName.empty()) {
+                    // >>> 修改点 1: 处理 Texture 类型添加 <<<
+                    // 确保 switch case 的索引与 s_UniformTypes 数组对应
+                    switch (s_SelectedTypeIndex) {
+                        case 0: material->SetFloat(newName, 0.0f); break;
+                        case 1: material->SetInt(newName, 0); break;
+                        case 2: material->SetVec2(newName, glm::vec2(0.0f)); break;
+                        case 3: // Vec3
+                        case 5: // Color3
+                                material->SetVec3(newName, glm::vec3(1.0f)); break;
+                        case 4: // Vec4
+                        case 6: // Color4
+                                material->SetVec4(newName, glm::vec4(1.0f)); break;
+                        case 7: // Texture (Index 7)
+                                // 初始化为空纹理
+                                material->SetTexture(newName, nullptr);
+                                break;
+                    }
+                    
+                    memset(s_NewNameBuffer, 0, sizeof(s_NewNameBuffer));
+                    s_ShouldFocusInput = true;
+                }
+            }
+            
+            ImGui::SameLine();
+            
+            if (ImGui::Button("Close", ImVec2(120, 0))) {
+                ImGui::CloseCurrentPopup();
+                strcpy(s_NewNameBuffer, "u_NewProp");
+                s_ShouldFocusInput = true;
+            }
+
+            ImGui::EndPopup();
+        }
+    }
+
+
 
 
 	void SceneHierarchyPanel::OnGuiRender()
@@ -96,7 +810,9 @@ template<> void SceneHierarchyPanel::DisplayAddComponentEntry<TextComponent>(con
 			DrawComponents(m_SelectedEntity);
 		}
 		ImGui::End();
-
+        
+        DrawResourceList();
+        DrawResourceInspector();
         
 	}
 	void SceneHierarchyPanel::DrwaEntityNode(Entity& entity)
@@ -143,6 +859,24 @@ template<> void SceneHierarchyPanel::DisplayAddComponentEntry<TextComponent>(con
                 m_SelectedEntity = Entity{entt::null , m_Context.get()};*/
         }
 	}
+
+void SceneHierarchyPanel::DrawResources(){
+    auto& shaders = Resource::GetAllShaders();
+    for(auto& [uuid , shader] : shaders){
+        ImGui::Text("%s",shader->GetName().c_str());
+    }
+    auto& textures = Resource::GetAllTextures();
+    for(auto& [uuid , tex] : textures){
+        ImGui::Text("%s",tex->GetName().c_str());
+    }
+    
+    auto& materials = Resource::GetAllMaterials();
+    for(auto& [uuid , mat] : materials){
+        ImGui::Text("%s",mat->GetName().c_str());
+    }
+}
+
+
 	void SceneHierarchyPanel::DrawComponents(Entity& entity)
 {
 
@@ -301,77 +1035,151 @@ template<> void SceneHierarchyPanel::DisplayAddComponentEntry<TextComponent>(con
         if (entity.HasComponent<Renderable>()) {
             auto& comp = entity.GetComponent<Renderable>();
             
-            bool open = ImGui::TreeNodeEx("Renderable", ImGuiTreeNodeFlags_OpenOnArrow);
-            std::string QuadRenderType[2] = { "PureColor" , "Texture" };
-            std::string currentRenderType = QuadRenderType[(int)comp.type];
-            if(open){
+            // 增加 Flags 使得点击整行都能展开，更符合习惯
+            bool open = ImGui::TreeNodeEx("Renderable", ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_SpanAvailWidth | ImGuiTreeNodeFlags_AllowItemOverlap | ImGuiTreeNodeFlags_FramePadding);
+            
+            // 右键菜单移除组件的逻辑通常放在 TreeNode 这一行
+            // (代码略，为了保持和你原有结构一致，放在最后处理)
+
+            if (open) {
+                // --- 1. Material Selector (新增部分) ---
+                {
+                    // 获取当前材质名称
+                    // 假设 Resource::GetMaterial(uuid) 返回 Ref<Material>
+                    Ref<Material> currentMaterial = comp.material;
+                    std::string materialName = currentMaterial ? currentMaterial->GetName() : "None (Default)";
+
+                    if (ImGui::BeginCombo("Material", materialName.c_str())) {
+                        // 1. 提供一个清空选项
+                        bool isNoneSelected = (comp.material == nullptr);
+                        if (ImGui::Selectable("None", isNoneSelected)) {
+                            comp.material = nullptr;
+                        }
+
+                        // 2. 遍历所有材质
+                        // 假设 Resource::GetAllMaterials() 返回 std::unordered_map<UUID, Ref<Material>>
+                        auto& materials = Resource::GetAllMaterials();
+                        for (auto& [uuid, mat] : materials) {
+                            bool isSelected = comp.material && (comp.material->GetRendererID() == uuid);
+                            if (ImGui::Selectable(mat->GetName().c_str(), isSelected)) {
+                                comp.material = mat;
+                            }
+
+                            if (isSelected)
+                                ImGui::SetItemDefaultFocus();
+                        }
+                        ImGui::EndCombo();
+                    }
+
+                    // --- 拖拽接收 (Drag & Drop Target) ---
+                    // 允许从左侧资源面板拖动材质到这个 Combo 框上
+                    if (ImGui::BeginDragDropTarget()) {
+                        // 1. 接收 Payload
+                        if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("RESOURCE_MATERIAL")) {
+                            
+                            // 2. 获取数据：payload->Data 是 void*，指向之前 SetPayload 传入的 UUID 内存地址
+                            // 我们将其强转为 UUID* 并解引用，拿到真正的 UUID 数值
+                            UUID materialUUID = *(const UUID*)payload->Data;
+
+                            // 3. 核心逻辑：使用 UUID 去资源管理器查找真正的 Ref<Material> 对象
+                            // 假设你有这样一个全局静态方法
+                            Ref<Material> newMaterial = Resource::GetMaterial(materialUUID);
+                            
+                            // 4. 赋值
+                            if (newMaterial) {
+                                comp.material = newMaterial;
+                            }
+                        }
+                        ImGui::EndDragDropTarget();
+                    }
+                }
+                
+                ImGui::Separator();
+
+                // --- 2. 原有的 RenderType 逻辑 ---
+                // (即使选了材质，可能还需要保留这个逻辑来决定基础几何体的顶点属性生成方式，或者作为材质的参数输入)
+                std::string QuadRenderType[2] = { "PureColor" , "Texture" };
+                std::string currentRenderType = QuadRenderType[(int)comp.type];
+                
                 if (ImGui::BeginCombo("RenderType", currentRenderType.c_str())) {
-                    for (int i = 0; i < 2; i++)
-                    {
+                    for (int i = 0; i < 2; i++) {
                         bool isSelected = currentRenderType == QuadRenderType[i];
-                        if (ImGui::Selectable(QuadRenderType[i].c_str(), isSelected))
-                        {
+                        if (ImGui::Selectable(QuadRenderType[i].c_str(), isSelected)) {
                             currentRenderType = QuadRenderType[i];
                             comp.type = (RenderType)i;
                         }
-                        
-                        if (isSelected)
-                            ImGui::SetItemDefaultFocus();
+                        if (isSelected) ImGui::SetItemDefaultFocus();
                     }
-                    
                     ImGui::EndCombo();
                 }
-                bool removeComponent = false;
-                
-                if(comp.type == RenderType::PureColor){
-                    ImGui::ColorEdit4("color", glm::value_ptr(comp.m_Color));
+
+                // ... 原有的属性面板逻辑 ...
+                if (comp.type == RenderType::PureColor) {
+                    ImGui::ColorEdit4("Color", glm::value_ptr(comp.m_Color));
                 }
-                else if(comp.type == RenderType::Texture){
-                    ImGui::Checkbox("isSubtexture", &comp.isSubtexture);
+                else if (comp.type == RenderType::Texture) {
+                    ImGui::Checkbox("Is Subtexture", &comp.isSubtexture);
                     
-                    ImGui::Text("Path:%s",comp.subTexture ? comp.subTexture->GetTexture()->GetPath().c_str() : "");
-                    ImGui::SameLine();
-                    if (ImGui::Button("browse")) {
-                        auto projDir = Project::GetProjectDirectory();
-                        auto texturePathStr = FileDialogs::OpenFile("png (*.png)\0 * .png\0");
-                        std::filesystem::path texturePath = std::filesystem::path(texturePathStr).lexically_relative(projDir);
-                        if (!texturePath.empty()) {
-                            std::string strTexturePath = texturePath.string();
-                            auto texture = Texture2D::Create(strTexturePath);
-                            comp.subTexture.reset();
-                            comp.subTexture = SubTexture2D::CreateByCoord(texture, comp.spriteSize, comp.textureIndex, comp.textureSize);
+                    // 显示当前纹理路径（如果太长可以截断显示）
+//                    std::string pathText = comp.subTexture ? comp.subTexture->GetTexture()->GetPath() : "None";
+//                    ImGui::Text("UUID: %s", pathText.c_str());
+                    
+//                    ImGui::SameLine();
+                    
+                    
+                    // 同样加上纹理的拖拽接收
+                    if (ImGui::BeginDragDropTarget()) {
+                        if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("RESOURCE_TEXTURE")) {
+                            UUID texUUID = *(const UUID*)payload->Data;
+                            Ref<Texture2D> texture = Resource::GetTexture(texUUID);
+                            if (texture) {
+                                comp.subTexture = SubTexture2D::CreateByCoord(texture, comp.spriteSize, comp.textureIndex, comp.textureSize);
+                            }
                         }
+                        ImGui::EndDragDropTarget();
                     }
-                    if(comp.isSubtexture){
-                        bool spriteSizeDirty = ImGui::DragFloat2("SpriteSize" , glm::value_ptr(comp.spriteSize) , 1.0f);
-                        bool spriteIndexDirty = ImGui::DragFloat2("SpriteIndex" , glm::value_ptr(comp.textureIndex) , 1.0f);
-                        bool textureSizeDirty = ImGui::DragFloat2("TextureSize" , glm::value_ptr(comp.textureSize) , 1.0f);
-                        if(spriteSizeDirty || spriteIndexDirty || textureSizeDirty){
+                    if(comp.isSubtexture && comp.subTexture == nullptr){
+                        TSO_CORE_ASSERT(comp.material != nullprt , "Entity cannot be subtexture without a material!");
+                    }
+
+                    if (comp.isSubtexture && comp.subTexture) {
+                        bool dirty = false;
+                        dirty |= ImGui::DragFloat2("Sprite Size", glm::value_ptr(comp.spriteSize), 1.0f);
+                        dirty |= ImGui::DragFloat2("Sprite Index", glm::value_ptr(comp.textureIndex), 1.0f);
+                        dirty |= ImGui::DragFloat2("Texture Size", glm::value_ptr(comp.textureSize), 1.0f);
+                        
+                        if (dirty) {
                             comp.subTexture->RecalculateCoords(comp.spriteSize, comp.textureIndex, comp.textureSize);
                         }
                     }
                 }
+
+                // --- UIView Logic ---
                 bool& uiview = comp.uiview;
-                ImGui::Checkbox("UIView", &uiview);
-                if(uiview && !entity.HasComponent<UITransformComponent>()){
+                ImGui::Checkbox("UI View", &uiview);
+                
+                // 自动添加/移除组件的逻辑
+                if (uiview && !entity.HasComponent<UITransformComponent>()) {
                     entity.AddComponent<UITransformComponent>();
-                    
                 }
-                if(!uiview && entity.HasComponent<UITransformComponent>()){
+                if (!uiview && entity.HasComponent<UITransformComponent>()) {
                     entity.RemoveComponent<UITransformComponent>();
                 }
-                if(entity.HasComponent<UITransformComponent>()){
-                    auto& uitransformc = entity.GetComponent<UITransformComponent>();
-                    ImGui::DragFloat2("pos:", glm::value_ptr(uitransformc.UIpos) , 0.1f);
-                    ImGui::DragFloat3("size:", glm::value_ptr(uitransformc.UISize), 0.1f);
+
+                if (entity.HasComponent<UITransformComponent>()) {
+                    auto& uit = entity.GetComponent<UITransformComponent>();
+                    ImGui::DragFloat2("UI Pos", glm::value_ptr(uit.UIpos), 0.1f);
+                    ImGui::DragFloat3("UI Size", glm::value_ptr(uit.UISize), 0.1f);
                 }
-                if (ImGui::MenuItem("Remove component"))
-                    removeComponent = true;
+
+                // --- Remove Component Logic ---
+                // 这种在 Tree 内部的 remove 方式需要注意不要在 draw 过程中使得 entity 迭代器失效
+                // 通常在 Inspector 中没问题，因为我们只操作单体
+                if (ImGui::Button("Remove Component") ) {
+                     entity.RemoveComponent<Renderable>();
+                }
+
                 ImGui::TreePop();
-                
-                if(removeComponent){
-                    entity.RemoveComponent<Renderable>();
-                }
             }
         }
 		if (entity.HasComponent<CameraComponent>()) {

@@ -4,7 +4,7 @@
 #include "Platform/OpenGL/OpenGLVertexArray.h"
 
 namespace Tso {
-	VertexArray* VertexArray::Create() {
+	Ref<VertexArray> VertexArray::Create() {
 		switch (Renderer::GetAPI())
 		{
 		case RendererAPI::API::None: {
@@ -12,7 +12,7 @@ namespace Tso {
 			return nullptr;
 		}
 		case RendererAPI::API::OpenGL: {
-			return new OpenGLVertexArray();
+            return CreateRef<OpenGLVertexArray>();
 		}
 		default:
 			break;

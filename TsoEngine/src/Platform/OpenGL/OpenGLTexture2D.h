@@ -26,6 +26,10 @@ namespace Tso {
         virtual void SetData(void* data , const uint32_t& size)override;
         
         virtual std::string& GetPath()override{return m_TexturePath;}
+        
+        virtual std::string& GetName()override{return m_Name;}
+        
+        virtual void SetName(const std::string& name)override{m_Name = name;}
 
 		virtual bool operator==(const Texture& other)const override {
 			return m_RendererID == ((OpenGLTexture2D&)other).m_RendererID;
@@ -34,6 +38,10 @@ namespace Tso {
          virtual uint32_t GetTextureID()override{
             return m_RendererID;
         }
+        
+        virtual void SetUUID(const UUID& uuid)override{m_UUID = uuid;}
+        
+        virtual UUID& GetUUID()override{return m_UUID;}
         
     private:
         void Invalidate(void* data);
@@ -49,6 +57,10 @@ namespace Tso {
         std::string m_TexturePath = "";
         
         bool m_GenMipmap = false;
+        
+        std::string m_Name = "default_tex";
+        
+        UUID m_UUID;
 	};
 
 }
