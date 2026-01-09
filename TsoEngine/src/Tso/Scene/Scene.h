@@ -58,6 +58,8 @@ namespace Tso {
         glm::mat4* GetMainCameraTransform(){return m_MainCameraTransform;}
 
 		void SetSceneCamera(const Entity& cameraEntity);
+        
+        Ref<Entity> GetSceneCamera(){return m_SceneCamera;}
 
 		void SetUseSceneCamera(bool useSceneCamera);
 

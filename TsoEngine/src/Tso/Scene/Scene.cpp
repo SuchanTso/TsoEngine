@@ -179,6 +179,7 @@ void Scene::OnUpdate(TimeStep ts)
 
     auto view = m_Registry.view<TransformComponent, CameraComponent>();
     glm::mat4* mainCameraTransfrom = nullptr;
+    SceneCamera* renderCamera = nullptr;
 
     for (auto& e : view) {
         auto& camera = view.get<CameraComponent>(e);
@@ -189,17 +190,19 @@ void Scene::OnUpdate(TimeStep ts)
             m_MainCameraTransform = mainCameraTransfrom;
         }
     }
+    renderCamera = mainCamera;
 
     if (m_UseSceneCamera) {
         TSO_CORE_ASSERT(m_SceneCamera != nullptr, "attempt to use scene camera while sceneCamera is null");
-        mainCamera = &(m_SceneCamera->GetComponent<CameraComponent>().m_Camera);
+//        mainCamera = &(m_SceneCamera->GetComponent<CameraComponent>().m_Camera);
+        renderCamera = &(m_SceneCamera->GetComponent<CameraComponent>().m_Camera);
         auto& transform = m_SceneCamera->GetComponent<TransformComponent>();
         mainCameraTransfrom = &transform.GetTransform();
         m_MainCameraTransform = mainCameraTransfrom;
     }
  
-    if (mainCamera && mainCameraTransfrom) {
-        Renderer2DMaterial::BeginScene(*mainCamera, *mainCameraTransfrom);
+    if (renderCamera && mainCameraTransfrom) {
+        Renderer2DMaterial::BeginScene(*renderCamera, *mainCameraTransfrom);
         
         auto group = m_Registry.view<Renderable , TransformComponent>();
         for (auto& entity : group) {
