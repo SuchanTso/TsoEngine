@@ -10,6 +10,7 @@
 #include "Renderer/RenderCommand.h"
 #include "Renderer/OrthographicCamera.h"
 #include "Material.h"
+#include "Tso/Scene/Component.h"
 
 namespace Tso {
 
@@ -21,6 +22,8 @@ namespace Tso {
         glm::vec4 Color;
         float textureIndex;
         float EntityID;
+        glm::vec4 CustomData;
+
     };
 
     struct Renderer2DMaterialData {
@@ -75,7 +78,8 @@ namespace Tso {
             { ShaderDataType::Float2, "a_TexCoord" },
             { ShaderDataType::Float4, "a_Color" },
             {ShaderDataType::Float  , "a_TexIndex"},
-            { ShaderDataType::Float, "a_EntityID" } // int在shader中读取建议用float传或专门的IVertexAttrib
+            { ShaderDataType::Float, "a_EntityID" }, // int在shader中读取建议用float传或专门的IVertexAttrib
+            { ShaderDataType::Float4, "a_CustomData" }
         });
         s_Data.QuadVAO->AddVertexBuffer(s_Data.QuadVBO);
 
@@ -203,6 +207,7 @@ namespace Tso {
                 s_Data.QuadVertexBufferPtr->Color = cmd.Color;
                 s_Data.QuadVertexBufferPtr->textureIndex = 0;
                 s_Data.QuadVertexBufferPtr->EntityID = (float)cmd.EntityID;
+                s_Data.QuadVertexBufferPtr->CustomData = cmd.custumData;
                 s_Data.QuadVertexBufferPtr++;
             }
 
@@ -261,14 +266,28 @@ namespace Tso {
 //        });
 //    }
 
-    void Renderer2DMaterial::DrawQuad(const glm::mat4& transform,const std::vector<glm::vec2>& texcoord, int entityID, Ref<Material> material) {
+    void Renderer2DMaterial::DrawQuad(const glm::mat4& transform,const std::vector<glm::vec2>& texcoord, int entityID, Ref<Material> material , MaterialInstanceComponent* overrideComp) {
         glm::vec4 color = material? material->GetPureColor() : glm::vec4(1.f);
+        glm::vec4 instanceData(0.0f);
+
+        // 如果有组件，并且材质定义了映射规则
+        if (overrideComp && material) {
+            // 遍历材质定义的所有实例参数
+            for (const auto& [name, slot] : material->GetInstanceParams()) {
+                // 查找组件里是否有这个值
+                if (overrideComp->FloatOverrides.find(name) != overrideComp->FloatOverrides.end()) {
+                    // 填入对应的槽位
+                    instanceData[slot] = overrideComp->FloatOverrides.at(name);
+                }
+            }
+        }
         s_Data.QuadCommands.push_back({
             transform,
             color,
             texcoord,
             entityID,
-            material
+            material,
+            instanceData
         });
     }
 

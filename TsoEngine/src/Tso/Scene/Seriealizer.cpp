@@ -219,6 +219,53 @@ namespace Tso {
             out << YAML::EndMap; // RenderableComponent
         }
 
+        if (entity.HasComponent<MaterialInstanceComponent>())
+        {
+            out << YAML::Key << "MaterialInstance";
+            out << YAML::BeginMap; // MaterialInstance Component
+
+            auto& matInst = entity.GetComponent<MaterialInstanceComponent>();
+            
+            // 我们需要知道每个参数对应的 Slot 索引
+            // 这需要去查询材质本身
+            Tso::Ref<Tso::Material> material = nullptr;
+            if (entity.HasComponent<Tso::Renderable>()) {
+                material = entity.GetComponent<Tso::Renderable>().material;
+                // 或者是通过 UUID 获取: Resource::GetMaterial(renderComp.materialUUID);
+            }
+
+            if (material)
+            {
+                out << YAML::Key << "Params" << YAML::Value << YAML::BeginSeq;
+
+                // 遍历所有覆盖值
+                for (auto& [name, value] : matInst.FloatOverrides)
+                {
+                    // 查询材质，获取这个名字对应的 Slot
+                    int slot = material->GetInstanceParamSlot(name);
+                    
+                    // 如果材质里没定义这个参数，或者返回 -1，可能不应该保存，或者报个警告
+                    if (slot >= 0 && slot < 4)
+                    {
+                        out << YAML::BeginMap;
+                        out << YAML::Key << "Name" << YAML::Value << name;
+                        out << YAML::Key << "Slot" << YAML::Value << slot;
+                        out << YAML::Key << "Value" << YAML::Value << value;
+                        out << YAML::EndMap;
+                    }
+                    else
+                    {
+                        // 可选：警告用户这个 override 可能是无效的
+                         TSO_CORE_WARN("Entity {} has invalid material override '{}'", entity.GetUUID(), name);
+                    }
+                }
+                
+                out << YAML::EndSeq;
+            }
+            
+            out << YAML::EndMap; // End MaterialInstance Component
+        }
+
 
         if (entity.HasComponent<Rigidbody2DComponent>())
         {
@@ -388,8 +435,27 @@ namespace Tso {
                         auto matUUID = renderComponent["Material"].as<uint64_t>();
                         auto material = Resource::GetMaterial(matUUID);
                         renderComp.material = material;
+                        auto MaterialInstance = entity["MaterialInstance"];// make MaterialInstance a child component of Material
+                        if(MaterialInstance){
+                            auto& matIns = deserializedEntity.AddComponent<MaterialInstanceComponent>();
+                            auto params = MaterialInstance["Params"];
+                            if(params){
+                                for(auto param : params){
+                                    int slot = param["Slot"].as<int>();
+                                    std::string name = param["Name"].as<std::string>();
+                                    float value = param["Value"].as<float>();
+                                    TSO_CORE_ASSERT(slot < 4 , "Material Instance not supports more than 4 value now");
+                                    matIns.FloatOverrides[name] = value;
+                                    if(renderComp.material){
+                                        renderComp.material->DefineInstanceParam(name, slot);
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
+                
+                
 
                 auto RigidBoxComponent = entity["Rigidbody2DComponent"];
                 if (RigidBoxComponent) {

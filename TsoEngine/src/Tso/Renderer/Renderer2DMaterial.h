@@ -7,7 +7,7 @@
 #include <vector>
 
 namespace Tso {
-
+struct MaterialInstanceComponent;
     // 命令结构体
     struct DrawQuadCommand {
         glm::mat4 Transform;
@@ -15,6 +15,7 @@ namespace Tso {
         std::vector<glm::vec2> Texcoord;
         int EntityID;
         Ref<Material> Material;
+        glm::vec4 custumData;
     };
 
     struct DrawStringCommand {
@@ -39,7 +40,7 @@ namespace Tso {
         static void Flush();
 
         // 提交命令
-        static void DrawQuad(const glm::mat4& transform,const std::vector<glm::vec2>& texcoord , int entityID, Ref<Material> material);
+        static void DrawQuad(const glm::mat4& transform,const std::vector<glm::vec2>& texcoord , int entityID, Ref<Material> material,MaterialInstanceComponent* overrideComp);
 //        static void DrawQuad(const glm::mat4& transform, const glm::vec4& color, int entityID, Ref<Material> material);
 //        static void DrawQuad(const glm::mat4& transform, Ref<Texture2D> texture, int entityID, Ref<Material> material);
 //        static void DrawQuad(const glm::mat4& transform, Ref<SubTexture2D> subTexture, int entityID, Ref<Material> material);

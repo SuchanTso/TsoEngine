@@ -90,6 +90,17 @@ namespace Tso {
         bool uiview = false;
 	};
 
+    struct MaterialInstanceComponent {
+            // 存储实例数据：Key 是参数名，Value 是数值
+            // 这里我们假设提供 4 个 float 的通用槽位（足够绝大多数 2D 效果使用）
+            // 如果需要更多，可以用 glm::vec4 或者 std::vector
+            std::unordered_map<std::string, float> FloatOverrides;
+            // std::unordered_map<std::string, glm::vec3> Vec3Overrides; // 按需扩展
+            
+            MaterialInstanceComponent() = default;
+            MaterialInstanceComponent(const MaterialInstanceComponent&) = default;
+        };
+
 	struct TagComponent  {
 		TagComponent() = default;
 		TagComponent(const std::string& name = "blankNameEntity");

@@ -144,6 +144,20 @@ namespace Tso {
         m_TextureParams[name] = texture;
     }
 
+    void Material::DefineInstanceParam(const std::string& name, int slotIndex) {
+        if (slotIndex < 0 || slotIndex > 3) {
+            TSO_CORE_WARN("Slot index must be 0-3");
+            return;
+        }
+        m_InstanceParamMap[name] = slotIndex;
+    }
+
+    int Material::GetInstanceParamSlot(const std::string& name) const {
+        if (m_InstanceParamMap.find(name) != m_InstanceParamMap.end())
+            return m_InstanceParamMap.at(name);
+        return -1;
+    }
+
     void Material::Serealize() {
         if (m_filePath.empty()) {
             TSO_CORE_ERROR("Cannot save material [{0}] to an empty path", m_Name);
