@@ -306,93 +306,117 @@ void EditorLayer::DrawEditorInterface(){
 
 
 
-        ImGui::Begin("scene view");
-        m_ViewportFocused = ImGui::IsWindowFocused();
-        m_ViewportHovered = ImGui::IsWindowHovered();
-        if (m_ViewportFocused) {
-            if (m_Focus != FocusWindow::Sceneview) {
-                m_UpdateViewportSize = true;
+    ImGui::Begin("scene view");
+           
+           m_ViewportFocused = ImGui::IsWindowFocused();
+           m_ViewportHovered = ImGui::IsWindowHovered();
+           
+           // 1. 获取当前这一帧的可用尺寸
+           auto sceneViewContentSize = ImGui::GetContentRegionAvail();
+           
+           // 2. 判断尺寸是否发生变化
+           bool sceneViewSizeChanged = (sceneViewContentSize.x > 0.0f && sceneViewContentSize.y > 0.0f &&
+                                       (sceneViewContentSize.x != m_SceneVeiwSize.x || sceneViewContentSize.y != m_SceneVeiwSize.y));
+
+           // 3. 如果尺寸变了，先更新一下成员变量记录
+           if (sceneViewSizeChanged) {
+               m_SceneVeiwSize = { sceneViewContentSize.x, sceneViewContentSize.y };
+           }
+
+           // 4. 处理焦点逻辑
+            bool focusChanged = (m_Focus != FocusWindow::Sceneview);
+            if (m_ViewportFocused) {
+               // 判断是否是刚刚切换到这个窗口
+               
+               // 更新状态
+               m_Focus = FocusWindow::Sceneview;
+               m_Scene->SetUseSceneCamera(true);
             }
-            m_Scene->SetUseSceneCamera(true);
-            m_Focus = FocusWindow::Sceneview;
-        }
-            auto viewportMinRegion = ImGui::GetWindowContentRegionMin();
-            auto viewportMaxRegion = ImGui::GetWindowContentRegionMax();
-            auto viewportOffset = ImGui::GetWindowPos();
-            m_ViewportBounds[0] = { viewportMinRegion.x + viewportOffset.x, viewportMinRegion.y + viewportOffset.y };
-            m_ViewportBounds[1] = { viewportMaxRegion.x + viewportOffset.x, viewportMaxRegion.y + viewportOffset.y };
-            Input::SetViewportBound(m_ViewportBounds[0].x, m_ViewportBounds[0].y , m_ViewportBounds[1].x, m_ViewportBounds[1].y);
-//                TSO_CORE_INFO("viewportBounds:[{},{}] , [{},{}]",viewportMinRegion.x, viewportMinRegion.y , viewportMaxRegion.x, viewportMaxRegion.y);
-//                auto viewportSize = m_ViewportBounds[1] - m_ViewportBounds[0];
-//                auto windowPosX = Application::Get().GetWindow().GetPosX();
-//                auto windowPosY = Application::Get().GetWindow().GetPosY();
-//                TSO_CORE_INFO("viewportSize:[{},{}]",viewportSize.x , viewportSize.y);
-//                TSO_CORE_INFO("windowPos:[{},{}]",viewportOffset.x , viewportOffset.y);
-//                TSO_CORE_INFO("viewportPos:[{},{}]",m_ViewportBounds[0].x , m_ViewportBounds[0].y + viewportSize.y);
-
-            Application::Get().GetGUILayer()->BlockEvents(!(m_GameViewFocused || m_ViewportFocused));
-            
-
-            auto content = ImGui::GetContentRegionAvail();
-            if (content.x > 0.f && content.y > 0.f && (content.x != m_SceneVeiwSize.x || content.y != m_SceneVeiwSize.y)) {
-                m_SceneVeiwSize = { content.x , content.y };
-                m_UpdateViewportSize = true;
+            if (sceneViewSizeChanged || focusChanged) {
+                if(m_ViewportFocused){
+                    TSO_CORE_INFO("SceneView Update: Resize to [{}, {}]", m_SceneVeiwSize.x, m_SceneVeiwSize.y);
+                    // 1. Resize Framebuffer
+                    m_FrameBuffer->Resize((uint32_t)m_SceneVeiwSize.x, (uint32_t)m_SceneVeiwSize.y);
+                    // 3. Set GL Viewport
+                    RenderCommand::SetViewPort(0, 0, (uint32_t)m_SceneVeiwSize.x, (uint32_t)m_SceneVeiwSize.y);
+                    ViewportManager::SetViewportInfo({m_ViewportBounds[0].x , 0.f}, m_SceneVeiwSize);
+                }
+                // 2. Resize Editor Camera
+                if(m_CameraEntity->HasComponent<CameraComponent>()){
+                    m_CameraEntity->GetComponent<CameraComponent>().m_Camera.SetViewportSize((uint32_t)m_SceneVeiwSize.x, (uint32_t)m_SceneVeiwSize.y);
+                }
             }
-            if (m_UpdateViewportSize && m_Scene && m_Scene->GetMainCamera()) {
-                TSO_CORE_INFO("update scene view size [{} , {}]" , m_SceneVeiwSize.x , m_SceneVeiwSize.y);
-                m_FrameBuffer->Resize(uint32_t(m_SceneVeiwSize.x), uint32_t(m_SceneVeiwSize.y));
-                m_Scene->GetMainCamera()->SetViewportSize(uint32_t(m_SceneVeiwSize.x), uint32_t(m_SceneVeiwSize.y));
-                RenderCommand::SetViewPort(0, 0, m_SceneVeiwSize.x, m_SceneVeiwSize.y);
-                ViewportManager::SetViewportInfo({m_ViewportBounds[0].x , 0.f}, m_SceneVeiwSize);
-                // ignore ypos for now: TODO: add screen size fetch when have time to add file watcher
-                m_UpdateViewportSize = false;
+           
+           // Input Bounds 处理 (保持原样)
+           auto viewportMinRegion = ImGui::GetWindowContentRegionMin();
+           auto viewportMaxRegion = ImGui::GetWindowContentRegionMax();
+           auto viewportOffset = ImGui::GetWindowPos();
+           m_ViewportBounds[0] = { viewportMinRegion.x + viewportOffset.x, viewportMinRegion.y + viewportOffset.y };
+           m_ViewportBounds[1] = { viewportMaxRegion.x + viewportOffset.x, viewportMaxRegion.y + viewportOffset.y };
+           Input::SetViewportBound(m_ViewportBounds[0].x, m_ViewportBounds[0].y , m_ViewportBounds[1].x, m_ViewportBounds[1].y);
+           
+           Application::Get().GetGUILayer()->BlockEvents(!(m_GameViewFocused || m_ViewportFocused));
+
+           uint32_t sceneTexId = m_FrameBuffer->GetColorAttachment(0);
+           ImGui::Image((void*)(uintptr_t)sceneTexId, ImVec2{ m_SceneVeiwSize.x , m_SceneVeiwSize.y }, ImVec2{ 0, 1 }, ImVec2{ 1, 0 });
+           
+           ImGui::End();
+
+
+           // ==========================================================
+           // Game View
+           // ==========================================================
+           ImGui::Begin("game view");
+
+           m_GameViewFocused = ImGui::IsWindowFocused();
+           m_GameViewHovered = ImGui::IsWindowHovered();
+           
+           // 1. 获取尺寸
+           auto gameViewContentSize = ImGui::GetContentRegionAvail();
+           
+           // 2. 判断变化
+           bool gameViewSizeChanged = (gameViewContentSize.x > 0.0f && gameViewContentSize.y > 0.0f &&
+                                      (gameViewContentSize.x != m_GameViewSize.x || gameViewContentSize.y != m_GameViewSize.y));
+
+           // 3. 更新记录
+           if (gameViewSizeChanged) {
+               m_GameViewSize = { gameViewContentSize.x, gameViewContentSize.y };
+           }
+
+           // 4. 处理焦点
+            bool game_focusChanged = (m_Focus != FocusWindow::GameView);
+            if (m_GameViewFocused) {
+               m_Focus = FocusWindow::GameView;
+               m_Scene->SetUseSceneCamera(false);
+           }
+            if (gameViewSizeChanged || game_focusChanged) {
+                if(m_GameViewFocused){
+                    TSO_CORE_INFO("GameView Update: Resize to [{}, {}]", m_GameViewSize.x, m_GameViewSize.y);
+                    m_FrameBuffer->Resize((uint32_t)m_GameViewSize.x, (uint32_t)m_GameViewSize.y);
+                    RenderCommand::SetViewPort(0, 0, (uint32_t)m_GameViewSize.x, (uint32_t)m_GameViewSize.y);
+                    ViewportManager::SetViewportInfo({viewportMinRegion.x , viewportMinRegion.y}, m_GameViewSize); // 注意这里的 minRegion 变量名可能需要对应修改为 GameView 的
+                }
+                // 设置 Runtime Camera 的长宽比
+                if (m_Scene->GetMainCamera()) {
+                    m_Scene->GetMainCamera()->SetViewportSize((uint32_t)m_GameViewSize.x, (uint32_t)m_GameViewSize.y);
+                }
+                
             }
-            uint32_t fbId = m_FrameBuffer->GetColorAttachment(0);
+           
+           // Bounds 处理 (Game View 特有的)
+           auto gameViewMinRegion = ImGui::GetWindowContentRegionMin();
+           auto gameViewMaxRegion = ImGui::GetWindowContentRegionMax();
+           auto gameViewOffset = ImGui::GetWindowPos();
+           m_GameViewBounds[0] = { gameViewMinRegion.x + gameViewOffset.x, gameViewMinRegion.y + gameViewOffset.y };
+           m_GameViewBounds[1] = { gameViewMaxRegion.x + gameViewOffset.x, gameViewMaxRegion.y + gameViewOffset.y };
+           
+           // 这里的 BlockEvents 可以去掉，因为上面 SceneView 已经做过一次了，或者保留做冗余检查
+           // Application::Get().GetGUILayer()->BlockEvents(...);
 
-            ImGui::Image((void*)fbId, ImVec2{ m_SceneVeiwSize.x , m_SceneVeiwSize.y }, ImVec2{ 0, 1 }, ImVec2{ 1, 0 });
-        
-        ImGui::End();
-
-
-        ImGui::Begin("game view");
-
-        m_GameViewFocused = ImGui::IsWindowFocused();
-        m_GameViewHovered = ImGui::IsWindowHovered();
-
-        if (m_GameViewFocused) {
-            if (m_Focus != FocusWindow::GameView) {
-                m_UpdateViewportSize = true;
-            }
-            m_Scene->SetUseSceneCamera(false);
-            m_Focus = FocusWindow::GameView;
-        }
-            auto gameViewMinRegion = ImGui::GetWindowContentRegionMin();
-            auto gameViewMaxRegion = ImGui::GetWindowContentRegionMax();
-            auto gameViewOffset = ImGui::GetWindowPos();
-
-            bool gameViewFocused = ImGui::IsWindowFocused();
-            bool gameViewHovered = ImGui::IsWindowHovered();
-            m_GameViewBounds[0] = { gameViewMinRegion.x + gameViewOffset.x, gameViewMinRegion.y + gameViewOffset.y };
-            m_GameViewBounds[1] = { gameViewMaxRegion.x + gameViewOffset.x, gameViewMaxRegion.y + gameViewOffset.y };
-            Application::Get().GetGUILayer()->BlockEvents(!(m_GameViewFocused || m_ViewportFocused));
-            auto gameViewcontent = ImGui::GetContentRegionAvail();
-            if (gameViewcontent.x > 0.f && gameViewcontent.y > 0.f && (gameViewcontent.x != m_GameViewSize.x || gameViewcontent.y != m_GameViewSize.y)) {
-                m_GameViewSize = { gameViewcontent.x , gameViewcontent.y };
-                m_FrameBuffer->Resize(uint32_t(m_GameViewSize.x), uint32_t(m_GameViewSize.y));
-                m_UpdateViewportSize = true;
-            }
-
-            if (m_UpdateViewportSize && m_Scene && m_Scene->GetMainCamera()) {
-                TSO_CORE_INFO("update game view size!!");
-                m_Scene->GetMainCamera()->SetViewportSize(uint32_t(m_GameViewSize.x), uint32_t(m_GameViewSize.y));
-                RenderCommand::SetViewPort(0, 0, m_GameViewSize.x, m_GameViewSize.y);
-                ViewportManager::SetViewportInfo({gameViewMinRegion.x , gameViewMinRegion.y}, m_GameViewSize);
-                m_UpdateViewportSize = false;
-            }
-            fbId = m_FrameBuffer->GetColorAttachment(0);
-            ImGui::Image((void*)fbId, ImVec2{ m_GameViewSize.x , m_GameViewSize.y }, ImVec2{ 0, 1 }, ImVec2{ 1, 0 });
-        
-        ImGui::End();
+           uint32_t gameTexId = m_FrameBuffer->GetColorAttachment(0);
+           ImGui::Image((void*)(uintptr_t)gameTexId, ImVec2{ m_GameViewSize.x , m_GameViewSize.y }, ImVec2{ 0, 1 }, ImVec2{ 1, 0 });
+           
+           ImGui::End();
 }
     m_Panel.OnGuiRender();
     ImGui::End();
@@ -497,11 +521,22 @@ void EditorLayer::DrawEditorInterface(){
             if (m_Scene != nullptr) {
                 m_Scene.reset();
                 m_Scene = std::make_shared<Scene>();
+                
                 m_Panel.SetContext(m_Scene);
                 NetWorkEngine::SetContext(m_Scene);
             }
             Seriealizer seriealizer(m_Scene.get());
             seriealizer.DeseriealizeScene(scenePath.string());
+            auto sceneCamera = m_Scene->GetSceneCamera();
+            if(sceneCamera != nullptr){
+                m_CameraEntity = sceneCamera;
+            }
+            else{
+                m_CameraEntity = CreateRef<Entity>(m_Scene->CreateEntity("SceneCamera"));
+                m_CameraEntity->AddComponent<CameraComponent>();
+                m_Scene->SetSceneCamera(*m_CameraEntity);
+            }
+            
         }
         return scenePath.string();
     }
