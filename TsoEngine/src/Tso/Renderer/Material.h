@@ -62,6 +62,13 @@ namespace Tso {
         void SetUUID(const UUID& uuid){m_UUID = uuid;}
         
         UUID& GetUUID(){return m_UUID;}
+        
+        void DefineInstanceParam(const std::string& name, int slotIndex);
+        
+        int GetInstanceParamSlot(const std::string& name) const;
+        
+        const std::unordered_map<std::string, int>& GetInstanceParams() const { return m_InstanceParamMap; }
+
 
     private:
         Ref<Shader> m_Shader;
@@ -80,6 +87,8 @@ namespace Tso {
         std::unordered_map<std::string, Ref<Texture2D>> m_TextureParams;
         
         UUID m_UUID;
+        std::unordered_map<std::string, int> m_InstanceParamMap;
+
     };
 
 }

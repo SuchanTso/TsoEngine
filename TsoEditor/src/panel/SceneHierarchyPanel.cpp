@@ -95,6 +95,7 @@ layout(location = 1) in vec2 a_TexCoord;
 layout(location = 2) in vec4 a_Color;
 layout(location = 3) in float a_TexIndex;
 layout(location = 4) in int a_EntityID;
+layout(location = 5) in vec4 a_CustomData;
 
 
 
@@ -106,6 +107,7 @@ out vec2 v_TexCoord;
 out vec4 v_Color;
 out float v_TexIndex;
 flat out int v_EntityID;
+out vec4 v_CustomData;
 
 void main(){
 v_Position = a_Position;
@@ -113,6 +115,7 @@ v_TexCoord = a_TexCoord;
 v_Color = a_Color;
 v_TexIndex = a_TexIndex;
 v_EntityID = a_EntityID;
+v_CustomData = a_CustomData;
 gl_Position = u_ProjViewMat * vec4(a_Position , 1.0);
 }
                         )";
@@ -126,6 +129,7 @@ in vec2 v_TexCoord;
 in vec4 v_Color;
 in float v_TexIndex;
 flat in int v_EntityID;
+in vec4 v_CustomData;
 
 
 
@@ -661,8 +665,29 @@ template<typename T, typename UIFunction>
                 if (deleted) it = texParams.erase(it);
                 else ++it;
             }
+            
+            
 
             ImGui::EndTable();
+            
+            ImGui::Separator();
+            ImGui::Text("Instance Parameter Definition (Vertex Attributes)");
+
+            // 显示当前的映射
+            auto& instanceParams = material->GetInstanceParams();
+            for (auto& [name, slot] : instanceParams) {
+                ImGui::Text("%s -> Slot [%d] (a_CustomData.%c)", name.c_str(), slot, "xyzw"[slot]);
+            }
+
+            // 添加新映射的 UI
+            static char s_ParamNameBuf[64] = "CustomData";
+            static int s_SlotIdx = 0;
+            ImGui::InputText("Param Name", s_ParamNameBuf, sizeof(s_ParamNameBuf));
+            ImGui::Combo("Slot", &s_SlotIdx, "Slot X (0)\0Slot Y (1)\0Slot Z (2)\0Slot W (3)\0");
+
+            if (ImGui::Button("Define Instance Param")) {
+                material->DefineInstanceParam(s_ParamNameBuf, s_SlotIdx);
+            }
         }
 
         // >>> 修改点 2 (续): 纹理选择弹窗实现 <<<
@@ -888,6 +913,7 @@ void SceneHierarchyPanel::DrawResources(){
             DisplayAddComponentEntry<Renderable>("Renderable");
             DisplayAddComponentEntry<CameraComponent>("Camera");
             DisplayAddComponentEntry<ScriptComponent>("Script");
+            DisplayAddComponentEntry<MaterialInstanceComponent>("MaterialInstance");
             DisplayAddComponentEntry<NativeScriptComponent>("NativeScript");
             DisplayAddComponentEntry<Rigidbody2DComponent>("Rigidbody2DComponent");
             DisplayAddComponentEntry<BoxCollider2DComponent>("BoxCollider2DComponent");
@@ -1180,6 +1206,30 @@ void SceneHierarchyPanel::DrawResources(){
                 }
 
                 ImGui::TreePop();
+            }
+        }
+        if (entity.HasComponent<MaterialInstanceComponent>()) {
+            auto& comp = entity.GetComponent<MaterialInstanceComponent>();
+            
+            // 我们需要获取 Renderable 里的 Material 来知道要显示什么名字
+            if (entity.HasComponent<Renderable>()) {
+                auto& renderable = entity.GetComponent<Renderable>();
+                Ref<Material> material = renderable.material;
+                
+                if (material) {
+                    ImGui::Text("Instance Overrides:");
+                    // 遍历材质定义的参数
+                    for (auto& [name, slot] : material->GetInstanceParams()) {
+                        
+                        // 确保组件里有这个值，没有就初始化为 0
+                        if (comp.FloatOverrides.find(name) == comp.FloatOverrides.end()) {
+                            comp.FloatOverrides[name] = 0.0f;
+                        }
+                        
+                        // 绘制滑块
+                        ImGui::DragFloat(name.c_str(), &comp.FloatOverrides[name], 0.01f, 0.0f, 1.0f);
+                    }
+                }
             }
         }
 		if (entity.HasComponent<CameraComponent>()) {

@@ -209,7 +209,8 @@ void Scene::OnUpdate(TimeStep ts)
             glm::mat4 transform = tEntity.GetWorldTransform();
             std::vector<glm::vec2> defaultTextCoord = { {0,0}, {1,0}, {1,1}, {0,1} };
             std::vector<glm::vec2> texCoord = render.subTexture ? render.subTexture->GetTexCoords() : defaultTextCoord;
-            Renderer2DMaterial::DrawQuad(transform,texCoord,(int)entity , render.material);
+            MaterialInstanceComponent* matIns = tEntity.HasComponent<MaterialInstanceComponent>() ? &tEntity.GetComponent<MaterialInstanceComponent>() : nullptr;
+            Renderer2DMaterial::DrawQuad(transform,texCoord,(int)entity , render.material , matIns);
 //            if(render.type == RenderType::PureColor){
 //                Renderer2D::DrawQuad(transform,render.m_Color , (int)entity);
 //            }
