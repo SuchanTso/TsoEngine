@@ -264,17 +264,20 @@ void OpenGLShader::SetMatrix4(const std::string& name , const glm::mat4& matrix)
 	}
 
     bool OpenGLShader::Recompile(const std::unordered_map<unsigned int, std::string>& newSources) {
-        // 1. 尝试编译新代码
+        // 1. 创建新的 Program 对象
         auto newProgram = glCreateProgram();
-        bool compiled = true;
-        std::unordered_map<GLenum, unsigned int>shaderIds;
+        bool success = true; // 用于标记整个流程是否成功
+        
+        // 用于暂存创建的 Shader ID，以便后续 Detach 和 Delete
+        std::vector<GLuint> createdShaderIDs;
+
+        // --- 步骤 A: 编译各个 Shader ---
         for (auto& kv : newSources) {
             GLenum type = kv.first;
-            std::string shaderSrc = kv.second;
+            const std::string& shaderSrc = kv.second;
 
-
-            unsigned int shader = glCreateShader(type);
-            shaderIds[type] = shader;
+            GLuint shader = glCreateShader(type);
+            createdShaderIDs.push_back(shader); // 记录下来
 
             const char* source = shaderSrc.c_str();
             glShaderSource(shader, 1, &source, 0);
@@ -286,41 +289,70 @@ void OpenGLShader::SetMatrix4(const std::string& name , const glm::mat4& matrix)
             if (isCompiled == GL_FALSE) {
                 int maxLength = 0;
                 glGetShaderiv(shader, GL_INFO_LOG_LENGTH, &maxLength);
-                std::vector<char>infoLog(maxLength);
+                std::vector<char> infoLog(maxLength);
                 glGetShaderInfoLog(shader, maxLength, &maxLength, &infoLog[0]);
 
-                TSO_CORE_ERROR("[shader] vertex shader error : {0}", infoLog.data());
+                // 打印具体的阶段名称 (Vertex/Fragment)
+                std::string stageName = (type == GL_VERTEX_SHADER ? "Vertex" : (type == GL_FRAGMENT_SHADER ? "Fragment" : "Unknown"));
+                TSO_CORE_ERROR("[Shader Compile Error] {0}: {1}", stageName, infoLog.data());
 
-                glDeleteShader(shader);
-                compiled = false;
-            
-                
+                success = false;
+                break; // 只要有一个编译失败，就停止
             }
+            
             glAttachShader(newProgram, shader);
-
-        }
-        
-        
-        if (newProgram == 0 || !compiled) {
-            return false; // 编译失败，保持原样
         }
 
-        // 2. 编译成功：替换 GPU 资源
-        glDeleteProgram(m_RendererId);
+        // --- 步骤 B: 链接 Program (关键遗漏!) ---
+        if (success) {
+            glLinkProgram(newProgram);
+
+            int isLinked = 0;
+            glGetProgramiv(newProgram, GL_LINK_STATUS, &isLinked);
+            if (isLinked == GL_FALSE) {
+                int maxLength = 0;
+                glGetProgramiv(newProgram, GL_INFO_LOG_LENGTH, &maxLength);
+                std::vector<char> infoLog(maxLength);
+                glGetProgramInfoLog(newProgram, maxLength, &maxLength, &infoLog[0]);
+
+                TSO_CORE_ERROR("[Shader Link Error]: {0}", infoLog.data());
+                
+                success = false;
+            }
+        }
+
+        // --- 步骤 C: 清理 Shader Objects ---
+        // 无论成功与否，Shader 对象在 Attach 后都可以 Detach 和 Delete 了
+        // (如果 Link 成功，Program 会持有它们直到 Program 被删)
+        for (auto id : createdShaderIDs) {
+            if (newProgram != 0) glDetachShader(newProgram, id);
+            glDeleteShader(id);
+        }
+
+        // --- 步骤 D: 结果处理 ---
+        if (!success) {
+            // 失败了，删除半成品的 Program，保持旧的 m_RendererId 不变
+            if (newProgram != 0) glDeleteProgram(newProgram);
+            return false;
+        }
+
+        // 2. 成功：替换 GPU 资源
+        // 别忘了删除旧的 Program，防止显存泄漏
+        if (m_RendererId != 0) glDeleteProgram(m_RendererId);
+        
         m_RendererId = newProgram;
 
-        // 3. 更新内存中的源码缓存（这一步很重要！）
-        // 如果不更新，下次获取 GetSource() 还是旧代码
-        // m_OpenGLSourceCode 是你在类里存储源码的成员变量
+        // 3. 更新内存中的源码缓存
         m_Source = newSources;
         
+        // 4. 写回文件
         if (!m_filePath.empty()) {
             bool saved = SaveToFile(m_filePath, newSources);
             if (saved) {
                 TSO_CORE_INFO("Shader source saved to '{0}'", m_filePath);
             }
         } else {
-            TSO_CORE_WARN("Shader recompiled but NOT saved: FilePath is empty (created from string?)");
+            TSO_CORE_WARN("Shader recompiled but NOT saved: FilePath is empty");
         }
 
         return true;
