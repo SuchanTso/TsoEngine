@@ -20,8 +20,8 @@ template<> void SceneHierarchyPanel::DisplayAddComponentEntry<ButtonComponent>(c
         {
             m_SelectedEntity.AddComponent<ButtonComponent>();
             m_SelectedEntity.AddComponent<UITransformComponent>();
-            auto& textc = m_SelectedEntity.AddComponent<TextComponent>();
-            textc.isUI = true;
+//            auto& textc = m_SelectedEntity.AddComponent<TextComponent>();
+//            textc.isUI = true;
             ImGui::CloseCurrentPopup();
         }
     }
@@ -404,6 +404,7 @@ void main(){
             case ResourceType::Material: {
                 Ref<Material> mat = Resource::GetMaterial(m_SelectedResourceUUID);
                 if (mat) DrawMaterialNode(mat);
+//                mat->ClearInstanceSlots();
                 break;
             }
             case ResourceType::Shader: {
@@ -1182,15 +1183,15 @@ void SceneHierarchyPanel::DrawResources(){
 
                 // --- UIView Logic ---
                 bool& uiview = comp.uiview;
-                ImGui::Checkbox("UI View", &uiview);
+//                ImGui::Checkbox("UI View", &uiview);
                 
                 // 自动添加/移除组件的逻辑
-                if (uiview && !entity.HasComponent<UITransformComponent>()) {
-                    entity.AddComponent<UITransformComponent>();
-                }
-                if (!uiview && entity.HasComponent<UITransformComponent>()) {
-                    entity.RemoveComponent<UITransformComponent>();
-                }
+//                if (uiview && !entity.HasComponent<UITransformComponent>()) {
+//                    entity.AddComponent<UITransformComponent>();
+//                }
+//                if (!uiview && entity.HasComponent<UITransformComponent>()) {
+//                    entity.RemoveComponent<UITransformComponent>();
+//                }
 
                 if (entity.HasComponent<UITransformComponent>()) {
                     auto& uit = entity.GetComponent<UITransformComponent>();
@@ -1380,7 +1381,8 @@ void SceneHierarchyPanel::DrawResources(){
                 if (ImGui::DragFloat3("size:", glm::value_ptr(size), 0.1f)) {
                     uitransformc.UISize = size;
                 }
-                ImGui::ColorEdit4("color", glm::value_ptr(comp.NormalColor));
+                ImGui::ColorEdit4("Hover Tint", glm::value_ptr(comp.HoverColor));
+                ImGui::ColorEdit4("Click Tint", glm::value_ptr(comp.PressedColor));
 
                 ImGui::TreePop();
             }

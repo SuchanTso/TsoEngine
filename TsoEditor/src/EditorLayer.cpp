@@ -331,6 +331,7 @@ void EditorLayer::DrawEditorInterface(){
                // 更新状态
                m_Focus = FocusWindow::Sceneview;
                m_Scene->SetUseSceneCamera(true);
+                ViewportManager::SetViewportInfo({m_ViewportBounds[0].x , 0.f}, m_SceneVeiwSize);
             }
             if (sceneViewSizeChanged || focusChanged) {
                 if(m_ViewportFocused){
@@ -388,6 +389,7 @@ void EditorLayer::DrawEditorInterface(){
             if (m_GameViewFocused) {
                m_Focus = FocusWindow::GameView;
                m_Scene->SetUseSceneCamera(false);
+                ViewportManager::SetViewportInfo({viewportMinRegion.x , viewportMinRegion.y}, m_GameViewSize);
            }
             if (gameViewSizeChanged || game_focusChanged) {
                 if(m_GameViewFocused){

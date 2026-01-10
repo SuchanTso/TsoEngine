@@ -14,12 +14,18 @@
 #include "Tso/Core/Application.h"
 #include "Tso/Renderer/Renderer2D.h"
 #include "Tso/Renderer/ViewportManager.h"
+#include "Tso/Renderer/Renderer2DMaterial.h"
 
 namespace Tso{
 
     UISystem::UISystem(Scene* scene):m_Scene(scene){
 //        m_VirtualResolutionX = 1920;
 //        m_VirtualResolutionY = 1280;
+        auto uiCamera = m_Scene->GetUICamera();
+        if(uiCamera){
+            uiCamera->SetOrthographicSize(UISystem::VirtualResolutionY);
+            uiCamera->SetAspectRatio((UISystem::VirtualResolutionX * 1.f) / UISystem::VirtualResolutionY);
+        }
     }
 
     glm::vec2 UISystem::ConvertScreenToUIWorld(float mouseX, float mouseY, int screenWidth, int screenHeight) {
@@ -60,11 +66,7 @@ namespace Tso{
 
     void UISystem::OnUpdate(TimeStep ts) {
 //        if (auto scene_sp = m_Scene.lock()) {
-        auto uiCamera = m_Scene->GetUICamera();
-        if(uiCamera){
-            uiCamera->SetOrthographicSize(UISystem::VirtualResolutionY);
-            uiCamera->SetAspectRatio((UISystem::VirtualResolutionX * 1.f) / UISystem::VirtualResolutionY);
-        }
+        
         HandleInteraction(m_Scene);
             
             // 处理文本输入
@@ -110,11 +112,12 @@ namespace Tso{
         bool mouseClicked = Input::IsMouseButtonClicked(TSO_MOUSE_BUTTON_LEFT); // 单击事件
 
         // 1. 处理按钮
-        auto buttonView = scene->GetAllEntitiesWith<TransformComponent, ButtonComponent>();
+        auto buttonView = scene->GetAllEntitiesWith<UITransformComponent , TransformComponent, ButtonComponent>();
         for (auto e : buttonView) {
             
             auto& button = e.GetComponent<ButtonComponent>();
             auto& uiTransformc = e.GetComponent<UITransformComponent>();
+            button.IsPressed = false; // 避免保持按下状态
 
             // 简单的AABB命中检测
             glm::vec4 screenRect = {uiTransformc.UIpos.x , uiTransformc.UIpos.x + uiTransformc.UISize.x , uiTransformc.UIpos.y , uiTransformc.UIpos.y + uiTransformc.UISize.y};
@@ -127,7 +130,7 @@ namespace Tso{
 //            TSO_CORE_INFO("Hover:[{}] , Click:[{}]" , isHovered ? 1 : 0 , mouseClicked ? 1 : 0);
             if (isHovered && mouseClicked) {
                 TSO_CORE_INFO("clicked Button");
-                button.IsPressed = false; // 避免保持按下状态
+                button.IsPressed = true;
                 if (button.OnClick.valid()) {
                     sol::protected_function onClickFunc = button.OnClick;
                     // 执行Lua回调
@@ -224,8 +227,20 @@ void UISystem::Render(Scene*scene) {
         
         glm::vec4 color = button.NormalColor;
         if (button.IsHovered) color = button.HoverColor;
-        
-        Renderer2D::DrawQuad(worldTransfrom, color , int(e));
+        if (button.IsPressed) {
+            color = button.PressedColor;
+            TSO_CORE_INFO("button clicked when rendering");
+        }
+        if(!e.HasComponent<Renderable>())continue;
+        auto& renderCp = e.GetComponent<Renderable>();
+        if(!renderCp.material) continue;
+        renderCp.material->SetPureColor(color);
+//        Renderer2D::DrawQuad(worldTransfrom, color , int(e));
+        std::vector<glm::vec2> defaultTextCoord = { {0,0}, {1,0}, {1,1}, {0,1} };
+        std::vector<glm::vec2> texCoord = renderCp.subTexture ? renderCp.subTexture->GetTexCoords() : defaultTextCoord;
+
+        MaterialInstanceComponent* matIns = e.HasComponent<MaterialInstanceComponent>() ? &e.GetComponent<MaterialInstanceComponent>() : nullptr;
+        Renderer2DMaterial::DrawQuad(worldTransfrom, texCoord, int(e), renderCp.material, matIns);
         
         // 如果按钮上有文字
 //        if (e.HasComponent<TextComponent>()) {
@@ -240,86 +255,86 @@ void UISystem::Render(Scene*scene) {
     }
     
     // 渲染输入框
-    auto inputView = scene->GetAllEntitiesWith<TransformComponent, InputFieldComponent, TextComponent , UITransformComponent>();
-    for (auto e : inputView) {
-        auto& transform = e.GetComponent<TransformComponent>();
-        auto& inputField = e.GetComponent<InputFieldComponent>();
-        auto& textComp = e.GetComponent<TextComponent>();
-        auto& uiTransformc = e.GetComponent<UITransformComponent>();
-
-        
-        glm::vec2 layoutPos = uiTransformc.UIpos;
-        glm::vec2 layoutSize = uiTransformc.UISize;
-        float layoutRotation = uiTransformc.Rotation_Z;
-        
-        glm::vec3 worldPos;
-        worldPos.x = layoutPos.x - UISystem::VirtualResolutionX * 0.5f + layoutSize.x * 0.5;
-        worldPos.y = layoutPos.y - UISystem::VirtualResolutionY * 0.5f + layoutSize.y * 0.5f;
-        worldPos.z = transform.GetPos().z;
-        
-        glm::mat4 worldTransfrom = glm::translate(glm::mat4(1.0f), worldPos)
-        * glm::rotate(glm::mat4(1.0f), glm::radians(layoutRotation), {0, 0, 1})
-        * glm::scale(glm::mat4(1.0f), {layoutSize.x, layoutSize.y, 1.0f});
-        
-        // 背景
-        glm::vec4 bgColor = inputField.IsFocused ? inputField.FocusedColor : glm::vec4(0.8f);
-        Renderer2D::DrawQuad(worldTransfrom, bgColor , int(e));
-        
-        
-        
-        // 文本
-        if (!inputField.Text.empty() && textComp.TextFont) {
-            glm::mat4 textTransform = glm::translate(glm::mat4(1.0f), glm::vec3(worldPos.x , worldPos.y , worldPos.z + 0.01f))
-            * glm::rotate(glm::mat4(1.0f), glm::radians(layoutRotation), {0, 0, 1})
-            * glm::scale(glm::mat4(1.0f), {layoutSize.x, layoutSize.y, 1.0f});
-            Renderer2D::DrawString(textComp.TextFont, textTransform, inputField.Text , textComp.textParam , (int)(e));
-            
-        } else if (!inputField.IsFocused && textComp.TextFont) {
-            glm::mat4 textTransform = glm::translate(glm::mat4(1.0f), glm::vec3(worldPos.x , worldPos.y , worldPos.z + 0.01f))
-            * glm::rotate(glm::mat4(1.0f), glm::radians(layoutRotation), {0, 0, 1})
-            * glm::scale(glm::mat4(1.0f), {layoutSize.x, layoutSize.y, 1.0f});
-            Renderer2D::DrawString(textComp.TextFont, textTransform, inputField.PlaceholderText , textComp.textParam , (int)(e));
-        }
-        
-        // (可选) 绘制光标
-        if (inputField.IsFocused) {
-            // ... 在文本末尾绘制一个闪烁的竖线 ...
-        }
-    }
+//    auto inputView = scene->GetAllEntitiesWith<TransformComponent, InputFieldComponent, TextComponent , UITransformComponent>();
+//    for (auto e : inputView) {
+//        auto& transform = e.GetComponent<TransformComponent>();
+//        auto& inputField = e.GetComponent<InputFieldComponent>();
+//        auto& textComp = e.GetComponent<TextComponent>();
+//        auto& uiTransformc = e.GetComponent<UITransformComponent>();
+//
+//        
+//        glm::vec2 layoutPos = uiTransformc.UIpos;
+//        glm::vec2 layoutSize = uiTransformc.UISize;
+//        float layoutRotation = uiTransformc.Rotation_Z;
+//        
+//        glm::vec3 worldPos;
+//        worldPos.x = layoutPos.x - UISystem::VirtualResolutionX * 0.5f + layoutSize.x * 0.5;
+//        worldPos.y = layoutPos.y - UISystem::VirtualResolutionY * 0.5f + layoutSize.y * 0.5f;
+//        worldPos.z = transform.GetPos().z;
+//        
+//        glm::mat4 worldTransfrom = glm::translate(glm::mat4(1.0f), worldPos)
+//        * glm::rotate(glm::mat4(1.0f), glm::radians(layoutRotation), {0, 0, 1})
+//        * glm::scale(glm::mat4(1.0f), {layoutSize.x, layoutSize.y, 1.0f});
+//        
+//        // 背景
+//        glm::vec4 bgColor = inputField.IsFocused ? inputField.FocusedColor : glm::vec4(0.8f);
+//        Renderer2D::DrawQuad(worldTransfrom, bgColor , int(e));
+//        
+//        
+//        
+//        // 文本
+//        if (!inputField.Text.empty() && textComp.TextFont) {
+//            glm::mat4 textTransform = glm::translate(glm::mat4(1.0f), glm::vec3(worldPos.x , worldPos.y , worldPos.z + 0.01f))
+//            * glm::rotate(glm::mat4(1.0f), glm::radians(layoutRotation), {0, 0, 1})
+//            * glm::scale(glm::mat4(1.0f), {layoutSize.x, layoutSize.y, 1.0f});
+//            Renderer2D::DrawString(textComp.TextFont, textTransform, inputField.Text , textComp.textParam , (int)(e));
+//            
+//        } else if (!inputField.IsFocused && textComp.TextFont) {
+//            glm::mat4 textTransform = glm::translate(glm::mat4(1.0f), glm::vec3(worldPos.x , worldPos.y , worldPos.z + 0.01f))
+//            * glm::rotate(glm::mat4(1.0f), glm::radians(layoutRotation), {0, 0, 1})
+//            * glm::scale(glm::mat4(1.0f), {layoutSize.x, layoutSize.y, 1.0f});
+//            Renderer2D::DrawString(textComp.TextFont, textTransform, inputField.PlaceholderText , textComp.textParam , (int)(e));
+//        }
+//        
+//        // (可选) 绘制光标
+//        if (inputField.IsFocused) {
+//            // ... 在文本末尾绘制一个闪烁的竖线 ...
+//        }
+//    }
     // 渲染UI image
-    auto imageView = scene->GetAllEntitiesWith<TransformComponent, Renderable , UITransformComponent>();
-    for (auto e : imageView) {
-        auto& transform = e.GetComponent<TransformComponent>();
-        auto& render = e.GetComponent<Renderable>();
-        auto& uiTransformc = e.GetComponent<UITransformComponent>();
-
-        
-        glm::vec2 layoutPos = uiTransformc.UIpos;
-        glm::vec2 layoutSize = uiTransformc.UISize;
-        float layoutRotation = uiTransformc.Rotation_Z;
-        
-        glm::vec3 worldPos;
-        worldPos.x = layoutPos.x - UISystem::VirtualResolutionX * 0.5f + layoutSize.x * 0.5;
-        worldPos.y = layoutPos.y - UISystem::VirtualResolutionY * 0.5f + layoutSize.y * 0.5f;
-        worldPos.z = transform.GetPos().z;
-        
-        glm::mat4 worldTransfrom = glm::translate(glm::mat4(1.0f), worldPos)
-        * glm::rotate(glm::mat4(1.0f), glm::radians(layoutRotation), {0, 0, 1})
-        * glm::scale(glm::mat4(1.0f), {layoutSize.x, layoutSize.y, 1.0f});
-        
-        if(render.type == RenderType::PureColor){
-            Renderer2D::DrawQuad(worldTransfrom,render.m_Color , (int)3);
-        }
-        else{
-            if(render.isSubtexture){
-                Renderer2D::DrawQuad(worldTransfrom,render.subTexture , (int)3);
-            }
-            else{
-                if(render.subTexture && render.subTexture->GetTexture())
-                    Renderer2D::DrawQuad(worldTransfrom,render.subTexture->GetTexture() , (int)3);
-            }
-        }
-    }
+//    auto imageView = scene->GetAllEntitiesWith<TransformComponent, Renderable , UITransformComponent>();
+//    for (auto e : imageView) {
+//        auto& transform = e.GetComponent<TransformComponent>();
+//        auto& render = e.GetComponent<Renderable>();
+//        auto& uiTransformc = e.GetComponent<UITransformComponent>();
+//
+//        
+//        glm::vec2 layoutPos = uiTransformc.UIpos;
+//        glm::vec2 layoutSize = uiTransformc.UISize;
+//        float layoutRotation = uiTransformc.Rotation_Z;
+//        
+//        glm::vec3 worldPos;
+//        worldPos.x = layoutPos.x - UISystem::VirtualResolutionX * 0.5f + layoutSize.x * 0.5;
+//        worldPos.y = layoutPos.y - UISystem::VirtualResolutionY * 0.5f + layoutSize.y * 0.5f;
+//        worldPos.z = transform.GetPos().z;
+//        
+//        glm::mat4 worldTransfrom = glm::translate(glm::mat4(1.0f), worldPos)
+//        * glm::rotate(glm::mat4(1.0f), glm::radians(layoutRotation), {0, 0, 1})
+//        * glm::scale(glm::mat4(1.0f), {layoutSize.x, layoutSize.y, 1.0f});
+//        
+//        if(render.type == RenderType::PureColor){
+//            Renderer2D::DrawQuad(worldTransfrom,render.m_Color , (int)3);
+//        }
+//        else{
+//            if(render.isSubtexture){
+//                Renderer2D::DrawQuad(worldTransfrom,render.subTexture , (int)3);
+//            }
+//            else{
+//                if(render.subTexture && render.subTexture->GetTexture())
+//                    Renderer2D::DrawQuad(worldTransfrom,render.subTexture->GetTexture() , (int)3);
+//            }
+//        }
+//    }
 
     }
 }

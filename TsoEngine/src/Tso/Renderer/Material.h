@@ -67,6 +67,8 @@ namespace Tso {
         
         int GetInstanceParamSlot(const std::string& name) const;
         
+        void ClearInstanceSlots(){m_InstanceParamMap.clear();}
+        
         const std::unordered_map<std::string, int>& GetInstanceParams() const { return m_InstanceParamMap; }
 
 

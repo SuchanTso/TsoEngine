@@ -11,7 +11,7 @@ namespace Tso {
     void ViewportManager::SetViewportInfo(const glm::vec2& position, const glm::vec2& size) {
         s_Position = position;
         s_Size = size;
-        TSO_CORE_INFO("set viewportINfo :[{} , {}] , size:[{} , {}]" , position.x , position.y , size.x , size.y);
+//        TSO_CORE_INFO("set viewportINfo :[{} , {}] , size:[{} , {}]" , position.x , position.y , size.x , size.y);
     }
 
     glm::vec2 ViewportManager::GetPosition() {
