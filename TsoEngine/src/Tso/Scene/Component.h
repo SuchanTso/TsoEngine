@@ -240,7 +240,7 @@ namespace Tso {
         bool IsPressed = false;
         
         // 视觉属性
-        glm::vec4 NormalColor = {0.8f, 0.8f, 0.8f, 1.0f};
+        glm::vec4 NormalColor = {1.f, 1.f, 1.f, 1.0f};
         glm::vec4 HoverColor = {0.9f, 0.9f, 0.9f, 1.0f};
         glm::vec4 PressedColor = {0.7f, 0.7f, 0.7f, 1.0f};
         

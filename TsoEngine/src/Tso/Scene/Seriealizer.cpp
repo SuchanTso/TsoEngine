@@ -218,6 +218,19 @@ namespace Tso {
             }
             out << YAML::EndMap; // RenderableComponent
         }
+        
+        if(entity.HasComponent<ButtonComponent>() && entity.HasComponent<UITransformComponent>()){
+            out << YAML::Key << "ButtonComponent";
+            out << YAML::BeginMap;
+            auto& uiTrans = entity.GetComponent<UITransformComponent>();
+            auto& button = entity.GetComponent<ButtonComponent>();
+            out << YAML::Key << "UISize" << YAML::Value << uiTrans.UISize;
+            out << YAML::Key << "UI_Rotation_z" << YAML::Value << uiTrans.Rotation_Z;
+            out << YAML::Key << "UIPos" << YAML::Value << uiTrans.UIpos;
+            out << YAML::Key << "Hover_Color" << YAML::Value << button.HoverColor;
+            out << YAML::Key << "Pressed_Color" << YAML::Value << button.PressedColor;
+            out << YAML::EndMap;
+        }
 
         if (entity.HasComponent<MaterialInstanceComponent>())
         {
@@ -454,7 +467,20 @@ namespace Tso {
                         }
                     }
                 }
-                
+                auto buttonComp = entity["ButtonComponent"];
+                if(buttonComp){
+                    deserializedEntity.AddComponent<ButtonComponent>();
+                    if(!deserializedEntity.HasComponent<UITransformComponent>()){
+                        deserializedEntity.AddComponent<UITransformComponent>();
+                    }
+                    auto& uiTrans = deserializedEntity.GetComponent<UITransformComponent>();
+                    auto& button = deserializedEntity.GetComponent<ButtonComponent>();
+                    uiTrans.UISize = buttonComp["UISize"].as<glm::vec2>();
+                    uiTrans.Rotation_Z = buttonComp["UI_Rotation_z"].as<float>();
+                    uiTrans.UIpos = buttonComp["UIPos"].as<glm::vec2>();
+                    button.HoverColor = buttonComp["Hover_Color"].as<glm::vec4>();
+                    button.PressedColor = buttonComp["Pressed_Color"].as<glm::vec4>();
+                }
                 
 
                 auto RigidBoxComponent = entity["Rigidbody2DComponent"];

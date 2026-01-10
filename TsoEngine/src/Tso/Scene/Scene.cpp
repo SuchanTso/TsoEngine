@@ -238,12 +238,12 @@ void Scene::OnUpdate(TimeStep ts)
 //        }
         Renderer2DMaterial::EndScene();
     }
-//    if(UICamera && mainCameraTransfrom){
-//        Renderer2DMaterial::BeginScene(*UICamera, glm::mat4(1.f));
-//        m_UISystem->OnUpdate(ts);
-//        Renderer2DMaterial::EndScene();
-//        
-//    }
+    if(UICamera && mainCameraTransfrom){
+        Renderer2DMaterial::BeginScene(*UICamera, glm::mat4(1.f));
+        m_UISystem->OnUpdate(ts);
+        Renderer2DMaterial::EndScene();
+        
+    }
     ScriptTaskManager::Get().OnUpdate(m_Time);
     NetWorkEngine::OnUpdate(ts);
     Input::EndFrame();
