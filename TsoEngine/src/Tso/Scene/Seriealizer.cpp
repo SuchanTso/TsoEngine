@@ -213,8 +213,10 @@ namespace Tso {
                 out << YAML::Key << "SpriteSize" << YAML::Value << comp.spriteSize;
                 out << YAML::Key << "SpriteIndex" << YAML::Value << comp.textureIndex;
                 out << YAML::Key << "TextureSize" << YAML::Value << comp.textureSize;
-                out << YAML::Key << "Material" << YAML::Value << comp.material->GetUUID();
             
+            }
+            if(comp .material){
+                out << YAML::Key << "Material" << YAML::Value << comp.material->GetUUID();
             }
             out << YAML::EndMap; // RenderableComponent
         }
