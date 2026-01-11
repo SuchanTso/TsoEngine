@@ -209,6 +209,7 @@ void Scene::OnUpdate(TimeStep ts)
             const auto& [render, trans] = group.get<Renderable, TransformComponent>(entity);
             Entity tEntity = Entity(entity , this);
             if(tEntity.HasComponent<UITransformComponent>())continue;//ignore UI
+            if(tEntity.HasComponent<TextComponent>())continue;//ignore text
             glm::mat4 transform = tEntity.GetWorldTransform();
             std::vector<glm::vec2> defaultTextCoord = { {0,0}, {1,0}, {1,1}, {0,1} };
             std::vector<glm::vec2> texCoord = render.subTexture ? render.subTexture->GetTexCoords() : defaultTextCoord;
@@ -228,14 +229,17 @@ void Scene::OnUpdate(TimeStep ts)
 //            }
         }
         
-//        auto textGroup = m_Registry.view<TransformComponent, TextComponent>();
-//        for(auto& e : textGroup){
-//            const auto& [transComp , textComp] = textGroup.get<TransformComponent, TextComponent>(e);
-//            if(textComp.isUI)continue;//ignore UI text;
-//            if(textComp.TextFont && textComp.Text.length() > 0){
+        auto textGroup = m_Registry.view<TransformComponent, TextComponent , Renderable>();
+        for(auto& e : textGroup){
+            const auto& [render , transComp , textComp] = textGroup.get<Renderable, TransformComponent, TextComponent>(e);
+            if(textComp.isUI)continue;//ignore UI text;
+            if(textComp.TextFont && textComp.Text.length() > 0){
+                Entity entity = {e , this};
 //                Renderer2D::DrawString(textComp.TextFont, transComp.GetTransform(), textComp.Text , textComp.textParam , (int)e);
-//            }
-//        }
+                MaterialInstanceComponent* matIns = entity.HasComponent<MaterialInstanceComponent>() ? &entity.GetComponent<MaterialInstanceComponent>() : nullptr;
+                Renderer2DMaterial::DrawString(textComp.TextFont, transComp.GetTransform(), textComp.Text, textComp.textParam, (int)e, render.material , matIns);
+            }
+        }
         Renderer2DMaterial::EndScene();
     }
     if(UICamera && mainCameraTransfrom){
