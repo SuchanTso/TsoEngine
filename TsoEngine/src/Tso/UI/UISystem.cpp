@@ -236,13 +236,14 @@ void UISystem::Render(Scene*scene) {
         if(!e.HasComponent<Renderable>())continue;
         auto& renderCp = e.GetComponent<Renderable>();
         if(!renderCp.material) continue;
-        renderCp.material->SetPureColor(color);
+//        renderCp.material->SetPureColor(color);
+        renderCp.m_Color = color;
 //        Renderer2D::DrawQuad(worldTransfrom, color , int(e));
         std::vector<glm::vec2> defaultTextCoord = { {0,0}, {1,0}, {1,1}, {0,1} };
         std::vector<glm::vec2> texCoord = renderCp.subTexture ? renderCp.subTexture->GetTexCoords() : defaultTextCoord;
 
         MaterialInstanceComponent* matIns = e.HasComponent<MaterialInstanceComponent>() ? &e.GetComponent<MaterialInstanceComponent>() : nullptr;
-        Renderer2DMaterial::DrawQuad(worldTransfrom, texCoord, int(e), renderCp.material, matIns);
+        Renderer2DMaterial::DrawQuad(worldTransfrom, texCoord,color, int(e), renderCp.material, matIns);
         
         // 如果按钮上有文字
         if (e.HasComponent<TextComponent>()) {
@@ -292,7 +293,7 @@ void UISystem::Render(Scene*scene) {
 //        Renderer2D::DrawQuad(worldTransfrom, bgColor , int(e));
         std::vector<glm::vec2> defaultTextCoord = { {0,0}, {1,0}, {1,1}, {0,1} };
         std::vector<glm::vec2> texCoord = renderc.subTexture ? renderc.subTexture->GetTexCoords() : defaultTextCoord;
-        Renderer2DMaterial::DrawQuad(worldTransfrom, texCoord, int(e), renderc.material, matIns);
+        Renderer2DMaterial::DrawQuad(worldTransfrom, texCoord,renderc.m_Color, int(e), renderc.material, matIns);
 
         
         
