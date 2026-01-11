@@ -83,6 +83,7 @@ namespace Tso {
 		glm::vec4 m_Color = glm::vec4(0.3 , 0.8 , 0.2 , 1.0);
         Ref<SubTexture2D> subTexture;
         Ref<Material> material = nullptr;
+        Ref<Material> textMat = nullptr;
         
         glm::vec2 spriteSize = {1.0 , 1.0};
         glm::vec2 textureIndex = {0.0 , 0.0};
@@ -204,6 +205,8 @@ namespace Tso {
     struct TextParam{
         float CharacterSpacing = 0.0;
         float LineSpacing = 0.0;
+        glm::vec2 scale = glm::vec2(1.f);
+        glm::vec2 offset = glm::vec2(0.f);
     };
 
     struct TextComponent{

@@ -218,6 +218,10 @@ namespace Tso {
             if(comp .material){
                 out << YAML::Key << "Material" << YAML::Value << comp.material->GetUUID();
             }
+            if(comp.textMat){
+                out << YAML::Key << "TextMaterial" << YAML::Value << comp.textMat->GetUUID();
+
+            }
             out << YAML::EndMap; // RenderableComponent
         }
         
@@ -231,6 +235,17 @@ namespace Tso {
             out << YAML::Key << "UIPos" << YAML::Value << uiTrans.UIpos;
             out << YAML::Key << "Hover_Color" << YAML::Value << button.HoverColor;
             out << YAML::Key << "Pressed_Color" << YAML::Value << button.PressedColor;
+            out << YAML::EndMap;
+        }
+        
+        if(entity.HasComponent<InputFieldComponent>() && entity.HasComponent<UITransformComponent>()){
+            out << YAML::Key << "InputComponent";
+            out << YAML::BeginMap;
+            auto& uiTrans = entity.GetComponent<UITransformComponent>();
+            auto& inputC = entity.GetComponent<InputFieldComponent>();
+            out << YAML::Key << "UISize" << YAML::Value << uiTrans.UISize;
+            out << YAML::Key << "UI_Rotation_z" << YAML::Value << uiTrans.Rotation_Z;
+            out << YAML::Key << "UIPos" << YAML::Value << uiTrans.UIpos;
             out << YAML::EndMap;
         }
 
@@ -316,11 +331,15 @@ namespace Tso {
             out << YAML::Key << "TextComponent";
             out << YAML::BeginMap; // TextComponent
             auto& comp = entity.GetComponent<TextComponent>();
-            out << YAML::Key << "FontPath" << YAML::Value << Utils::GetCurrentRelativePath(comp.FontPath);
+            out << YAML::Key << "FontPath" << YAML::Value << comp.TextFont->GetUUID();
 
             out << YAML::Key << "LineSpacing" << YAML::Value << comp.textParam.LineSpacing;
 
             out << YAML::Key << "CharacterSpacing" << YAML::Value << comp.textParam.CharacterSpacing;
+            
+            out << YAML::Key << "Scale" << YAML::Value << comp.textParam.scale;
+            
+            out << YAML::Key << "Offset" << YAML::Value << comp.textParam.offset;
             out << YAML::Key << "Text" << YAML::Value << comp.Text;
 
             out << YAML::EndMap; // RenderableComponent
@@ -437,7 +456,7 @@ namespace Tso {
                     renderComp.isSubtexture = renderComponent["SubTexture"] ? renderComponent["SubTexture"].as<bool>() : false;
                     if(renderComponent["Texture"]){
                         auto textureUUID = renderComponent["Texture"].as<uint64_t>();
-                        auto texture = Resource::GetTexture(textureUUID);
+                        auto texture = Resource::GetResource<Texture2D>(textureUUID);
                         glm::vec2 spriteSize = renderComponent["SpriteSize"] ? renderComponent["SpriteSize"].as<glm::vec2>() : glm::vec2(1.0f , 1.0f);
                         glm::vec2 spriteIndex = renderComponent["SpriteIndex"] ? renderComponent["SpriteIndex"].as<glm::vec2>() : glm::vec2(0.0f , 0.0f);
                         glm::vec2 texSize = renderComponent["TextureSize"] ? renderComponent["TextureSize"].as<glm::vec2>() : glm::vec2(1.0f , 1.0f);
@@ -448,7 +467,7 @@ namespace Tso {
                     }
                     if(renderComponent["Material"]){
                         auto matUUID = renderComponent["Material"].as<uint64_t>();
-                        auto material = Resource::GetMaterial(matUUID);
+                        auto material = Resource::GetResource<Material>(matUUID);
                         renderComp.material = material;
                         auto MaterialInstance = entity["MaterialInstance"];// make MaterialInstance a child component of Material
                         if(MaterialInstance){
@@ -468,6 +487,11 @@ namespace Tso {
                             }
                         }
                     }
+                    if(renderComponent["TextMaterial"]){
+                        auto matUUID = renderComponent["TextMaterial"].as<uint64_t>();
+                        auto material = Resource::GetResource<Material>(matUUID);
+                        renderComp.textMat = material;
+                    }
                 }
                 auto buttonComp = entity["ButtonComponent"];
                 if(buttonComp){
@@ -483,7 +507,18 @@ namespace Tso {
                     button.HoverColor = buttonComp["Hover_Color"].as<glm::vec4>();
                     button.PressedColor = buttonComp["Pressed_Color"].as<glm::vec4>();
                 }
-                
+                auto InputComp = entity["InputComponent"];
+                if(InputComp){
+                    deserializedEntity.AddComponent<InputFieldComponent>();
+                    if(!deserializedEntity.HasComponent<UITransformComponent>()){
+                        deserializedEntity.AddComponent<UITransformComponent>();
+                    }
+                    auto& uiTrans = deserializedEntity.GetComponent<UITransformComponent>();
+                    uiTrans.UISize = InputComp["UISize"].as<glm::vec2>();
+                    uiTrans.Rotation_Z = InputComp["UI_Rotation_z"].as<float>();
+                    uiTrans.UIpos = InputComp["UIPos"].as<glm::vec2>();
+                    
+                }
 
                 auto RigidBoxComponent = entity["Rigidbody2DComponent"];
                 if (RigidBoxComponent) {
@@ -509,13 +544,15 @@ namespace Tso {
                 auto textComponent = entity["TextComponent"];
                 if(textComponent){
                     auto& textc = deserializedEntity.AddComponent<TextComponent>();
-                    textc.FontPath = textComponent["FontPath"] ? textComponent["FontPath"].as<std::string>() : "";
+//                    textc.FontPath = textComponent["FontPath"] ? textComponent["FontPath"].as<std::string>() : "";
                     textc.Text  = textComponent["Text"] ? textComponent["Text"].as<std::string>() : "";
                     textc.textParam.LineSpacing = textComponent["LineSpacing"] ? textComponent["LineSpacing"].as<float>() : 0.0f;
                     textc.textParam.CharacterSpacing = textComponent["CharacterSpacing"] ? textComponent["CharacterSpacing"].as<float>() : 0.0f;
-                    if(!textc.FontPath.empty()){
-                        textc.TextFont = std::make_shared<Font>(std::filesystem::path(textc.FontPath));
-                    }
+                    textc.textParam.scale = textComponent["Scale"] ? textComponent["Scale"].as<glm::vec2>() : glm::vec2(1.f);
+                    textc.textParam.offset = textComponent["Offset"] ? textComponent["Offset"].as<glm::vec2>() : glm::vec2(0.f);
+                    auto fontPath = textComponent["FontPath"].as<uint64_t>();
+                    textc.TextFont = Resource::GetResource<Font>(fontPath);
+                    
                 }
             
             

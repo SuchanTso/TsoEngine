@@ -328,7 +328,7 @@ void Renderer2DMaterial::FlushString(){
 
         // 4. 绘制
         s_Data.TextVAO->Bind();
-        RenderCommand::DrawIndexed(s_Data.TextVAO, count * 6);
+        RenderCommand::DrawIndexed(s_Data.TextVAO, count);
         
         // 统计
         s_Data.Stats.DrawCalls++;
@@ -469,7 +469,8 @@ uint32_t Renderer2DMaterial::GenerateTextVertices(const DrawStringCommand& cmd) 
     glm::vec2 textBoundsSize = maxBounds - minBounds;
     float scaleX = (textBoundsSize.x > 0.0001f) ? (1.0f / textBoundsSize.x) : 1.0f;
     float scaleY = (textBoundsSize.y > 0.0001f) ? (1.0f / textBoundsSize.y) : 1.0f;
-    glm::vec2 scaleVec(std::min(scaleX,1.f), std::min(scaleY,1.f));
+    glm::vec2 scaleVec(std::min(scaleX,1.f) * cmd.TextParam.scale.x, std::min(scaleY,1.f) * cmd.TextParam.scale.y);
+//    glm::vec2 scaleVec = glm::vec2(1.f);
 
     // --- 第二次遍历 (生成顶点) ---
     x = 0.0; y = 0.0;

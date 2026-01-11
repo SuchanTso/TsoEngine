@@ -20,8 +20,8 @@ template<> void SceneHierarchyPanel::DisplayAddComponentEntry<ButtonComponent>(c
         {
             m_SelectedEntity.AddComponent<ButtonComponent>();
             m_SelectedEntity.AddComponent<UITransformComponent>();
-//            auto& textc = m_SelectedEntity.AddComponent<TextComponent>();
-//            textc.isUI = true;
+            auto& textc = m_SelectedEntity.AddComponent<TextComponent>();
+            textc.isUI = true;
             ImGui::CloseCurrentPopup();
         }
     }
@@ -199,7 +199,7 @@ void main(){
             static UUID selectedShaderUUID = 0;
             
             if (ImGui::BeginCombo("Shader", selectedShaderName.c_str())) {
-                for (auto& [uuid, shader] : Resource::GetAllShaders()) {
+                for (auto& [uuid, shader] : Resource::GetResourceMap<Shader>()) {
                     bool isSelected = (selectedShaderUUID == uuid);
                     if (ImGui::Selectable(shader->GetName().c_str(), isSelected)) {
                         selectedShaderUUID = uuid;
@@ -214,7 +214,8 @@ void main(){
             if (ImGui::Button("Create", ImVec2(120, 0))) {
                 std::string matName = nameBuf;
                 if (!matName.empty()) {
-                    Ref<Shader> shader = Resource::GetShader(selectedShaderUUID);
+                    Ref<Shader> shader = Resource::GetResource<Shader>(selectedShaderUUID);
+                    
                     // 如果没选 Shader，可能需要由 Material::Create 处理默认情况
                     if (!shader) {
                         // shader = Resource::GetDefaultShader(); // 建议有个默认紫色 Shader
@@ -255,7 +256,7 @@ void main(){
 
         // 1. Shaders
         if (ImGui::CollapsingHeader("Shaders", ImGuiTreeNodeFlags_DefaultOpen)) {
-            auto& shaders = Resource::GetAllShaders();
+            auto& shaders = Resource::GetResourceMap<Shader>();
             for (auto& [uuid, shader] : shaders) {
                 bool isSelected = (m_SelectedResourceUUID == uuid);
                 if (ImGui::Selectable(shader->GetName().c_str(), isSelected)) {
@@ -267,7 +268,7 @@ void main(){
 
         // 2. Textures
         if (ImGui::CollapsingHeader("Textures", ImGuiTreeNodeFlags_DefaultOpen)) {
-            auto& textures = Resource::GetAllTextures();
+            auto& textures = Resource::GetResourceMap<Texture2D>();
             for (auto& [uuid, tex] : textures) {
                 bool isSelected = (m_SelectedResourceUUID == uuid);
                 
@@ -287,10 +288,33 @@ void main(){
                 }
             }
         }
+        
+        if (ImGui::CollapsingHeader("Fonts", ImGuiTreeNodeFlags_DefaultOpen)) {
+            auto& fonts = Resource::GetResourceMap<Font>();
+            for (auto& [uuid, font] : fonts) {
+                bool isSelected = (m_SelectedResourceUUID == uuid);
+                if (ImGui::Selectable(font->GetName().c_str(), isSelected)) {
+                    m_SelectedResourceUUID = uuid;
+                    m_SelectedType = ResourceType::Font;
+                }
+                if (ImGui::BeginDragDropSource()) {
+                    // 参数1: 标签 (必须与 Target 端一致)
+                    // 参数2: 数据指针 (这里传 UUID 的地址)
+                    // 参数3: 数据大小
+                    ImGui::SetDragDropPayload("RESOURCE_FONT", &uuid, sizeof(UUID));
+
+                    // 3. 设置拖拽时的预览图/文字 (跟在鼠标旁边的那个提示)
+                    ImGui::Text("font: %s", font->GetName().c_str());
+                    // 如果你想做得更花哨，可以在这里绘制材质的缩略图
+                    
+                    ImGui::EndDragDropSource();
+                }
+            }
+        }
 
         // 3. Materials
         if (ImGui::CollapsingHeader("Materials", ImGuiTreeNodeFlags_DefaultOpen)) {
-            auto& materials = Resource::GetAllMaterials();
+            auto& materials = Resource::GetResourceMap<Material>();
             for (auto& [uuid, mat] : materials) {
                 bool isSelected = (m_SelectedResourceUUID == uuid);
                 if (ImGui::Selectable(mat->GetName().c_str(), isSelected)) {
@@ -324,6 +348,10 @@ void main(){
 
             if (ImGui::MenuItem("Import Shader...")) {
                 m_NextAction = DeferredAction::ImportShader;
+            }
+            
+            if(ImGui::MenuItem("Import Font...")) {
+                m_NextAction = DeferredAction::ImportFont;
             }
             
             if (ImGui::MenuItem("Create Empty Shader")) {
@@ -369,6 +397,18 @@ void main(){
                     }
                     break;
                 }
+                case DeferredAction::ImportFont : {
+                    // 原生对话框：阻塞操作
+                    std::string filepath = FileDialogs::OpenFile("ttf (*.ttf)\0 * .ttf\0");
+                    if (!filepath.empty()) {
+                        // Resource::LoadShader(filepath);
+                        auto font = CreateRef<Font>(std::filesystem::path(filepath));
+                        std::filesystem::path p(filepath);
+                        std::string fontName = p.stem().string();
+                        Resource::AddResource(fontName, UUID(), font);
+                    }
+                    break;
+                }
                 default: break;
             }
                 
@@ -397,18 +437,18 @@ void main(){
         switch (m_SelectedType) {
             case ResourceType::Texture: {
                 // 获取资源 (需自行实现 Resource::GetTexture(uuid))
-                Ref<Texture2D> tex = Resource::GetTexture(m_SelectedResourceUUID);
+                Ref<Texture2D> tex = Resource::GetResource<Texture2D>(m_SelectedResourceUUID);
                 if (tex) DrawTextureNode(tex);
                 break;
             }
             case ResourceType::Material: {
-                Ref<Material> mat = Resource::GetMaterial(m_SelectedResourceUUID);
+                Ref<Material> mat = Resource::GetResource<Material>(m_SelectedResourceUUID);
                 if (mat) DrawMaterialNode(mat);
 //                mat->ClearInstanceSlots();
                 break;
             }
             case ResourceType::Shader: {
-                Ref<Shader> shader = Resource::GetShader(m_SelectedResourceUUID);
+                Ref<Shader> shader = Resource::GetResource<Shader>(m_SelectedResourceUUID);
                 if (shader) DrawShaderNode(shader);
                 break;
             }
@@ -648,7 +688,7 @@ template<typename T, typename UIFunction>
                 if (ImGui::BeginDragDropTarget()) {
                     if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("RESOURCE_TEXTURE")) {
                         UUID texUUID = *(const UUID*)payload->Data;
-                        it->second = Resource::GetTexture(texUUID);
+                        it->second = Resource::GetResource<Texture2D>(texUUID);
                     }
                     ImGui::EndDragDropTarget();
                 }
@@ -703,7 +743,7 @@ template<typename T, typename UIFunction>
             }
 
             // 遍历所有资源中的纹理
-            auto& allTextures = Resource::GetAllTextures();
+            auto& allTextures = Resource::GetResourceMap<Texture2D>();
             for (auto& [uuid, tex] : allTextures) {
                 // 可选：显示小图标
                 ImGui::Image((void*)(uintptr_t)tex->GetTextureID(), ImVec2(16, 16), ImVec2(0,1), ImVec2(1,0));
@@ -887,19 +927,25 @@ template<typename T, typename UIFunction>
 	}
 
 void SceneHierarchyPanel::DrawResources(){
-    auto& shaders = Resource::GetAllShaders();
+    auto& shaders = Resource::GetResourceMap<Shader>();
     for(auto& [uuid , shader] : shaders){
         ImGui::Text("%s",shader->GetName().c_str());
     }
-    auto& textures = Resource::GetAllTextures();
+    auto& textures = Resource::GetResourceMap<Texture2D>();
     for(auto& [uuid , tex] : textures){
         ImGui::Text("%s",tex->GetName().c_str());
     }
     
-    auto& materials = Resource::GetAllMaterials();
+    auto& materials = Resource::GetResourceMap<Material>();
     for(auto& [uuid , mat] : materials){
         ImGui::Text("%s",mat->GetName().c_str());
     }
+    
+    auto& fonts = Resource::GetResourceMap<Font>();
+    for(auto& [uuid , font] : fonts){
+        ImGui::Text("%s",font->GetName().c_str());
+    }
+    
 }
 
 
@@ -1023,19 +1069,61 @@ void SceneHierarchyPanel::DrawResources(){
                     }
                     ImGui::DragFloat("linaSpacing", &comp.textParam.LineSpacing , 0.1f , -5.0f ,100.0f);
                     ImGui::DragFloat("CharaterSpacing", &comp.textParam.CharacterSpacing , 0.1f , -5.0f ,100.0f);
+                    ImGui::DragFloat2("Offset", glm::value_ptr(comp.textParam.offset));
+                    ImGui::DragFloat2("Scale", glm::value_ptr(comp.textParam.scale));
 
-                    if(ImGui::Button("browse:")){
-                        auto fontPath = FileDialogs::OpenFile("ttf (*.ttf)\0 * .ttf\0");
-                        if(!fontPath.empty()){
-                            comp.FontPath = fontPath;
-                            comp.TextFont.reset();
-                            comp.TextFont = std::make_shared<Font>(fontPath);
+
+//                    if(ImGui::Button("browse:")){
+//                        auto fontPath = FileDialogs::OpenFile("ttf (*.ttf)\0 * .ttf\0");
+//                        if(!fontPath.empty()){
+//                            comp.FontPath = std::filesystem::relative(fontPath, Project::GetProjectDirectory()).generic_string();
+//                            comp.TextFont.reset();
+//                            comp.TextFont = std::make_shared<Font>(fontPath);
+//                        }
+//                    }
+                    if (ImGui::BeginCombo("Font:", comp.TextFont ? comp.TextFont->GetName().c_str() : "None")) {
+                        // 1. 提供一个清空选项
+                        bool isNoneSelected = (comp.TextFont == nullptr);
+                        if (ImGui::Selectable("None", isNoneSelected)) {
+                            comp.TextFont = nullptr;
                         }
+
+                        auto& fonts = Resource::GetResourceMap<Font>();
+                        for (auto& [uuid, font] : fonts) {
+                            bool isSelected = comp.TextFont && (comp.TextFont->GetUUID() == uuid);
+                            if (ImGui::Selectable(font->GetName().c_str(), isSelected)) {
+                                comp.TextFont = font;
+                            }
+
+                            if (isSelected)
+                                ImGui::SetItemDefaultFocus();
+                        }
+                        ImGui::EndCombo();
+                    }
+                    if (ImGui::BeginDragDropTarget()) {
+                        // 1. 接收 Payload
+                        if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("RESOURCE_FONT")) {
+                            
+                            // 2. 获取数据：payload->Data 是 void*，指向之前 SetPayload 传入的 UUID 内存地址
+                            // 我们将其强转为 UUID* 并解引用，拿到真正的 UUID 数值
+                            UUID fontUUID = *(const UUID*)payload->Data;
+
+                            // 3. 核心逻辑：使用 UUID 去资源管理器查找真正的 Ref<Material> 对象
+                            // 假设你有这样一个全局静态方法
+                            Ref<Font> newFont = Resource::GetResource<Font>(fontUUID);
+                            
+                            // 4. 赋值
+                            if (newFont) {
+                                comp.TextFont = newFont;
+                            }
+                        }
+                        ImGui::EndDragDropTarget();
                     }
                     ImGui::SameLine();
                     if(!comp.FontPath.empty()){
                         ImGui::Text("%s", comp.FontPath.c_str());
                     }
+                    comp.isUI = entity.HasComponent<UITransformComponent>();
                     ImGui::Checkbox("IsUI", &comp.isUI);
                     if(comp.isUI){
                         if(!entity.HasComponent<UITransformComponent>()){
@@ -1085,7 +1173,7 @@ void SceneHierarchyPanel::DrawResources(){
 
                         // 2. 遍历所有材质
                         // 假设 Resource::GetAllMaterials() 返回 std::unordered_map<UUID, Ref<Material>>
-                        auto& materials = Resource::GetAllMaterials();
+                        auto& materials = Resource::GetResourceMap<Material>();
                         for (auto& [uuid, mat] : materials) {
                             bool isSelected = comp.material && (comp.material->GetRendererID() == uuid);
                             if (ImGui::Selectable(mat->GetName().c_str(), isSelected)) {
@@ -1110,11 +1198,52 @@ void SceneHierarchyPanel::DrawResources(){
 
                             // 3. 核心逻辑：使用 UUID 去资源管理器查找真正的 Ref<Material> 对象
                             // 假设你有这样一个全局静态方法
-                            Ref<Material> newMaterial = Resource::GetMaterial(materialUUID);
+                            Ref<Material> newMaterial = Resource::GetResource<Material>(materialUUID);
                             
                             // 4. 赋值
                             if (newMaterial) {
                                 comp.material = newMaterial;
+                            }
+                        }
+                        ImGui::EndDragDropTarget();
+                    }
+                }
+                {
+                    // 获取当前 Text 材质名称
+                    Ref<Material> currentTextMat = comp.textMat;
+                    std::string textMatName = currentTextMat ? currentTextMat->GetName() : "None (Default Text Mat)";
+
+                    if (ImGui::BeginCombo("Text Material", textMatName.c_str())) {
+                        // 1. 提供一个清空选项
+                        bool isNoneSelected = (comp.textMat == nullptr);
+                        if (ImGui::Selectable("None", isNoneSelected)) {
+                            comp.textMat = nullptr;
+                        }
+
+                        // 2. 遍历所有材质
+                        auto& materials = Resource::GetResourceMap<Material>();
+                        for (auto& [uuid, mat] : materials) {
+                            // 这里可以过滤一下，只显示适合做文字渲染的材质（如果你的 Material 类有相关标记的话）
+                            bool isSelected = comp.textMat && (comp.textMat->GetRendererID() == uuid);
+                            if (ImGui::Selectable(mat->GetName().c_str(), isSelected)) {
+                                comp.textMat = mat;
+                            }
+
+                            if (isSelected)
+                                ImGui::SetItemDefaultFocus();
+                        }
+                        ImGui::EndCombo();
+                    }
+
+                    // --- 拖拽接收 (Drag & Drop Target) ---
+                    if (ImGui::BeginDragDropTarget()) {
+                        if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("RESOURCE_MATERIAL")) {
+                            
+                            UUID materialUUID = *(const UUID*)payload->Data;
+                            Ref<Material> newMaterial = Resource::GetResource<Material>(materialUUID);
+                            
+                            if (newMaterial) {
+                                comp.textMat = newMaterial;
                             }
                         }
                         ImGui::EndDragDropTarget();
@@ -1158,7 +1287,7 @@ void SceneHierarchyPanel::DrawResources(){
                     if (ImGui::BeginDragDropTarget()) {
                         if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("RESOURCE_TEXTURE")) {
                             UUID texUUID = *(const UUID*)payload->Data;
-                            Ref<Texture2D> texture = Resource::GetTexture(texUUID);
+                            Ref<Texture2D> texture = Resource::GetResource<Texture2D>(texUUID);
                             if (texture) {
                                 comp.subTexture = SubTexture2D::CreateByCoord(texture, comp.spriteSize, comp.textureIndex, comp.textureSize);
                             }

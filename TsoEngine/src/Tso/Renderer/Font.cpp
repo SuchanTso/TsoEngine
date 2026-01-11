@@ -46,8 +46,11 @@ template<typename T, typename S, int N, msdf_atlas::GeneratorFunction<S, N> GenF
 
 
 Font::Font(const std::filesystem::path& fontPath)
-:m_Data(new MSDFData)
+:m_Data(new MSDFData),m_FontPath(fontPath)
 {
+    std::filesystem::path p(fontPath);
+    m_Name = p.stem().string();
+    
     msdfgen::FreetypeHandle *ft = msdfgen::initializeFreetype();
     TSO_CORE_ASSERT(ft , "Unable to init freetype");
     msdfgen::FontHandle *font = msdfgen::loadFont(ft, fontPath.string().c_str());

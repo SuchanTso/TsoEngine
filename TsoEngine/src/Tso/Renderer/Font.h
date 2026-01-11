@@ -27,9 +27,19 @@ public:
     ~Font();
     Ref<Texture2D>GetAtlasTexture(){return m_AtlasTexture;}
     const MSDFData* GetMSDFData(){return m_Data;}
+    void SetName(const std::string& name){m_Name = name;}
+    std::string& GetName(){return m_Name;}
+    UUID& GetUUID(){return m_UUID;}
+    void SetUUID(const UUID& uuid){m_UUID = uuid;}
+    std::string& GetPath(){return m_FontPath;}
+    
+
 private:
     MSDFData* m_Data;
     Ref<Texture2D> m_AtlasTexture;
+    UUID m_UUID;
+    std::string m_Name;
+    std::string m_FontPath;
 };
 }
 #endif /* Font_hpp */

@@ -72,30 +72,30 @@ namespace Tso{
             // 处理文本输入
             if (m_FocusedInputField != 0) {
                 Entity focusedEntity = m_Scene->GetEntityByUUID(m_FocusedInputField);
-                if (focusedEntity && focusedEntity.HasComponent<InputFieldComponent>()) {
+                if (focusedEntity && focusedEntity.HasComponent<InputFieldComponent>() && focusedEntity.HasComponent<TextComponent>()) {
                     auto& inputField = focusedEntity.GetComponent<InputFieldComponent>();
-                    
+                    auto& textComp = focusedEntity.GetComponent<TextComponent>();
                     // 从 Input 系统获取本帧输入的字符
                     std::string typedChars = Input::GetTypedCharactersThisFrame();
                     if (!typedChars.empty()) {
-                        inputField.Text += typedChars;
+                        textComp.Text += typedChars;
                         if (inputField.OnValueChanged.valid()) {
-                            inputField.OnValueChanged(inputField.Text);
+                            inputField.OnValueChanged(textComp.Text);
                         }
-//                        TSO_CORE_INFO("typed:{}" , inputField.Text);
+                        TSO_CORE_INFO("typed:{}" , textComp.Text);
                     }
                     
                     // 处理退格键
-                    if (Input::IsKeyPressed(TSO_KEY_BACKSPACE) && !inputField.Text.empty()) {
-                        inputField.Text.pop_back();
+                    if (Input::IsKeyPressed(TSO_KEY_BACKSPACE) && !textComp.Text.empty()) {
+                        textComp.Text.pop_back();
                         if (inputField.OnValueChanged.valid()) {
-                            inputField.OnValueChanged(inputField.Text);
+                            inputField.OnValueChanged(textComp.Text);
                         }
                     }
                     
                     // 处理回车键提交
                     if (Input::IsKeyPressed(TSO_KEY_ENTER) && inputField.OnSubmit.valid()) {
-                        inputField.OnSubmit(inputField.Text);
+                        inputField.OnSubmit(textComp.Text);
                         m_FocusedInputField = 0; // 提交后取消聚焦
                         inputField.IsFocused = false;
                     }
@@ -173,35 +173,37 @@ namespace Tso{
     }
 
 void UISystem::Render(Scene*scene) {
-    // 假设 Renderer2D 已经 BeginScene
 //    auto windowWidth = Application::Get().GetWindow().GetWidth();
 //    auto windowHeight = Application::Get().GetWindow().GetHeight();
 //    auto windowPosX = Application::Get().GetWindow().GetPosX();
 //    auto viewportSize = ViewportManager::GetSize();
 //    auto viewportPos = ViewportManager::GetPosition();
-//    auto UITxetView = scene->GetAllEntitiesWith<TextComponent , UITransformComponent>();
-//    for(auto e : UITxetView){
-//        if(e.HasComponent<ButtonComponent>() || e.HasComponent<InputFieldComponent>())continue;//deal them below
-//        auto& transform = e.GetComponent<TransformComponent>();
-//        auto& uiTransformc = e.GetComponent<UITransformComponent>();
-//        
-//        glm::vec2 layoutPos = uiTransformc.UIpos;
-//        glm::vec2 layoutSize = uiTransformc.UISize;
-//        float layoutRotation = uiTransformc.Rotation_Z;
-//        
-//        glm::vec3 worldPos;
-//        worldPos.x = layoutPos.x - UISystem::VirtualResolutionX * 0.5f + layoutSize.x * 0.5;
-//        worldPos.y = layoutPos.y - UISystem::VirtualResolutionY * 0.5f + layoutSize.y * 0.5f;
-//        worldPos.z = transform.GetPos().z;
-//        
-//        glm::mat4 worldTransfrom = glm::translate(glm::mat4(1.0f), worldPos)
-//        * glm::rotate(glm::mat4(1.0f), glm::radians(layoutRotation), {0, 0, 1})
-//        * glm::scale(glm::mat4(1.0f), {layoutSize.x, layoutSize.y, 1.0f});
-//        auto& textComp = e.GetComponent<TextComponent>();
-//        if(textComp.TextFont){
-//            Renderer2D::DrawString(textComp.TextFont, worldTransfrom, textComp.Text , textComp.textParam , (int)(e));
-//        }
-//    }
+    auto UITxetView = scene->GetAllEntitiesWith<TextComponent , UITransformComponent , Renderable>();
+    for(auto e : UITxetView){
+        if(e.HasComponent<ButtonComponent>() || e.HasComponent<InputFieldComponent>())continue;//deal them below
+        auto& transform = e.GetComponent<TransformComponent>();
+        auto& uiTransformc = e.GetComponent<UITransformComponent>();
+        auto& renderc = e.GetComponent<Renderable>();
+        
+        glm::vec2 layoutPos = uiTransformc.UIpos;
+        glm::vec2 layoutSize = uiTransformc.UISize;
+        float layoutRotation = uiTransformc.Rotation_Z;
+        
+        glm::vec3 worldPos;
+        worldPos.x = layoutPos.x - UISystem::VirtualResolutionX * 0.5f + layoutSize.x * 0.5;
+        worldPos.y = layoutPos.y - UISystem::VirtualResolutionY * 0.5f + layoutSize.y * 0.5f;
+        worldPos.z = transform.GetPos().z;
+        
+        glm::mat4 worldTransfrom = glm::translate(glm::mat4(1.0f), worldPos)
+        * glm::rotate(glm::mat4(1.0f), glm::radians(layoutRotation), {0, 0, 1})
+        * glm::scale(glm::mat4(1.0f), {layoutSize.x, layoutSize.y, 1.0f});
+        auto& textComp = e.GetComponent<TextComponent>();
+        if(textComp.TextFont){
+            MaterialInstanceComponent* matIns = e.HasComponent<MaterialInstanceComponent>() ? &e.GetComponent<MaterialInstanceComponent>() : nullptr;
+            Renderer2DMaterial::DrawString(textComp.TextFont, worldTransfrom, textComp.Text, textComp.textParam, (int)e, renderc.textMat , matIns);
+
+        }
+    }
     
     // 渲染按钮
     auto buttonView = scene->GetAllEntitiesWith<TransformComponent, ButtonComponent , UITransformComponent>();
@@ -243,64 +245,81 @@ void UISystem::Render(Scene*scene) {
         Renderer2DMaterial::DrawQuad(worldTransfrom, texCoord, int(e), renderCp.material, matIns);
         
         // 如果按钮上有文字
-//        if (e.HasComponent<TextComponent>()) {
-//            auto& textComp = e.GetComponent<TextComponent>();
-//            if(textComp.TextFont){
-//                glm::mat4 textTransform = glm::translate(glm::mat4(1.0f), glm::vec3(worldPos.x , worldPos.y , worldPos.z + 0.01f))
-//                * glm::rotate(glm::mat4(1.0f), glm::radians(layoutRotation), {0, 0, 1})
-//                * glm::scale(glm::mat4(1.0f), {layoutSize.x, layoutSize.y, 1.0f});
+        if (e.HasComponent<TextComponent>()) {
+            auto& textComp = e.GetComponent<TextComponent>();
+            if(textComp.TextFont){
+                float xOffset = textComp.textParam.offset.x ;/// UISystem::VirtualResolutionX ;
+                float yOffset = textComp.textParam.offset.y ;/// UISystem::VirtualResolutionY ;
+                glm::mat4 textTransform = glm::translate(glm::mat4(1.0f), glm::vec3(worldPos.x + xOffset , worldPos.y + yOffset  , worldPos.z + 0.01f))
+                * glm::rotate(glm::mat4(1.0f), glm::radians(layoutRotation), {0, 0, 1})
+                * glm::scale(glm::mat4(1.0f), {layoutSize.x, layoutSize.y, 1.0f});
 //                Renderer2D::DrawString(textComp.TextFont, textTransform, textComp.Text , textComp.textParam , (int)(e));
-//            }
-//        }
+                Renderer2DMaterial::DrawString(textComp.TextFont, textTransform, textComp.Text, textComp.textParam, (int)e, renderCp.textMat , matIns);
+
+            }
+        }
     }
     
     // 渲染输入框
-//    auto inputView = scene->GetAllEntitiesWith<TransformComponent, InputFieldComponent, TextComponent , UITransformComponent>();
-//    for (auto e : inputView) {
-//        auto& transform = e.GetComponent<TransformComponent>();
-//        auto& inputField = e.GetComponent<InputFieldComponent>();
-//        auto& textComp = e.GetComponent<TextComponent>();
-//        auto& uiTransformc = e.GetComponent<UITransformComponent>();
-//
-//        
-//        glm::vec2 layoutPos = uiTransformc.UIpos;
-//        glm::vec2 layoutSize = uiTransformc.UISize;
-//        float layoutRotation = uiTransformc.Rotation_Z;
-//        
-//        glm::vec3 worldPos;
-//        worldPos.x = layoutPos.x - UISystem::VirtualResolutionX * 0.5f + layoutSize.x * 0.5;
-//        worldPos.y = layoutPos.y - UISystem::VirtualResolutionY * 0.5f + layoutSize.y * 0.5f;
-//        worldPos.z = transform.GetPos().z;
-//        
-//        glm::mat4 worldTransfrom = glm::translate(glm::mat4(1.0f), worldPos)
-//        * glm::rotate(glm::mat4(1.0f), glm::radians(layoutRotation), {0, 0, 1})
-//        * glm::scale(glm::mat4(1.0f), {layoutSize.x, layoutSize.y, 1.0f});
-//        
-//        // 背景
+    auto inputView = scene->GetAllEntitiesWith<TransformComponent, InputFieldComponent, TextComponent , UITransformComponent , Renderable>();
+    for (auto e : inputView) {
+        auto& transform = e.GetComponent<TransformComponent>();
+        auto& inputField = e.GetComponent<InputFieldComponent>();
+        auto& textComp = e.GetComponent<TextComponent>();
+        auto& uiTransformc = e.GetComponent<UITransformComponent>();
+        auto& renderc = e.GetComponent<Renderable>();
+        MaterialInstanceComponent* matIns = e.HasComponent<MaterialInstanceComponent>() ? &e.GetComponent<MaterialInstanceComponent>() : nullptr;
+
+
+        
+        glm::vec2 layoutPos = uiTransformc.UIpos;
+        glm::vec2 layoutSize = uiTransformc.UISize;
+        float layoutRotation = uiTransformc.Rotation_Z;
+        float xOffset = textComp.textParam.offset.x ;/// UISystem::VirtualResolutionX ;
+        float yOffset = textComp.textParam.offset.y ;/// UISystem::VirtualResolutionY ;
+        
+        glm::vec3 worldPos;
+        worldPos.x = layoutPos.x - UISystem::VirtualResolutionX * 0.5f + layoutSize.x * 0.5;
+        worldPos.y = layoutPos.y - UISystem::VirtualResolutionY * 0.5f + layoutSize.y * 0.5f;
+        worldPos.z = transform.GetPos().z;
+        
+        glm::mat4 worldTransfrom = glm::translate(glm::mat4(1.0f), worldPos)
+        * glm::rotate(glm::mat4(1.0f), glm::radians(layoutRotation), {0, 0, 1})
+        * glm::scale(glm::mat4(1.0f), {layoutSize.x, layoutSize.y, 1.0f});
+        
+        // 背景
 //        glm::vec4 bgColor = inputField.IsFocused ? inputField.FocusedColor : glm::vec4(0.8f);
 //        Renderer2D::DrawQuad(worldTransfrom, bgColor , int(e));
-//        
-//        
-//        
-//        // 文本
-//        if (!inputField.Text.empty() && textComp.TextFont) {
-//            glm::mat4 textTransform = glm::translate(glm::mat4(1.0f), glm::vec3(worldPos.x , worldPos.y , worldPos.z + 0.01f))
-//            * glm::rotate(glm::mat4(1.0f), glm::radians(layoutRotation), {0, 0, 1})
-//            * glm::scale(glm::mat4(1.0f), {layoutSize.x, layoutSize.y, 1.0f});
+        std::vector<glm::vec2> defaultTextCoord = { {0,0}, {1,0}, {1,1}, {0,1} };
+        std::vector<glm::vec2> texCoord = renderc.subTexture ? renderc.subTexture->GetTexCoords() : defaultTextCoord;
+        Renderer2DMaterial::DrawQuad(worldTransfrom, texCoord, int(e), renderc.material, matIns);
+
+        
+        
+        
+        // 文本
+        if (!textComp.Text.empty() && textComp.TextFont) {
+            glm::mat4 textTransform = glm::translate(glm::mat4(1.0f), glm::vec3(worldPos.x + xOffset, worldPos.y +yOffset, worldPos.z + 0.01f))
+            * glm::rotate(glm::mat4(1.0f), glm::radians(layoutRotation), {0, 0, 1})
+            * glm::scale(glm::mat4(1.0f), {layoutSize.x, layoutSize.y, 1.0f});
 //            Renderer2D::DrawString(textComp.TextFont, textTransform, inputField.Text , textComp.textParam , (int)(e));
-//            
-//        } else if (!inputField.IsFocused && textComp.TextFont) {
-//            glm::mat4 textTransform = glm::translate(glm::mat4(1.0f), glm::vec3(worldPos.x , worldPos.y , worldPos.z + 0.01f))
-//            * glm::rotate(glm::mat4(1.0f), glm::radians(layoutRotation), {0, 0, 1})
-//            * glm::scale(glm::mat4(1.0f), {layoutSize.x, layoutSize.y, 1.0f});
+            Renderer2DMaterial::DrawString(textComp.TextFont, textTransform, textComp.Text, textComp.textParam, (int)e, renderc.textMat , matIns);
+
+            
+        } else if (!inputField.IsFocused && textComp.TextFont) {
+            glm::mat4 textTransform = glm::translate(glm::mat4(1.0f), glm::vec3(worldPos.x , worldPos.y , worldPos.z + 0.01f))
+            * glm::rotate(glm::mat4(1.0f), glm::radians(layoutRotation), {0, 0, 1})
+            * glm::scale(glm::mat4(1.0f), {layoutSize.x, layoutSize.y, 1.0f});
 //            Renderer2D::DrawString(textComp.TextFont, textTransform, inputField.PlaceholderText , textComp.textParam , (int)(e));
-//        }
-//        
-//        // (可选) 绘制光标
-//        if (inputField.IsFocused) {
-//            // ... 在文本末尾绘制一个闪烁的竖线 ...
-//        }
-//    }
+            Renderer2DMaterial::DrawString(textComp.TextFont, textTransform, inputField.PlaceholderText, textComp.textParam, (int)e, renderc.textMat , matIns);
+
+        }
+        
+        // (可选) 绘制光标
+        if (inputField.IsFocused) {
+            // ... 在文本末尾绘制一个闪烁的竖线 ...
+        }
+    }
     // 渲染UI image
 //    auto imageView = scene->GetAllEntitiesWith<TransformComponent, Renderable , UITransformComponent>();
 //    for (auto e : imageView) {
