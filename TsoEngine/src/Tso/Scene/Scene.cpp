@@ -231,13 +231,14 @@ void Scene::OnUpdate(TimeStep ts)
         
         auto textGroup = m_Registry.view<TransformComponent, TextComponent , Renderable>();
         for(auto& e : textGroup){
+            Entity entity = {e , this};
             const auto& [render , transComp , textComp] = textGroup.get<Renderable, TransformComponent, TextComponent>(e);
-            if(textComp.isUI)continue;//ignore UI text;
+            if(textComp.isUI || entity.HasComponent<UITransformComponent>())continue;//ignore UI text;
             if(textComp.TextFont && textComp.Text.length() > 0){
-                Entity entity = {e , this};
+                
 //                Renderer2D::DrawString(textComp.TextFont, transComp.GetTransform(), textComp.Text , textComp.textParam , (int)e);
                 MaterialInstanceComponent* matIns = entity.HasComponent<MaterialInstanceComponent>() ? &entity.GetComponent<MaterialInstanceComponent>() : nullptr;
-                Renderer2DMaterial::DrawString(textComp.TextFont, transComp.GetTransform(), textComp.Text, textComp.textParam, (int)e, render.material , matIns);
+                Renderer2DMaterial::DrawString(textComp.TextFont, transComp.GetTransform(), textComp.Text, textComp.textParam, (int)e, render.textMat , matIns);
             }
         }
         Renderer2DMaterial::EndScene();

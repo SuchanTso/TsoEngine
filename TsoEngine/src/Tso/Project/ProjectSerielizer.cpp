@@ -99,6 +99,13 @@ namespace Utils{
                     TSO_CORE_WARN("Texture {} fails to be generated!", uuid);
                 }
             }
+            else if(type == "Font"){
+                auto font = Tso::CreateRef<Tso::Font>(fullPath.string());
+                
+                if(font){
+                    Tso::Resource::AddResource(name, uuid, font);
+                }
+            }
             else{
                 TSO_CORE_ASSERT(false , "Unknow type of resource: [{}]" ,type);
             }
@@ -128,7 +135,7 @@ namespace Utils{
                 if (type == "Shader") {
                     Tso::UUID shaderUUID = var["Value"].as<uint64_t>();
                     // 通过 AssetManager 获取 Shader 实例
-                    shader = Tso::Resource::GetShader(shaderUUID);
+                    shader = Tso::Resource::GetResource<Tso::Shader>(shaderUUID);
                     break;
                 }
             }
@@ -156,7 +163,7 @@ namespace Utils{
                 }
                 else if (type == "Texture") {
                     Tso::UUID textureUUID = valueNode.as<uint64_t>();
-                    Tso::Ref<Tso::Texture2D> texture = Tso::Resource::GetTexture(textureUUID);
+                    Tso::Ref<Tso::Texture2D> texture = Tso::Resource::GetResource<Tso::Texture2D>(textureUUID);
                     if (texture) {
                         material->SetTexture(name, texture);
                     } else {
@@ -243,7 +250,7 @@ namespace Tso {
                 out << YAML::Key << "Resource" << YAML::Value << YAML::BeginSeq;
 
                 // 2.1 序列化 Textures
-                auto& textures = Resource::GetAllTextures();
+                auto& textures = Resource::GetResourceMap<Texture2D>();
                 for (auto& [uuid, texture] : textures)
                 {
                     out << YAML::BeginMap;
@@ -260,7 +267,7 @@ namespace Tso {
                 }
 
                 // 2.2 序列化 Shaders
-                auto& shaders = Resource::GetAllShaders();
+                auto& shaders = Resource::GetResourceMap<Shader>();
                 for (auto& [uuid, shader] : shaders)
                 {
                     out << YAML::BeginMap;
@@ -275,6 +282,22 @@ namespace Tso {
 
                     out << YAML::EndMap;
                 }
+                
+                auto& fonts = Resource::GetResourceMap<Font>();
+                for (auto& [uuid, font] : fonts)
+                {
+                    out << YAML::BeginMap;
+                    out << YAML::Key << "Type" << YAML::Value << "Font";
+                    out << YAML::Key << "Name" << YAML::Value << font->GetName();
+                    out << YAML::Key << "UUID" << YAML::Value << (uint64_t)uuid;
+
+                    // 假设 Shader 类有 GetFilePath()
+                    std::filesystem::path absPath = font->GetPath();
+                    std::string relPath = std::filesystem::relative(absPath, projectDir).generic_string();
+                    out << YAML::Key << "Path" << YAML::Value << relPath;
+
+                    out << YAML::EndMap;
+                }
 
                 out << YAML::EndSeq; // End Resource List
 
@@ -283,7 +306,7 @@ namespace Tso {
                 // 注意：材质的具体参数保存在 .mat 文件中，这里只保存项目引用了哪些材质文件
                 out << YAML::Key << "Materials" << YAML::Value << YAML::BeginSeq;
 
-                auto& materials = Resource::GetAllMaterials();
+                auto& materials = Resource::GetResourceMap<Material>();
                 for (auto& [uuid, material] : materials)
                 {
                     // 只有当材质有对应的物理文件路径时才保存到 Project 中

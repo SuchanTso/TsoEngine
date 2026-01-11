@@ -22,9 +22,12 @@ struct ResourceData{
     std::unordered_map<UUID, Ref<Texture2D>> textureMap;
     std::unordered_map<UUID, Ref<Material>>  materialMap;
     std::unordered_map<UUID, Ref<Shader>> shaderMap;
+    std::unordered_map<UUID, Ref<Font>> fontMap;
+    
     std::unordered_map<std::string , UUID> textureNameMap;
     std::unordered_map<std::string , UUID> materialNameMap;
     std::unordered_map<std::string , UUID> shaderNameMap;
+    std::unordered_map<std::string , UUID> fontNameMap;
 };
 
 class Resource{
@@ -33,18 +36,24 @@ public:
     static void ShutDown();
     static Ref<ResourceData>GetResource(){return s_Resource ? s_Resource->m_ResourceData : nullptr;}
     static Ref<Texture2D> GetTextureByPath( std::string& path);
-    static Ref<Texture2D> GetTexture(const UUID& uuid);
-    static Ref<Material>  GetMaterial(const UUID& uuid);
-    static Ref<Shader>    GetShader(const UUID& uuid);
-    static std::unordered_map<UUID , Ref<Shader>>& GetAllShaders(){return s_Resource->m_ResourceData->shaderMap;}
-    static std::unordered_map<UUID , Ref<Material>>& GetAllMaterials(){return s_Resource->m_ResourceData->materialMap;}
-    static std::unordered_map<UUID , Ref<Texture2D>>& GetAllTextures(){return s_Resource->m_ResourceData->textureMap;}
+//    static Ref<Texture2D> GetTexture(const UUID& uuid);
+//    static Ref<Material>  GetMaterial(const UUID& uuid);
+//    static Ref<Shader>    GetShader(const UUID& uuid);
+//    static std::unordered_map<UUID , Ref<Shader>>& GetAllShaders(){return s_Resource->m_ResourceData->shaderMap;}
+//    static std::unordered_map<UUID , Ref<Material>>& GetAllMaterials(){return s_Resource->m_ResourceData->materialMap;}
+//    static std::unordered_map<UUID , Ref<Texture2D>>& GetAllTextures(){return s_Resource->m_ResourceData->textureMap;}
+//    static std::unordered_map<UUID , Ref<Font>>& GetAllFonts(){return s_Resource->m_ResourceData->fontMap;}
+
 //    static void AddTexture(const UUID& uuid , Ref<Texture2D> texture);
 //    static void AddMaterial(const UUID& uuid , Ref<Material> material);
 //    static void AddShader(const UUID& uuid , Ref<Shader> shader);
     
     template<typename T>
     static void AddResource(const std::string& name,const UUID& uuid , Ref<T>resource);
+    template<typename T>
+    static Ref<T> GetResource(const UUID& uuid);
+    template<typename T>
+    static std::unordered_map<UUID , Ref<T>>& GetResourceMap();
 private:
     inline static Ref<Resource> s_Resource;
     Ref<ResourceData> m_ResourceData;

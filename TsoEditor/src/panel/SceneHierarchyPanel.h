@@ -55,7 +55,7 @@ namespace Tso {
 		Ref<Scene> m_Context = nullptr;
 		Entity m_SelectedEntity{entt::null , nullptr};
 		Entity m_DeletedEntity{ entt::null , nullptr };
-        enum class ResourceType { None, Texture, Shader, Material };
+        enum class ResourceType { None, Texture, Shader, Material , Font };
         UUID m_SelectedResourceUUID = 0;
         ResourceType m_SelectedType = ResourceType::None;
         ShaderEditorSession m_ShaderCache;
@@ -65,7 +65,8 @@ namespace Tso {
                 CreateMaterial,
                 CreateShader,
                 ImportTexture,
-                ImportShader
+                ImportShader,
+                ImportFont,
             };
             
         DeferredAction m_NextAction = DeferredAction::None;
