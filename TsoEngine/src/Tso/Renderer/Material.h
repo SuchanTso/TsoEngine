@@ -71,7 +71,9 @@ namespace Tso {
         
         const std::unordered_map<std::string, int>& GetInstanceParams() const { return m_InstanceParamMap; }
 
-
+        bool operator>=(Material& other) {
+            return other.m_UUID >= other.m_UUID;
+        }
     private:
         Ref<Shader> m_Shader;
         std::string m_Name;
