@@ -260,12 +260,12 @@ void EditorLayer::DrawEditorInterface(){
 
         ImGui::Text("Render2DInfo");
 
-        auto stat = Renderer2D::GetStat();
+        auto stat = Renderer2DMaterial::GetStats();
 
         ImGui::Text("DrawCalls : %d ", stat.DrawCalls);
         ImGui::Text("QuadsCount : %d ", stat.QuadCount);
-        ImGui::Text("QuadVertices : %d", stat.GetTotalVertexCount());
-        ImGui::Text("QuadIndices : %d", stat.GetTotalIndexCount());
+//        ImGui::Text("QuadVertices : %d", stat.GetTotalVertexCount());
+//        ImGui::Text("QuadIndices : %d", stat.GetTotalIndexCount());
 
         if (ImGui::Button("Play")) {
             m_StartScene = !m_StartScene;
@@ -430,7 +430,7 @@ void EditorLayer::DrawEditorInterface(){
     void EditorLayer::OnUpdate(TimeStep ts)
     {
 
-        Renderer2D::ResetStat();
+        Renderer2DMaterial::ResetStats();
 
         m_FrameBuffer->Bind();
         RenderCommand::SetClearColor({ 0.1f, 0.1f, 0.1f, 1.f });
