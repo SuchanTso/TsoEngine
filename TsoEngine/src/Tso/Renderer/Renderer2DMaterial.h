@@ -51,7 +51,7 @@ struct MaterialInstanceComponent;
         static void Flush();
 
         // 提交命令
-        static void DrawQuad(const glm::mat4& transform,const std::vector<glm::vec2>& texcoord , int entityID, Ref<Material> material,MaterialInstanceComponent* overrideComp);
+        static void DrawQuad(const glm::mat4& transform,const std::vector<glm::vec2>& texcoord,const glm::vec4& color , int entityID, Ref<Material> material,MaterialInstanceComponent* overrideComp);
         
         static void DrawString(const Ref<Font> font , const glm::mat4& transform , const std::string& text , const TextParam& textParam , const int& entityID, Ref<Material> material,MaterialInstanceComponent* overrideComp);
 

@@ -337,8 +337,8 @@ void Renderer2DMaterial::FlushString(){
 
 
 
-    void Renderer2DMaterial::DrawQuad(const glm::mat4& transform,const std::vector<glm::vec2>& texcoord, int entityID, Ref<Material> material , MaterialInstanceComponent* overrideComp) {
-        glm::vec4 color = material? material->GetPureColor() : glm::vec4(1.f);
+    void Renderer2DMaterial::DrawQuad(const glm::mat4& transform,const std::vector<glm::vec2>& texcoord,const glm::vec4& color, int entityID, Ref<Material> material , MaterialInstanceComponent* overrideComp) {
+//        glm::vec4 color = material? material->GetPureColor() : glm::vec4(1.f);
         glm::vec4 instanceData(0.0f);
 
         // 如果有组件，并且材质定义了映射规则
