@@ -2,6 +2,8 @@
 #include"Tso/Scene/Scene.h"
 #include "Tso/Core/Core.h"
 #include "Tso/Scene/Entity.h"
+#include "AnimationPanel.h"
+#include "AnimationControllerPanel.h"
 
 namespace Tso {
 	class Entity;
@@ -55,7 +57,7 @@ namespace Tso {
 		Ref<Scene> m_Context = nullptr;
 		Entity m_SelectedEntity{entt::null , nullptr};
 		Entity m_DeletedEntity{ entt::null , nullptr };
-        enum class ResourceType { None, Texture, Shader, Material , Font };
+        enum class ResourceType { None, Texture, Shader, Material , Font , Animation };
         UUID m_SelectedResourceUUID = 0;
         ResourceType m_SelectedType = ResourceType::None;
         ShaderEditorSession m_ShaderCache;
@@ -73,6 +75,8 @@ namespace Tso {
 
         bool m_RequestSelectTexture = false;
         std::string m_TextureSlotToChange;
+        AnimationPanel m_AnimationPanel;
+        AnimationControllerPanel m_AnimationControllerPanel;
 	};
 
 }

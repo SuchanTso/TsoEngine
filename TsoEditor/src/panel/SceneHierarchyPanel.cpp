@@ -154,7 +154,7 @@ void main(){
                     
                     // 确保目录存在
                     std::filesystem::create_directories(filePath.parent_path());
-                    
+                    //TODO: make new shader path file dialog seletion @Suchan
                     // 写入文件
                     
                     std::ofstream out(filePath.string());
@@ -311,6 +311,28 @@ void main(){
                 }
             }
         }
+        
+        if (ImGui::CollapsingHeader("Animations", ImGuiTreeNodeFlags_DefaultOpen)) {
+            auto& animations = Resource::GetResourceMap<AnimationClip>();
+            for (auto& [uuid, ani] : animations) {
+                bool isSelected = (m_SelectedResourceUUID == uuid);
+                if (ImGui::Selectable(ani->GetName().c_str(), isSelected)) {
+                    m_SelectedResourceUUID = uuid;
+                    m_SelectedType = ResourceType::Animation;
+                }
+                if (ImGui::BeginDragDropSource()) {
+                    // 参数1: 标签 (必须与 Target 端一致)
+                    // 参数2: 数据指针 (这里传 UUID 的地址)
+                    // 参数3: 数据大小
+                    ImGui::SetDragDropPayload("RESOURCE_ANIM_CLIP", &uuid, sizeof(UUID));
+
+                    // 3. 设置拖拽时的预览图/文字 (跟在鼠标旁边的那个提示)
+                    ImGui::Text("animation: %s", ani->GetName().c_str());
+                    
+                    ImGui::EndDragDropSource();
+                }
+            }
+        }
 
         // 3. Materials
         if (ImGui::CollapsingHeader("Materials", ImGuiTreeNodeFlags_DefaultOpen)) {
@@ -451,6 +473,10 @@ void main(){
                 Ref<Shader> shader = Resource::GetResource<Shader>(m_SelectedResourceUUID);
                 if (shader) DrawShaderNode(shader);
                 break;
+            }
+            case ResourceType::Animation:{
+                Ref<AnimationClip> animation = Resource::GetResource<AnimationClip>(m_SelectedResourceUUID);
+                if(animation) m_AnimationPanel.SetContext(animation);
             }
             default: break;
         }
@@ -879,7 +905,8 @@ template<typename T, typename UIFunction>
         
         DrawResourceList();
         DrawResourceInspector();
-        
+        m_AnimationPanel.OnImGuiRender();
+        m_AnimationControllerPanel.OnImGuiRender();
 	}
 	void SceneHierarchyPanel::DrwaEntityNode(Entity& entity)
 	{
@@ -958,6 +985,7 @@ void SceneHierarchyPanel::DrawResources(){
         if (ImGui::BeginPopup("AddComponent"))
         {
             DisplayAddComponentEntry<Renderable>("Renderable");
+            DisplayAddComponentEntry<AnimatorComponent>("AnimatorComponent");
             DisplayAddComponentEntry<CameraComponent>("Camera");
             DisplayAddComponentEntry<ScriptComponent>("Script");
             DisplayAddComponentEntry<MaterialInstanceComponent>("MaterialInstance");
@@ -1362,6 +1390,81 @@ void SceneHierarchyPanel::DrawResources(){
                 }
             }
         }
+        // --- Animator Component ---
+                if (entity.HasComponent<AnimatorComponent>()) {
+                    // 默认展开，带边框，宽度自适应
+                    ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_SpanAvailWidth | ImGuiTreeNodeFlags_AllowItemOverlap | ImGuiTreeNodeFlags_FramePadding;
+                    
+                    bool open = ImGui::TreeNodeEx("Animator", flags);
+                    
+                    // 右键菜单移除组件
+                    bool removeComponent = false;
+                    if (ImGui::BeginPopupContextItem()) {
+                        if (ImGui::MenuItem("Remove Component")) removeComponent = true;
+                        ImGui::EndPopup();
+                    }
+
+                    if (open) {
+                        auto& comp = entity.GetComponent<AnimatorComponent>();
+
+                        // 1. Controller 选择器
+                        // 获取当前 Controller 的名字，如果没有则显示 "None"
+                        // 假设你的 AnimationController 也有 GetName() 方法，或者是资源管理器管理的
+                        // 这里假设我们通过资源路径或名称来显示
+                        std::string controllerName = "None (Missing)";
+                        if (comp.Controller) {
+                            // 如果 Controller 是资源，应该有名字或路径
+                             controllerName = "Valid Controller"; // 暂时显示这个，建议 comp.Controller->GetName()
+                            if (ImGui::Button("Edit Controller")) {
+                                    // 全局获取 Panel 实例并打开
+                                    m_AnimationControllerPanel.SetContext(comp.Controller);
+                                    // EditorLayer::Get().ShowAnimationControllerPanel(true);
+                            }
+                        }
+
+                        ImGui::Text("Controller");
+                        ImGui::SameLine();
+                        
+                        // 显示一个只读的按钮/输入框，作为 Drop Target
+                        ImGui::Button(controllerName.c_str(), ImVec2(ImGui::GetContentRegionAvail().x, 0.0f));
+
+                        // --- 拖拽接收 (Drag & Drop Target) ---
+                        if (ImGui::BeginDragDropTarget()) {
+                            // 假设你的资源面板拖出来的 payload 叫 "RESOURCE_ANIM_CONTROLLER"
+                            // 或者如果是通用文件，可能是 "CONTENT_BROWSER_ITEM"
+                            if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("RESOURCE_ANIM_CONTROLLER")) {
+                                UUID controllerUUID = *(const UUID*)payload->Data;
+                                // 加载 Controller
+                                // comp.Controller = Resource::GetAnimationController(controllerUUID);
+                            }
+                            ImGui::EndDragDropTarget();
+                        }
+
+                        // 2. 运行时调试信息 (Runtime Debugging)
+                        // 只有当场景正在播放时，显示这些信息才有意义
+                        if (comp.Controller) { // && Scene::IsPlaying()
+                            ImGui::Separator();
+                            ImGui::Text("Runtime Debug:");
+
+                            // 显示当前状态名
+                            std::string stateName = comp.Controller->GetCurrentStateName();
+                            ImGui::LabelText("Current State", "%s", stateName.c_str());
+
+                            // 手动切换状态测试
+                            static char stateBuffer[64] = "";
+                            ImGui::InputText("Test State", stateBuffer, sizeof(stateBuffer));
+                            if (ImGui::Button("Play State")) {
+                                comp.Controller->Play(std::string(stateBuffer));
+                            }
+                        }
+
+                        ImGui::TreePop();
+                    }
+
+                    if (removeComponent) {
+                        entity.RemoveComponent<AnimatorComponent>();
+                    }
+                }
 		if (entity.HasComponent<CameraComponent>()) {
 			if (ImGui::TreeNodeEx("Camera", ImGuiTreeNodeFlags_OpenOnArrow)) {
 				std::string projectionTypeStrings[2] = { "Projection" , "Orthographic" };

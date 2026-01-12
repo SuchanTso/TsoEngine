@@ -7,6 +7,7 @@
 #pragma once
 
 #include <iostream>
+#include <fstream>
 #include <memory>
 #include <utility>
 #include <algorithm>
@@ -21,6 +22,8 @@
 #include <unordered_set>
 #include <filesystem>
 #include "glm/glm.hpp"
+#include "glm/gtc/type_ptr.hpp"
+
 
 #include "Tso/Core/Keycode.h"
 #include "Tso/Core/Log.h"
@@ -40,6 +43,7 @@
 #include "Tso/Renderer/RenderCommand.h"
 
 #include "imgui.h"
+#include <yaml-cpp/yaml.h>
 
 
 #ifdef TSO_PLATFORM_WINDOWS

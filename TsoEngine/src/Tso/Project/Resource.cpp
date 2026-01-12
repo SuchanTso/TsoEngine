@@ -8,6 +8,7 @@
 #include "Resource.h"
 #include "Tso/Renderer/Texture.h"
 #include "Tso/Renderer/Material.h"
+#include "Tso/Animation/AnimationClip.h"
 
 namespace Tso{
 void Resource::Init(){
@@ -60,6 +61,15 @@ template<>Ref<Font>Resource::GetResource(const UUID& uuid){
     }
     return s_Resource->m_ResourceData->fontMap[uuid];
 }
+
+template<>Ref<AnimationClip>Resource::GetResource(const UUID& uuid){
+    TSO_CORE_ASSERT(s_Resource != nullptr && s_Resource->m_ResourceData != nullptr , "didn't init resource yet");
+    if(s_Resource->m_ResourceData->animationClipMap.find(uuid) == s_Resource->m_ResourceData->animationClipMap.end()){
+        TSO_CORE_WARN("Material {} not found!" , uuid);
+        return nullptr;
+    }
+    return s_Resource->m_ResourceData->animationClipMap[uuid];
+}
 //===============================================GetResource============================================================
 
 
@@ -82,6 +92,11 @@ template<>std::unordered_map<UUID , Ref<Texture2D>>& Resource::GetResourceMap(){
 template<>std::unordered_map<UUID , Ref<Font>>& Resource::GetResourceMap(){
     TSO_CORE_ASSERT(s_Resource != nullptr && s_Resource->m_ResourceData != nullptr , "didn't init resource yet");
     return s_Resource->m_ResourceData->fontMap;
+}
+
+template<>std::unordered_map<UUID , Ref<AnimationClip>>& Resource::GetResourceMap(){
+    TSO_CORE_ASSERT(s_Resource != nullptr && s_Resource->m_ResourceData != nullptr , "didn't init resource yet");
+    return s_Resource->m_ResourceData->animationClipMap;
 }
 
 //=============================================GetResourceMap===========================================================
@@ -125,6 +140,17 @@ template<> void Resource::AddResource<Font>(const std::string& name , const UUID
     resource->SetName(name);
     resource->SetUUID(uuid);
 }
+
+template<> void Resource::AddResource<AnimationClip >(const std::string& name , const UUID &uuid, Ref<AnimationClip> resource){
+    TSO_CORE_ASSERT(s_Resource != nullptr && s_Resource->m_ResourceData != nullptr , "didn't init resource yet");
+    if(s_Resource->m_ResourceData->animationClipMap.find(uuid) != s_Resource->m_ResourceData->animationClipMap.end()){
+        TSO_CORE_WARN("Duplicated Font {} added in the asset, replacing..." , uuid);
+    }
+    s_Resource->m_ResourceData->animationClipMap[uuid] = resource;
+    resource->SetName(name);
+    resource->SetUUID(uuid);
+}
+
 //===============================================AddResource============================================================
 
 
