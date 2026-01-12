@@ -274,6 +274,14 @@ void ScriptGlue::RegisterFunctions() {
             self.OnClick = func;
         }
     );
+    lua.new_usertype<MaterialInstanceComponent>("MaterialInstance",
+        "Variant",
+             [](MaterialInstanceComponent& self, const std::string& name , const float& val) {
+                 if(self.FloatOverrides.find(name) != self.FloatOverrides.end()){
+                     self.FloatOverrides[name] = val;
+                 }
+             }
+    );
 
     // --- 核心类绑定 ---
 
@@ -338,6 +346,13 @@ void ScriptGlue::RegisterFunctions() {
                     if(r.uiview){
                         return sol::make_object(ScriptingEngine::GetLuaState(), &entity.GetComponent<Renderable>());
                     }
+                }
+                return sol::lua_nil;
+            }
+            else if(componentName == "MaterialInstance"){
+                if(entity.HasComponent<MaterialInstanceComponent>()){
+                    auto& matIns = entity.GetComponent<MaterialInstanceComponent>();
+                    return sol::make_object(ScriptingEngine::GetLuaState(), &entity.GetComponent<MaterialInstanceComponent>());
                 }
                 return sol::lua_nil;
             }
