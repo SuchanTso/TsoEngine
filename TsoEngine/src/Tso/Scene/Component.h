@@ -12,6 +12,7 @@
 #include "Tso/Network/ByteStream.h"
 #include "sol/sol.hpp"
 #include "Renderer/Material.h"
+#include "Tso/Animation/AnimationController.h"
 
 namespace Tso {
 
@@ -90,6 +91,14 @@ namespace Tso {
         glm::vec2 textureSize = {1.0 , 1.0};
         bool uiview = false;
 	};
+
+    struct AnimatorComponent {
+        Ref<AnimationController> Controller;
+        
+        AnimatorComponent() {
+            Controller = CreateRef<AnimationController>();
+        }
+    };
 
     struct MaterialInstanceComponent {
             // 存储实例数据：Key 是参数名，Value 是数值

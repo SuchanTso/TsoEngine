@@ -9,45 +9,30 @@
 #include "TPch.h"
 #include "Material.h"
 #include "RenderCommand.h"
+#include "Tso/Project/ProjectSerielizer.h"
 
-#include <yaml-cpp/yaml.h>
-#include <glm/glm.hpp>
-#include <fstream>
 
-namespace YAML {
-    YAML::Emitter& operator<<(YAML::Emitter& out, const glm::vec2& v) {
-        out << YAML::Flow;
-        out << YAML::BeginSeq << v.x << v.y << YAML::EndSeq;
-        return out;
-    }
 
-    YAML::Emitter& operator<<(YAML::Emitter& out, const glm::vec3& v) {
-        out << YAML::Flow;
-        out << YAML::BeginSeq << v.x << v.y << v.z << YAML::EndSeq;
-        return out;
-    }
-
-    YAML::Emitter& operator<<(YAML::Emitter& out, const glm::vec4& v) {
-        out << YAML::Flow;
-        out << YAML::BeginSeq << v.x << v.y << v.z << v.w << YAML::EndSeq;
-        return out;
-    }
-
-    // 矩阵通常比较大，不建议用 Flow (单行)，这里简单处理为扁平数组
-    YAML::Emitter& operator<<(YAML::Emitter& out, const glm::mat3& v) {
-        out << YAML::Flow << YAML::BeginSeq;
-        for(int i=0; i<3; i++) for(int j=0; j<3; j++) out << v[i][j];
-        out << YAML::EndSeq;
-        return out;
-    }
-
-    YAML::Emitter& operator<<(YAML::Emitter& out, const glm::mat4& v) {
-        out << YAML::Flow << YAML::BeginSeq;
-        for(int i=0; i<4; i++) for(int j=0; j<4; j++) out << v[i][j];
-        out << YAML::EndSeq;
-        return out;
-    }
-}
+//namespace YAML {
+//    YAML::Emitter& operator<<(YAML::Emitter& out, const glm::vec2& v) {
+//        out << YAML::Flow;
+//        out << YAML::BeginSeq << v.x << v.y << YAML::EndSeq;
+//        return out;
+//    }
+//
+//    YAML::Emitter& operator<<(YAML::Emitter& out, const glm::vec3& v) {
+//        out << YAML::Flow;
+//        out << YAML::BeginSeq << v.x << v.y << v.z << YAML::EndSeq;
+//        return out;
+//    }
+//
+//    YAML::Emitter& operator<<(YAML::Emitter& out, const glm::vec4& v) {
+//        out << YAML::Flow;
+//        out << YAML::BeginSeq << v.x << v.y << v.z << v.w << YAML::EndSeq;
+//        return out;
+//    }
+//
+//}
 
 // --- GLM 序列化辅助函数 ---
 // 使 YAML::Emitter 可以直接输出 glm::vec3 为 [x, y, z]

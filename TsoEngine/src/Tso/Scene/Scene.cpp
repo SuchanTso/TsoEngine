@@ -117,6 +117,19 @@ void Scene::OnUpdate(TimeStep ts)
                 if (nsc.hasBind)
                     nsc.Instance->OnUpdate(ts);
             });
+        
+        //update Animation controller
+        auto aGroup = m_Registry.view<Renderable, AnimatorComponent>();
+        for(auto& e : aGroup){
+            Entity entity = {e , this};
+            auto& renderable = entity.GetComponent<Renderable>();
+            auto& animator = entity.GetComponent<AnimatorComponent>();
+            if (animator.Controller && renderable.isSubtexture && renderable.subTexture) {
+                glm::vec2 newSpriteIndex = animator.Controller->Update(ts);
+                renderable.textureIndex = newSpriteIndex;
+                renderable.subTexture->RecalculateCoords(renderable.spriteSize, renderable.textureIndex, renderable.textureSize);
+            }
+        }
 
 
         if (m_PhysicWorld) {

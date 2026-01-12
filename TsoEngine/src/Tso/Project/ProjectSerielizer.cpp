@@ -5,62 +5,46 @@
 #include "Tso/Core/UUID.h"
 #include "Tso/Project/Resource.h"
 #include "Tso/Renderer/Material.h"
+#include "Tso/Animation/AnimationClip.h"
 
 namespace YAML {
-
-    template<>
-    struct convert<glm::vec2> {
-        static bool decode(const Node& node, glm::vec2& rhs) {
-            if (!node.IsSequence() || node.size() != 2) return false;
-            rhs.x = node[0].as<float>();
-            rhs.y = node[1].as<float>();
-            return true;
-        }
-    };
-
-    template<>
-    struct convert<glm::vec3> {
-        static bool decode(const Node& node, glm::vec3& rhs) {
-            if (!node.IsSequence() || node.size() != 3) return false;
-            rhs.x = node[0].as<float>();
-            rhs.y = node[1].as<float>();
-            rhs.z = node[2].as<float>();
-            return true;
-        }
-    };
-
-    template<>
-    struct convert<glm::vec4> {
-        static bool decode(const Node& node, glm::vec4& rhs) {
-            if (!node.IsSequence() || node.size() != 4) return false;
-            rhs.x = node[0].as<float>();
-            rhs.y = node[1].as<float>();
-            rhs.z = node[2].as<float>();
-            rhs.w = node[3].as<float>();
-            return true;
-        }
-    };
+//
+//    template<>
+//    struct convert<glm::vec2> {
+//        static bool decode(const Node& node, glm::vec2& rhs) {
+//            if (!node.IsSequence() || node.size() != 2) return false;
+//            rhs.x = node[0].as<float>();
+//            rhs.y = node[1].as<float>();
+//            return true;
+//        }
+//    };
+//
+//    template<>
+//    struct convert<glm::vec3> {
+//        static bool decode(const Node& node, glm::vec3& rhs) {
+//            if (!node.IsSequence() || node.size() != 3) return false;
+//            rhs.x = node[0].as<float>();
+//            rhs.y = node[1].as<float>();
+//            rhs.z = node[2].as<float>();
+//            return true;
+//        }
+//    };
+//
+//    template<>
+//    struct convert<glm::vec4> {
+//        static bool decode(const Node& node, glm::vec4& rhs) {
+//            if (!node.IsSequence() || node.size() != 4) return false;
+//            rhs.x = node[0].as<float>();
+//            rhs.y = node[1].as<float>();
+//            rhs.z = node[2].as<float>();
+//            rhs.w = node[3].as<float>();
+//            return true;
+//        }
+//    };
+//    
+//    // 简单的 Mat3/Mat4 解析 (假设 YAML 中存储为扁平数组)
+//    // 如果你的 mat4 存储为嵌套数组，逻辑需要调整
     
-    // 简单的 Mat3/Mat4 解析 (假设 YAML 中存储为扁平数组)
-    // 如果你的 mat4 存储为嵌套数组，逻辑需要调整
-    template<>
-    struct convert<glm::mat3> {
-        static bool decode(const Node& node, glm::mat3& rhs) {
-            if (!node.IsSequence() || node.size() != 9) return false;
-            // glm::mat3 是列主序，这里假设 YAML 也是列主序或者你需要转置
-            for (int i = 0; i < 9; i++) rhs[i / 3][i % 3] = node[i].as<float>();
-            return true;
-        }
-    };
-    
-    template<>
-    struct convert<glm::mat4> {
-        static bool decode(const Node& node, glm::mat4& rhs) {
-            if (!node.IsSequence() || node.size() != 16) return false;
-            for (int i = 0; i < 16; i++) rhs[i / 4][i % 4] = node[i].as<float>();
-            return true;
-        }
-    };
 }
 
 namespace Utils{
@@ -104,6 +88,13 @@ namespace Utils{
                 
                 if(font){
                     Tso::Resource::AddResource(name, uuid, font);
+                }
+            }
+            else if(type == "Aniamtion"){
+//                auto animationClip = Tso::CreateRef<Tso::AnimationClip>(path);
+                auto animationClip = Tso::AnimationClip::Create(name, fullPath);
+                if(animationClip){
+                    Tso::Resource::AddResource<Tso::AnimationClip>(name, uuid, animationClip);
                 }
             }
             else{
@@ -296,6 +287,20 @@ namespace Tso {
                     std::string relPath = std::filesystem::relative(absPath, projectDir).generic_string();
                     out << YAML::Key << "Path" << YAML::Value << relPath;
 
+                    out << YAML::EndMap;
+                }
+                
+                auto& animations = Resource::GetResourceMap<AnimationClip>();
+                for(auto& [uuid , animation] : animations){
+                    out << YAML::BeginMap;
+                    out << YAML::Key << "Type" << YAML::Value << "Aniamtion";
+                    out << YAML::Key << "Name" << YAML::Value << animation->GetName();
+                    out << YAML::Key << "UUID" << YAML::Value << (uint64_t)uuid;
+
+                    // 假设 Shader 类有 GetFilePath()
+                    std::filesystem::path absPath = animation->GetPath();
+                    std::string relPath = std::filesystem::relative(absPath, projectDir).generic_string();
+                    out << YAML::Key << "Path" << YAML::Value << relPath;
                     out << YAML::EndMap;
                 }
 
