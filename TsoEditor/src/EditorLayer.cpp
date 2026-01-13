@@ -35,7 +35,8 @@ namespace Tso {
         
         std::string ini_path = Project::GetResourcePath() + "assets/imgui.ini";
         ImGui::LoadIniSettingsFromDisk(ini_path.c_str());
-        
+        m_IconStop = Texture2D::Create(Project::GetResourcePath() + "assets/stopIcon.png");
+        m_IconPlay = Texture2D::Create(Project::GetResourcePath() + "assets/startIcon.png");
     }
 
 void EditorLayer::DrawStartScreen()
@@ -255,54 +256,138 @@ void EditorLayer::DrawEditorInterface(){
         ImGui::EndMenuBar();
     }
 {
+    ImGui::Begin("RenderInfo");
+    ImGui::Text("Render2DInfo");
+    auto stat = Renderer2DMaterial::GetStats();
+    ImGui::Text("DrawCalls : %d ", stat.DrawCalls);
+    ImGui::Text("QuadsCount : %d ", stat.QuadCount);
+    ImGui::End();
 
-        ImGui::Begin("RenderInfo");
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 2));
+    ImGui::PushStyleVar(ImGuiStyleVar_ItemInnerSpacing, ImVec2(0, 0));
+    
+    // 2. 设置按钮颜色：默认透明，悬停/按下时显示半透明高亮
+    ImGui::PushStyleColor(ImGuiCol_Button, ImVec4(0, 0, 0, 0));
+    auto& colors = ImGui::GetStyle().Colors;
+    const auto& buttonHovered = colors[ImGuiCol_ButtonHovered];
+    ImGui::PushStyleColor(ImGuiCol_ButtonHovered, ImVec4(buttonHovered.x, buttonHovered.y, buttonHovered.z, 0.5f));
+    const auto& buttonActive = colors[ImGuiCol_ButtonActive];
+    ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(buttonActive.x, buttonActive.y, buttonActive.z, 0.5f));
 
-        ImGui::Text("Render2DInfo");
+    // 3. 开始绘制窗口
+    ImGui::Begin("##toolbar", nullptr, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
 
-        auto stat = Renderer2DMaterial::GetStats();
+    // 4. 计算居中位置
+    // 假设图标大小为窗口高度的大部分
+    float size = ImGui::GetWindowHeight() - 4.0f;
+    
+    // 我们有 Play 按钮 (Icon) + Connect + Disconnect + Reload (Text)
+    // 估算一下总宽度，以便居中 (图标宽度 + 3个文字按钮宽度 + 间距)
+    // 这里为了简单，假设文字按钮宽 80，图标宽 size
+    float textBtnWidth = 80.0f;
+    int textBtnCount = 3;
+    if (!Project::GetActive()) textBtnCount = 2; // 如果没项目，Reload不显示
 
-        ImGui::Text("DrawCalls : %d ", stat.DrawCalls);
-        ImGui::Text("QuadsCount : %d ", stat.QuadCount);
-//        ImGui::Text("QuadVertices : %d", stat.GetTotalVertexCount());
-//        ImGui::Text("QuadIndices : %d", stat.GetTotalIndexCount());
+    float totalWidth = size + (textBtnCount * textBtnWidth) + (textBtnCount * ImGui::GetStyle().ItemSpacing.x);
+    
+    // 设置光标 X 位置实现居中
+    float cursorX = (ImGui::GetContentRegionAvail().x - totalWidth) * 0.5f;
+    if (cursorX > 0.0f) ImGui::SetCursorPosX(cursorX + ImGui::GetCursorPosX());
 
-        if (ImGui::Button("Play")) {
+    // 5. 绘制 Play/Stop 按钮 (ImageButton)
+    {
+        // 根据状态选择图标
+        Ref<Texture2D> icon = m_StartScene ? m_IconStop : m_IconPlay;
+        
+        // 预防资源未加载时的空指针保护
+        uint64_t texID = icon ? (uint64_t)icon->GetTextureID() : 0;
+        
+        // 绘制 ImageButton
+        // 注意：UV 使用 0,1 -> 1,0 是为了适应 OpenGL 坐标系翻转，如果你的图标倒了，请改回 0,0 -> 1,1
+        if (ImGui::ImageButton((ImTextureID)texID, ImVec2(size, size), ImVec2(0, 1), ImVec2(1, 0), 0))
+        {
             m_StartScene = !m_StartScene;
-            if (m_StartScene) {
-                m_Scene->OnScenePlay();
-            }
-            else {
-                m_Scene->OnSceneStop();
-            }
+            if (m_StartScene) m_Scene->OnScenePlay();
+            else m_Scene->OnSceneStop();
         }
+    }
+
+    // 6. 绘制其他功能按钮 (保持文字风格，但享受透明背景样式)
+    // 这里的文字按钮因为背景透明，看起来就像菜单项，很整洁
+    
+    ImGui::SameLine();
+    if (ImGui::Button("Connect", ImVec2(textBtnWidth, size))) {
+        if (NetWorkEngine::Connect("127.0.0.1", 6000)) TSO_INFO("connect sucussfully");
+    }
+
+    ImGui::SameLine();
+    if (ImGui::Button("Disconnect", ImVec2(textBtnWidth, size))) {
+        if (NetWorkEngine::DisConnect()) TSO_INFO("disconnect sucussfully");
+        else TSO_ERROR("unable to disconnect");
+    }
+    
+    if (Project::GetActive()) {
         ImGui::SameLine();
-        ImGui::Text("%s", m_StartScene ? "play" : "stop");
-
-        if (ImGui::Button("connect")) {
-
-            /*NetWorkEngine::TestSend("127.0.0.1", 6000, "this is the first message");*/
-            if (NetWorkEngine::Connect("127.0.0.1", 6000)) {
-                TSO_INFO("connect sucussfully");
-            }
-        }
-        if (ImGui::Button("disconnect")) {
-            /*NetWorkEngine::TestSend("127.0.0.1", 6000, "this is the first message");*/
-            if (NetWorkEngine::DisConnect()) {
-                TSO_INFO("disconnect sucussfully");
-            }
-            else {
-                TSO_ERROR("unable to disconnect");
-            }
-        }
-        if (Project::GetActive() && ImGui::Button("reload")) {
+        if (ImGui::Button("Reload", ImVec2(textBtnWidth, size))) {
             m_Scene->OnSceneStop();
+            m_StartScene = false;
             std::filesystem::path resourcePath = std::filesystem::path(Project::GetProjectDirectory());
             ScriptingEngine::LoadAllScripts((resourcePath / Project::GetActive()->GetConfig().ScriptModulePath).string() , false);
-            m_Scene->OnScenePlay();
         }
+    }
 
-        ImGui::End();
+    // 7. 恢复样式
+    ImGui::PopStyleVar(2);   // Padding, Spacing
+    ImGui::PopStyleColor(3); // Button, Hovered, Active
+    ImGui::End();
+
+//        ImGui::Begin("RenderInfo");
+//
+//        ImGui::Text("Render2DInfo");
+//
+//        auto stat = Renderer2DMaterial::GetStats();
+//
+//        ImGui::Text("DrawCalls : %d ", stat.DrawCalls);
+//        ImGui::Text("QuadsCount : %d ", stat.QuadCount);
+////        ImGui::Text("QuadVertices : %d", stat.GetTotalVertexCount());
+////        ImGui::Text("QuadIndices : %d", stat.GetTotalIndexCount());
+//
+//        if (ImGui::Button("Play")) {
+//            m_StartScene = !m_StartScene;
+//            if (m_StartScene) {
+//                m_Scene->OnScenePlay();
+//            }
+//            else {
+//                m_Scene->OnSceneStop();
+//            }
+//        }
+//        ImGui::SameLine();
+//        ImGui::Text("%s", m_StartScene ? "play" : "stop");
+//
+//        if (ImGui::Button("connect")) {
+//
+//            /*NetWorkEngine::TestSend("127.0.0.1", 6000, "this is the first message");*/
+//            if (NetWorkEngine::Connect("127.0.0.1", 6000)) {
+//                TSO_INFO("connect sucussfully");
+//            }
+//        }
+//        if (ImGui::Button("disconnect")) {
+//            /*NetWorkEngine::TestSend("127.0.0.1", 6000, "this is the first message");*/
+//            if (NetWorkEngine::DisConnect()) {
+//                TSO_INFO("disconnect sucussfully");
+//            }
+//            else {
+//                TSO_ERROR("unable to disconnect");
+//            }
+//        }
+//        if (Project::GetActive() && ImGui::Button("reload")) {
+//            m_Scene->OnSceneStop();
+//            std::filesystem::path resourcePath = std::filesystem::path(Project::GetProjectDirectory());
+//            ScriptingEngine::LoadAllScripts((resourcePath / Project::GetActive()->GetConfig().ScriptModulePath).string() , false);
+//            m_Scene->OnScenePlay();
+//        }
+//
+//        ImGui::End();
 
 
 
