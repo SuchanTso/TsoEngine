@@ -297,7 +297,7 @@ void EditorLayer::DrawEditorInterface(){
         }
         if (Project::GetActive() && ImGui::Button("reload")) {
             m_Scene->OnSceneStop();
-            std::filesystem::path resourcePath = std::filesystem::path(Project::GetResourcePath());
+            std::filesystem::path resourcePath = std::filesystem::path(Project::GetProjectDirectory());
             ScriptingEngine::LoadAllScripts((resourcePath / Project::GetActive()->GetConfig().ScriptModulePath).string() , false);
             m_Scene->OnScenePlay();
         }
