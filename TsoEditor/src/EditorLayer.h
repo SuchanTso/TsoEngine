@@ -92,6 +92,9 @@ namespace Tso {
         glm::vec2 m_GameViewSize = { 720.0 , 1280.0 };
 
         FocusWindow m_Focus = FocusWindow::None;
+        
+        Ref<Texture2D> m_IconStop = nullptr;
+        Ref<Texture2D> m_IconPlay = nullptr;
 
 
 };
