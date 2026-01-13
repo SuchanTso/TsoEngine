@@ -15,12 +15,22 @@ AnimationClip::AnimationClip(const std::string& name)
 
 
 Ref<AnimationClip> AnimationClip::Create(const std::string& name , const std::string& path){
+    Buffer fileBuffer = VirtualFileSystem::ReadFile(path);
+
+    if (!fileBuffer.IsValid()) {
+        TSO_CORE_ASSERT(false, "Failed to load file from VFS: {0}", path);
+        return nullptr;
+    }
+
     YAML::Node data;
     try {
-        data = YAML::LoadFile(path);
+        // [MODIFIED] 2. 从内存字符串加载
+        // 注意：binary buffer 转 string，YAML::Load 需要一个标准字符串
+        std::string yamlString(fileBuffer.DataPtr(), fileBuffer.Size());
+        data = YAML::Load(yamlString);
     }
     catch (YAML::ParserException e) {
-        TSO_CORE_ASSERT(false ,"Failed to load animation file '{0}'\n     {1}", path, e.what());
+        TSO_CORE_ASSERT(false, "Failed to parse YAML file '{0}'\n     {1}", path, e.what());
         return nullptr;
     }
     auto animationClip = CreateRef<AnimationClip>(name);

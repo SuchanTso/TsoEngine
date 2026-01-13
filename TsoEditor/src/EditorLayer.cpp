@@ -13,6 +13,24 @@
 #include "Tso/Network/NetworkEngine.h"
 #include "Tso/Renderer/ViewportManager.h"
 #include "Tso/Renderer/Renderer2DMaterial.h"
+#include "Tso/Project/Packer.h"
+
+namespace Utils{
+
+
+std::vector<std::filesystem::path> GetAllExtensionFiles(const std::filesystem::path& dir , const std::string& ext){
+    std::vector<std::filesystem::path> res;
+    if (std::filesystem::exists(dir)) {
+        for (auto& entry : std::filesystem::recursive_directory_iterator(dir)) {
+            if (entry.is_regular_file() && entry.path().extension() == ext) {
+                res.push_back(entry.path());
+            }
+        }
+    }
+    return res;
+}
+
+}
 
 namespace Tso {
     EditorLayer::EditorLayer()
@@ -218,6 +236,32 @@ void EditorLayer::DrawEditorInterface(){
                     // 重置 Project 单例（根据你的 Project 类实现）
                     // 这一步很关键，否则下一帧还是会进入编辑器界面
                      Project::CloseActive();
+                }
+            }
+            if (ImGui::MenuItem("Build & Export Game...")) {
+                // 1. 让用户选择导出目录
+                // 这里用 SaveDialog 模拟选择目录，或者实现一个 SelectFolder
+                // 假设用户选择了 "D:/Builds/MyGame/MyGame.exe"
+                std::string savePath = FileDialogs::SaveFile("Executable (*.exec)\0*.exec\0");
+                
+                if (!savePath.empty()) {
+                    std::filesystem::path exePath(savePath);
+                    std::filesystem::path buildDir = exePath.parent_path();
+                    
+                    // 2. 复制 Game Engine Runtime 可执行文件
+                    // 你需要预先编译好一个 Release/Dist 版本的 exe 放在某个已知位置
+                    // std::filesystem::copy_file("Bin/Dist/Runtime.exe", exePath);
+                    
+                    // 3. 执行打包：生成 Game.pak
+                    std::filesystem::path projectRoot = Project::GetProjectDirectory();
+                    std::filesystem::path pakPath = buildDir / "Game.pak";
+                    
+                    Packer::Pack(projectRoot, pakPath);
+                    
+                    // 4. 复制/生成配置 (Game.tproj)
+                    // ...
+                    
+                    TSO_CORE_INFO("Export finished successfully to {0}", buildDir.string());
                 }
             }
                         
@@ -656,7 +700,10 @@ void EditorLayer::DrawEditorInterface(){
             //m_ContentBrowserPanel = CreateScope<ContentBrowserPanel>();
             std::filesystem::path resourcePath = std::filesystem::path(Project::GetResourcePath());
             ScriptingEngine::LoadAllScripts((resourcePath / Project::GetActive()->GetConfig().ScriptModulePath).string() , false);
-
+            Project::SetProjectPath(path.string());
+            auto scenes = Utils::GetAllExtensionFiles(Project::GetProjectDirectory(), ".teScene");
+            Project::SetSceneAsset(scenes);
+            
         }
     }
 

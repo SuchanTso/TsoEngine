@@ -385,25 +385,40 @@ bool OpenGLShader::SaveToFile(const std::string& filepath, const std::unordered_
     return true;
 }
 
-	std::string OpenGLShader::ReadFile(const std::string& filePath)
-	{
-		std::ifstream in(filePath, std::ios::in | std::ios::binary);
-		std::string result = "";
+//	std::string OpenGLShader::ReadFile(const std::string& filePath)
+//	{
+//		std::ifstream in(filePath, std::ios::in | std::ios::binary);
+//		std::string result = "";
+//
+//		if (in) {
+//
+//			in.seekg(0 , std::ios::end);
+//			result.resize(in.tellg());
+//			in.seekg(0 , std::ios::beg);
+//			in.read(&result[0], result.size());
+//			in.close();
+//		}
+//
+//		else {
+//			TSO_CORE_ERROR("Unknown file path '{0}'" , filePath.c_str());
+//		}
+//		return result;
+//	}
 
-		if (in) {
+    std::string OpenGLShader::ReadFile(const std::string &filePath){
+        Buffer fileBuffer = VirtualFileSystem::ReadFile(filePath);
 
-			in.seekg(0 , std::ios::end);
-			result.resize(in.tellg());
-			in.seekg(0 , std::ios::beg);
-			in.read(&result[0], result.size());
-			in.close();
-		}
+        if (!fileBuffer.IsValid()) {
+            TSO_CORE_ERROR("Unknown file path '{0}' or failed to read from VFS", filePath);
+            return "";
+        }
 
-		else {
-			TSO_CORE_ERROR("Unknown file path '{0}'" , filePath.c_str());
-		}
-		return result;
-	}
+        // 将二进制 buffer 转换为 string
+        // 构造函数：string(const char* s, size_t n)
+        std::string result(fileBuffer.DataPtr(), fileBuffer.Size());
+        return result;
+    }
+
 
 	std::unordered_map<GLenum, std::string> OpenGLShader::PreProcess(const std::string& shaderSources)
 	{

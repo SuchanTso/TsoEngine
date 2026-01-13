@@ -10,6 +10,8 @@ namespace Tso {
 		std::filesystem::path FirstScene;
 		std::filesystem::path AssetPath;
 		std::filesystem::path ScriptModulePath;//TODO: make it realise in script engine
+        std::filesystem::path ProjectPath;
+        std::vector<std::filesystem::path> Scenes;
 	};
 
 	class Project {
@@ -18,6 +20,24 @@ namespace Tso {
 		static Ref<Project> LoadProject(const std::filesystem::path& path);
 		static bool SaveActive(const std::filesystem::path& path);
 		ProjectConfig& GetConfig() { return m_Config; }
+        static void SetProjectPath(const std::string& projPath){
+            TSO_CORE_ASSERT(s_Project != nullptr, "there is no project opening");
+            s_Project->m_Config.ProjectPath = std::filesystem::path(projPath);
+        }
+        static std::filesystem::path& GetProjectPath(){
+            TSO_CORE_ASSERT(s_Project != nullptr, "there is no project opening");
+            return s_Project->m_Config.ProjectPath;
+        }
+        
+        static void SetSceneAsset(const std::vector<std::filesystem::path>& scenes){
+            TSO_CORE_ASSERT(s_Project != nullptr, "there is no project opening");
+            s_Project->m_Config.Scenes = scenes;
+        }
+        
+        static std::vector<std::filesystem::path>& GetSceneAsset(){
+            TSO_CORE_ASSERT(s_Project != nullptr, "there is no project opening");
+            return s_Project->m_Config.Scenes;
+        }
         
         
         static void CloseActive(){s_Project = nullptr;}

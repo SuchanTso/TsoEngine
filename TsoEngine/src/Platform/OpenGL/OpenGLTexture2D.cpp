@@ -28,7 +28,13 @@ OpenGLTexture2D::OpenGLTexture2D(const std::string& path)
 {
     int width, height ,channels;
     stbi_set_flip_vertically_on_load(1);
-    stbi_uc* data = stbi_load(path.c_str(), &width, &height, &channels, 0);
+    Buffer fileData = VirtualFileSystem::ReadFile(path);
+    stbi_uc* data = stbi_load_from_memory(
+            (const stbi_uc*)fileData.DataPtr(),
+            fileData.Size(),
+            &width, &height, &channels, 0
+        );
+//    stbi_uc* data = stbi_load(path.c_str(), &width, &height, &channels, 0);
     if (!data) {
         TSO_CORE_ERROR( "failed to load {0}", path.c_str());
     }
