@@ -23,6 +23,7 @@ extern "C" {
 namespace Tso {
     class LuaProtocolHandler;
     class ScriptInstance;
+    class ScriptClass;
 	enum class ScriptFieldType
 	{
 		None = 0,
@@ -95,6 +96,8 @@ namespace Tso {
         
         static void SetLuaPackagePath(const std::string& rootPath);
         static sol::state& GetLuaState(); // 返回 sol::state 的引用
+        static std::unordered_map<std::string, Ref<ScriptClass>> GetScriptClasses();
+
 
 
 
@@ -123,6 +126,8 @@ namespace Tso {
 //        int GetMetatableRef(){return m_MetatableRef;}
         sol::table GetLuaClassTable()&{return m_LuaClassTable;}
         std::string GetClassName()&{return m_ClassName;}
+        void SetPath(const std::string& path){m_Path = path;}
+        std::string& GetPath(){return m_Path;}
 	private:
         
         // 指向 Lua 注册表中代表这个类的 metatable
@@ -133,6 +138,7 @@ namespace Tso {
 		std::string m_ClassName;
 
 		std::unordered_map<std::string, ScriptField> m_Fields;
+        std::string m_Path;
 
 
 		friend class ScriptingEngine;

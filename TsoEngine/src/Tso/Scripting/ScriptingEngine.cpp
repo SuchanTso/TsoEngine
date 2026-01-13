@@ -8,6 +8,8 @@
 
 #include "Tso/Scene/Component.h"
 #include "Tso/Protocol/LuaBridge.h"
+#include "Tso/Core/VirtualFileSystem.h"
+
 //
 //
 //#include "mono/jit/jit.h"
@@ -18,6 +20,7 @@
 //#include "mono/metadata/threads.h"
 //#include "mono/metadata/image.h"
 //
+
 
 
 
@@ -73,6 +76,48 @@ namespace Utils {
 		*outSize = size;
 		return buffer;
 	}
+
+    int LuaVFSLoader(lua_State* L) {
+        // 1. 获取模块名 (require 的参数)
+        const char* moduleName = lua_tostring(L, 1);
+        std::string path(moduleName);
+
+        // 2. 路径转换: "a.b" -> "a/b"
+        std::replace(path.begin(), path.end(), '.', '/');
+
+        // 3. 定义搜索策略
+        // 你可能需要搜索几个默认路径，或者要求 require 写全路径
+        // 假设我们在 PAK 里的结构是 "Assets/Scripts/..."
+        std::vector<std::string> searchPaths = {
+            path + ".lua",                    // 绝对匹配
+            "Assets/Scripts/" + path + ".lua", // 常用前缀
+            "Assets/" + path + ".lua"          // 备用前缀
+        };
+
+        for (const auto& tryPath : searchPaths) {
+            // 4. 从 VFS 读取
+            if (VirtualFileSystem::Exists(tryPath)) {
+                Buffer buffer = VirtualFileSystem::ReadFile(tryPath);
+                if (buffer.IsValid()) {
+                    // 5. 加载缓冲区 (编译代码)
+                    // 最后一个参数是 debug 名字，加 @ 表示文件名
+                    std::string chunkName = "@" + tryPath;
+                    if (luaL_loadbuffer(L, buffer.DataPtr(), buffer.Size(), chunkName.c_str()) != LUA_OK) {
+                        // 如果编译失败 (语法错误)，luaL_loadbuffer 会把错误信息压栈
+                        // 我们直接报错返回
+                        return lua_error(L);
+                    }
+                    
+                    // 成功：栈顶现在是编译好的函数
+                    return 1;
+                }
+            }
+        }
+
+        // 6. 没找到：返回错误信息 (Lua 会把所有 searcher 的错误拼起来显示)
+        lua_pushstring(L, ("\n\t[VFS] Cannot find module '" + path + "'").c_str());
+        return 1;
+    }
 }
 //
 
@@ -134,7 +179,7 @@ namespace Utils {
         s_Data->L.open_libraries(sol::lib::base, sol::lib::package, sol::lib::string, sol::lib::math, sol::lib::table);
         
         ScriptGlue::RegisterFunctions();
-        
+        s_Data->L.add_package_loader(Utils::LuaVFSLoader);
         SetLuaPackagePath(Project::GetResourcePath() + "assets/scripts");
         LoadAllScripts(Project::GetResourcePath() + "assets/scripts"); // [MODIFIED] 假设脚本路径在这里
     }
@@ -144,14 +189,11 @@ namespace Utils {
         if(reset){
             s_Data->EntityClasses.clear();
         }
-        if(std::filesystem::exists(directory)){
-            for (auto& entry : std::filesystem::directory_iterator(directory)) {
-                if (entry.path().extension() == ".lua") {
-                    LoadScriptClasses(entry.path());
-                }
-                else if(entry.is_directory()){
-                    LoadAllScripts(entry.path().string() , false);
-                }
+        auto files = VirtualFileSystem::GetFiles(directory);
+
+        for (const auto& filePath : files) {
+            if (std::filesystem::path(filePath).extension() == ".lua") {
+                LoadScriptClasses(filePath);
             }
         }
     }
@@ -213,6 +255,11 @@ namespace Utils {
         TSO_CORE_ASSERT(s_Data, "ScriptingEngine not initialized!");
         return s_Data->L;
     }
+    std::unordered_map<std::string, Ref<ScriptClass>> ScriptingEngine::GetScriptClasses(){
+        TSO_CORE_ASSERT(s_Data, "ScriptingEngine not initialized!");
+        return s_Data->EntityClasses;
+    }
+
 
 //
     void ScriptingEngine::ShutDown()
@@ -336,20 +383,35 @@ namespace Utils {
 //		
 //	}
     void ScriptingEngine::LoadScriptClasses(const std::filesystem::path& path) {
-        // [MODIFIED] 使用 sol2 加载和解析脚本
+        // 路径标准化：确保路径分隔符一致，方便 VFS 查找
+        std::string pathStr = path.string();
+        // std::replace(pathStr.begin(), pathStr.end(), '\\', '/'); // 如果需要手动替换
+
         try {
-            // sol::dofile 会执行脚本并返回其返回值
-            sol::table luaClassTable = s_Data->L.script_file(path.string());
+            // [MODIFIED] 使用 VFS 读取文件内容 (可能是源码，也可能是字节码)
+            Buffer fileBuffer = VirtualFileSystem::ReadFile(pathStr);
+            
+            if (!fileBuffer.IsValid()) {
+                TSO_CORE_ERROR("ScriptingEngine: Failed to read file '{0}' from VFS", pathStr);
+                return;
+            }
+
+            // 使用 sol::state::script 执行内存数据
+            // 注意：必须显式传入 string_view 的长度，因为二进制字节码中间可能包含 \0
+            std::string_view scriptData(fileBuffer.DataPtr(), fileBuffer.Size());
+            
+            // chunkname (第二个参数) 用于在报错时显示文件名，非常有帮助
+            sol::table luaClassTable = s_Data->L.script(scriptData, ("@" + pathStr));
 
             if (!luaClassTable.valid()) {
-                TSO_CORE_WARN("Script '{}' did not return a table.", path.string());
+                TSO_CORE_WARN("Script '{}' did not return a table.", pathStr);
                 return;
             }
 
             std::string className = path.stem().string();
             Ref<ScriptClass> scriptClass = std::make_shared<ScriptClass>(className, luaClassTable);
             
-            // 解析 Fields
+            // 解析 Fields (保持原有逻辑不变)
             sol::optional<sol::table> fields = luaClassTable["Fields"];
             if (fields) {
                 for (const auto& kvp : fields.value()) {
@@ -362,10 +424,11 @@ namespace Utils {
             }
             
             s_Data->EntityClasses[className] = scriptClass;
+            scriptClass->SetPath(path);
             TSO_CORE_INFO("Loaded Lua class: {}", className);
 
         } catch (const sol::error& e) {
-            TSO_CORE_ERROR("Failed to load script '{}': {}", path.string(), e.what());
+            TSO_CORE_ERROR("Failed to load script '{}': {}", pathStr, e.what());
         }
     }
 

@@ -306,10 +306,21 @@ namespace Tso {
 
     bool Seriealizer::DeseriealizeScene(const std::string& path){
         bool res = true;
+        Tso::Buffer fileBuffer = Tso::VirtualFileSystem::ReadFile(path);
+
+        if (!fileBuffer.IsValid()) {
+            TSO_CORE_ASSERT(false, "Failed to load file from VFS: {0}", path);
+            return false;
+        }
+
         YAML::Node data;
-        try
-        {
-            data = YAML::LoadFile(path);
+        try {
+            // [MODIFIED] 2. 从内存字符串加载
+            // 注意：binary buffer 转 string，YAML::Load 需要一个标准字符串
+            std::string yamlString(fileBuffer.DataPtr(), fileBuffer.Size());
+            TSO_CORE_INFO("YAML Content:\n{0}", yamlString);
+
+            data = YAML::Load(yamlString);
         }
         catch (YAML::ParserException e)
         {

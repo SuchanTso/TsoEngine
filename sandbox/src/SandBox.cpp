@@ -2,35 +2,24 @@
 //entry point --------------------------------
 #include "Tso/Core/EntryPoint.h"
 //--------------------------------------------
-
-#include "Platform/OpenGL/OpenGLShader.h"
-
-#include "glm/gtc/matrix_transform.hpp"
-#include "imgui.h"
-#include "glm/gtc/type_ptr.hpp"
-#ifdef TSO_PLATFORM_MACOSX
-#include <unistd.h>
-#endif
-#include "Tso/Renderer/OrthographicCameraController.h"
 #include "SandBox2D.h"
-#include "BigWealth/BigWealthGameLayer.h"
-
-
+namespace Tso{
 class SandBox :public Tso::Application {
 public:
-	SandBox() 
-       
+    SandBox()
+    
     {
-        PushLayer(new SandBox2D());
-	}
-	~SandBox() {
-
-	}
-
-
+        PushLayer(new RuntimeLayer());
+    }
+    ~SandBox() {
+        
+    }
+    
+    
 };
 
 Tso::Application* Tso::CreateApplication() {
-	return new SandBox();
+    return new SandBox();
+}
 }
 

@@ -56,9 +56,9 @@ namespace Utils{
             auto path = res["Path"].as<std::string>();
             auto name = res["Name"].as<std::string>();
             auto fullPath = Tso::Project::GetProjectDirectory() / std::filesystem::path(path);
-            if(!std::filesystem::exists(fullPath)){
-                TSO_CORE_ASSERT(false , "Resource [{}] not found!" , fullPath.string());
-            }
+//            if(!std::filesystem::exists(fullPath)){
+//                TSO_CORE_ASSERT(false , "Resource [{}] not found!" , fullPath.string());
+//            }
             if(type == "Shader"){
                 Tso::Ref<Tso::Shader> shader = Tso::Shader::Create(fullPath.string());
                 shader->SetName(name);
@@ -104,91 +104,103 @@ namespace Utils{
     }
 
     Tso::Ref<Tso::Material> LoadMaterial(const Tso::UUID& uuid, std::string& path) {
-            YAML::Node data;
-            try {
-                data = YAML::LoadFile(path);
-            }
-            catch (YAML::ParserException e) {
-                TSO_CORE_ERROR("Failed to load Material file '{0}'\n     {1}", path, e.what());
-                return nullptr;
-            }
+        
+        Tso::Buffer fileBuffer = Tso::VirtualFileSystem::ReadFile(path);
 
-            // 假设 YAML 根节点有个 Name 属性，或者我们用路径名
-            std::string materialName = data["Name"] ? data["Name"].as<std::string>() : "Unnamed Material";
-            auto variantNode = data["Variant"];
-            if (!variantNode) return nullptr;
-
-            // --- 第一步：寻找 Shader ---
-            // Material 的构造函数依赖 Shader，所以必须先找到 Shader 的 UUID
-            Tso::Ref<Tso::Shader> shader = nullptr;
-            for (auto var : variantNode) {
-                auto type = var["Type"].as<std::string>();
-                if (type == "Shader") {
-                    Tso::UUID shaderUUID = var["Value"].as<uint64_t>();
-                    // 通过 AssetManager 获取 Shader 实例
-                    shader = Tso::Resource::GetResource<Tso::Shader>(shaderUUID);
-                    break;
-                }
-            }
-
-            if (!shader) {
-                TSO_CORE_ERROR("Material '{0}' does not specify a Shader or Shader asset not found!", materialName);
-                // 这里可以返回一个默认的“紫色错误材质”，或者直接返回空
-                return nullptr;
-            }
-
-            // --- 第二步：创建 Material 实例 ---
-            Tso::Ref<Tso::Material> material = Tso::Material::Create(shader, materialName);
-            material->SetRendererID(uuid);
-            material->SetPath(path);
-            // --- 第三步：填充 Uniforms 和 Textures ---
-            for (auto var : variantNode) {
-                auto name = var["Name"].as<std::string>(); // 必须要有参数名
-                auto type = var["Type"].as<std::string>();
-                auto valueNode = var["Value"];
-
-                // 你的 Material 类中对应的方法
-                if (type == "Shader") {
-                    // 已经处理过了，跳过
-                    continue;
-                }
-                else if (type == "Texture") {
-                    Tso::UUID textureUUID = valueNode.as<uint64_t>();
-                    Tso::Ref<Tso::Texture2D> texture = Tso::Resource::GetResource<Tso::Texture2D>(textureUUID);
-                    if (texture) {
-                        material->SetTexture(name, texture);
-                    } else {
-                        TSO_CORE_WARN("Material '{0}': Texture asset {1} not found for '{2}'", materialName, textureUUID, name);
-                    }
-                }
-                else if (type == "Int") {
-                    material->SetInt(name, valueNode.as<int>());
-                }
-                else if (type == "Float") {
-                    material->SetFloat(name, valueNode.as<float>());
-                }
-                else if (type == "Vec2") {
-                    material->SetVec2(name, valueNode.as<glm::vec2>());
-                }
-                else if (type == "Vec3") {
-                    material->SetVec3(name, valueNode.as<glm::vec3>());
-                }
-                else if (type == "Vec4") {
-                    material->SetVec4(name, valueNode.as<glm::vec4>());
-                }
-                else if (type == "Mat3") {
-                    material->SetMat3(name, valueNode.as<glm::mat3>());
-                }
-                else if (type == "Mat4") {
-                    material->SetMat4(name, valueNode.as<glm::mat4>());
-                }
-                else {
-                    TSO_CORE_WARN("Material '{0}': Unknown uniform type '{1}' for '{2}'", materialName, type, name);
-                }
-            }
-
-            return material;
+        if (!fileBuffer.IsValid()) {
+            TSO_CORE_ASSERT(false, "Failed to load file from VFS: {0}", path);
+            return nullptr;
         }
+
+        YAML::Node data;
+        try {
+            // [MODIFIED] 2. 从内存字符串加载
+            // 注意：binary buffer 转 string，YAML::Load 需要一个标准字符串
+            std::string yamlString(fileBuffer.DataPtr(), fileBuffer.Size());
+            data = YAML::Load(yamlString);
+        }
+        catch (YAML::ParserException e) {
+            TSO_CORE_ERROR("Failed to load Material file '{0}'\n     {1}", path, e.what());
+            return nullptr;
+        }
+
+        // 假设 YAML 根节点有个 Name 属性，或者我们用路径名
+        std::string materialName = data["Name"] ? data["Name"].as<std::string>() : "Unnamed Material";
+        auto variantNode = data["Variant"];
+        if (!variantNode) return nullptr;
+
+        // --- 第一步：寻找 Shader ---
+        // Material 的构造函数依赖 Shader，所以必须先找到 Shader 的 UUID
+        Tso::Ref<Tso::Shader> shader = nullptr;
+        for (auto var : variantNode) {
+            auto type = var["Type"].as<std::string>();
+            if (type == "Shader") {
+                Tso::UUID shaderUUID = var["Value"].as<uint64_t>();
+                // 通过 AssetManager 获取 Shader 实例
+                shader = Tso::Resource::GetResource<Tso::Shader>(shaderUUID);
+                break;
+            }
+        }
+
+        if (!shader) {
+            TSO_CORE_ERROR("Material '{0}' does not specify a Shader or Shader asset not found!", materialName);
+            // 这里可以返回一个默认的“紫色错误材质”，或者直接返回空
+            return nullptr;
+        }
+
+        // --- 第二步：创建 Material 实例 ---
+        Tso::Ref<Tso::Material> material = Tso::Material::Create(shader, materialName);
+        material->SetRendererID(uuid);
+        material->SetPath(path);
+        // --- 第三步：填充 Uniforms 和 Textures ---
+        for (auto var : variantNode) {
+            auto name = var["Name"].as<std::string>(); // 必须要有参数名
+            auto type = var["Type"].as<std::string>();
+            auto valueNode = var["Value"];
+
+            // 你的 Material 类中对应的方法
+            if (type == "Shader") {
+                // 已经处理过了，跳过
+                continue;
+            }
+            else if (type == "Texture") {
+                Tso::UUID textureUUID = valueNode.as<uint64_t>();
+                Tso::Ref<Tso::Texture2D> texture = Tso::Resource::GetResource<Tso::Texture2D>(textureUUID);
+                if (texture) {
+                    material->SetTexture(name, texture);
+                } else {
+                    TSO_CORE_WARN("Material '{0}': Texture asset {1} not found for '{2}'", materialName, textureUUID, name);
+                }
+            }
+            else if (type == "Int") {
+                material->SetInt(name, valueNode.as<int>());
+            }
+            else if (type == "Float") {
+                material->SetFloat(name, valueNode.as<float>());
+            }
+            else if (type == "Vec2") {
+                material->SetVec2(name, valueNode.as<glm::vec2>());
+            }
+            else if (type == "Vec3") {
+                material->SetVec3(name, valueNode.as<glm::vec3>());
+            }
+            else if (type == "Vec4") {
+                material->SetVec4(name, valueNode.as<glm::vec4>());
+            }
+            else if (type == "Mat3") {
+                material->SetMat3(name, valueNode.as<glm::mat3>());
+            }
+            else if (type == "Mat4") {
+                material->SetMat4(name, valueNode.as<glm::mat4>());
+            }
+            else {
+                TSO_CORE_WARN("Material '{0}': Unknown uniform type '{1}' for '{2}'", materialName, type, name);
+            }
+        }
+
+        return material;
+    }
+
     void LoadMaterials(const YAML::Node& node){
         auto matNode = node;
         for(auto mat : matNode){
@@ -350,12 +362,23 @@ namespace Tso {
 	bool ProjectSerielizer::Deserieleze(const std::string& prjPath)
 	{
 		auto& config = m_Project->GetConfig();
+        
+        Tso::Buffer fileBuffer = Tso::VirtualFileSystem::ReadFile(prjPath);
 
-		YAML::Node data;
-		try
-		{
-			data = YAML::LoadFile(prjPath);
-		}
+        if (!fileBuffer.IsValid()) {
+            TSO_CORE_ASSERT(false, "Failed to load file from VFS: {0}", prjPath);
+            return false;
+        }
+
+        YAML::Node data;
+        try {
+            // [MODIFIED] 2. 从内存字符串加载
+            // 注意：binary buffer 转 string，YAML::Load 需要一个标准字符串
+            std::string yamlString(fileBuffer.DataPtr(), fileBuffer.Size());
+            TSO_CORE_INFO("YAML Content:\n{0}", yamlString);
+
+            data = YAML::Load(yamlString);
+        }
 		catch (YAML::ParserException e)
 		{
 			TSO_CORE_ERROR("Failed to load project file '{0}'\n     {1}", prjPath, e.what());

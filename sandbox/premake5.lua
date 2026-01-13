@@ -9,6 +9,11 @@ project "Sandbox"
     
 	files { "src/**.h", "src/**.cpp"}
 
+	defines
+	{
+		"YAML_CPP_STATIC_DEFINE"
+	}
+
     externalincludedirs
 	{
         "%{wks.location}/TsoEngine/third_party/spdlog/include",
@@ -22,10 +27,12 @@ project "Sandbox"
 		"%{wks.location}/TsoEngine/third_party/mono/include",
 		"%{wks.location}/TsoEngine/third_party/msdf-atlas-gen/msfgen/include",
 		"%{wks.location}/TsoEngine/third_party/msdf-atlas-gen/msdf-atlas-gen",
-		"%{wks.location}/TsoEngine/third_party/msdf-atlas-gen/msdfgen"
+		"%{wks.location}/TsoEngine/third_party/msdf-atlas-gen/msdfgen",
+		"%{wks.location}/TsoEngine/third_party/readerwriterqueue",
+		"%{wks.location}/TsoEngine/third_party/lua/src",
+		"%{wks.location}/TsoEngine/third_party/sol2/include",
+		"%{wks.location}/TsoEngine/third_party/utfcpp",
 
-
-		--"Hazel/vendor/box2D/include"
 	}
 
 	links { "TsoEngine" }

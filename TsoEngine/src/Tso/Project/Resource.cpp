@@ -9,6 +9,7 @@
 #include "Tso/Renderer/Texture.h"
 #include "Tso/Renderer/Material.h"
 #include "Tso/Animation/AnimationClip.h"
+#include "Tso/Scripting/ScriptingEngine.h"
 
 namespace Tso{
 void Resource::Init(){
@@ -152,6 +153,33 @@ template<> void Resource::AddResource<AnimationClip >(const std::string& name , 
 }
 
 //===============================================AddResource============================================================
+
+std::vector<std::filesystem::path> Resource::GetAllResourceToExport(){
+    TSO_CORE_ASSERT(s_Resource != nullptr && s_Resource->m_ResourceData != nullptr , "didn't init resource yet");
+    std::vector<std::filesystem::path>res;
+    int resourceCount = GetResourceMap<Texture2D>().size() + GetResourceMap<Shader>().size() + GetResourceMap<Material>().size() + GetResourceMap<Font>().size() + GetResourceMap<AnimationClip>().size() + ScriptingEngine::GetScriptClasses().size();
+    res.reserve(resourceCount);
+    for(auto& [uuid , texture] : GetResourceMap<Texture2D>()){
+        res.push_back(texture->GetPath());
+    }
+    for(auto& [uuid , shader] : GetResourceMap<Shader>()){
+        res.push_back(shader->GetPath());
+    }
+    for(auto& [uuid , mat] : GetResourceMap<Material>()){
+        res.push_back(mat->GetPath());
+    }
+    for(auto& [uuid , animation] : GetResourceMap<AnimationClip>()){
+        res.push_back(animation->GetPath());
+    }
+    for(auto& [uuid , font] : GetResourceMap<Font>()){
+        res.push_back(font->GetPath());
+    }
+    for(auto& [name , script] : ScriptingEngine::GetScriptClasses()){
+        res.push_back(script->GetPath());
+    }
+    return res;
+}
+
 
 
 }

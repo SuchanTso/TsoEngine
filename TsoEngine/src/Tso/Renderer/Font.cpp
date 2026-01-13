@@ -50,10 +50,25 @@ Font::Font(const std::filesystem::path& fontPath)
 {
     std::filesystem::path p(fontPath);
     m_Name = p.stem().string();
+    std::string pathStr = fontPath.string();
+    Buffer fontBuffer = VirtualFileSystem::ReadFile(pathStr);
     
+    if (!fontBuffer.IsValid()) {
+        TSO_CORE_ERROR("Failed to load font from VFS: {0}", pathStr);
+        return; // 或者抛出异常
+    }
+
     msdfgen::FreetypeHandle *ft = msdfgen::initializeFreetype();
     TSO_CORE_ASSERT(ft , "Unable to init freetype");
-    msdfgen::FontHandle *font = msdfgen::loadFont(ft, fontPath.string().c_str());
+    
+    // [MODIFIED] 2. 使用 loadFontData 从内存加载
+    // 注意：fontBuffer 在 Font 构造函数结束前必须保持有效，loadFontData 可能会引用这块内存
+    // (实际上 FreeType 通常会拷贝，但最好确认 msdfgen 文档，这里按标准流程写是安全的)
+    msdfgen::FontHandle *font = msdfgen::loadFontData(ft, (const msdfgen::byte*)fontBuffer.DataPtr(), (int)fontBuffer.Size());
+    
+//    msdfgen::FreetypeHandle *ft = msdfgen::initializeFreetype();
+//    TSO_CORE_ASSERT(ft , "Unable to init freetype");
+//    msdfgen::FontHandle *font = msdfgen::loadFont(ft, fontPath.string().c_str());
     if (!font) {
         TSO_CORE_ERROR("cannot open fontPath {0}" , fontPath.string().c_str());
     }

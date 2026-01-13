@@ -47,6 +47,8 @@ public:
     static Ref<T> GetResource(const UUID& uuid);
     template<typename T>
     static std::unordered_map<UUID , Ref<T>>& GetResourceMap();
+    
+    static std::vector<std::filesystem::path> GetAllResourceToExport();
 private:
     inline static Ref<Resource> s_Resource;
     Ref<ResourceData> m_ResourceData;
