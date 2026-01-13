@@ -282,6 +282,17 @@ void ScriptGlue::RegisterFunctions() {
                  }
              }
     );
+    lua.new_usertype<AnimatorComponent>("Animator",
+        "Play",
+             [](AnimatorComponent& self, const std::string& name) {
+                self.Controller->Play(name);
+             },
+        "State",
+            [](AnimatorComponent& self){
+                return self.Controller->GetCurrentStateName();
+            }
+
+    );
 
     // --- 核心类绑定 ---
 
@@ -353,6 +364,13 @@ void ScriptGlue::RegisterFunctions() {
                 if(entity.HasComponent<MaterialInstanceComponent>()){
                     auto& matIns = entity.GetComponent<MaterialInstanceComponent>();
                     return sol::make_object(ScriptingEngine::GetLuaState(), &entity.GetComponent<MaterialInstanceComponent>());
+                }
+                return sol::lua_nil;
+            }
+            else if(componentName == "Animator"){
+                if(entity.HasComponent<AnimatorComponent>()){
+                    auto& animator = entity.GetComponent<AnimatorComponent>();
+                    return sol::make_object(ScriptingEngine::GetLuaState(), &entity.GetComponent<AnimatorComponent>());
                 }
                 return sol::lua_nil;
             }
