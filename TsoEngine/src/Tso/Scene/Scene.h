@@ -33,6 +33,8 @@ namespace Tso {
 		void OnScenePlay();
 
 		void OnSceneStop();
+        
+        void OnResizeViewport(const unsigned int& width , const unsigned int& height);
 
 		void OnUpdate(TimeStep ts);
 

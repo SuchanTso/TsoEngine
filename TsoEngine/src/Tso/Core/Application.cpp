@@ -68,7 +68,10 @@ namespace Tso {
         }
 
         m_Minimized = false;
-        Renderer::OnWindowResize(e.GetWidth(), e.GetHeight());
+        auto screenWidth = m_Window->GetScreenWidth();
+        auto screenHeight = m_Window->GetScreenHeight();
+//        Renderer::OnWindowResize(e.GetWidth(), e.GetHeight());
+        Renderer::OnWindowResize(screenWidth, screenHeight);
 
 
         return false;
