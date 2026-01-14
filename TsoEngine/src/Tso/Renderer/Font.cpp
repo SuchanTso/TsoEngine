@@ -46,7 +46,7 @@ template<typename T, typename S, int N, msdf_atlas::GeneratorFunction<S, N> GenF
 
 
 Font::Font(const std::filesystem::path& fontPath)
-:m_Data(new MSDFData),m_FontPath(fontPath)
+:m_Data(new MSDFData),m_FontPath(fontPath.string())
 {
     std::filesystem::path p(fontPath);
     m_Name = p.stem().string();

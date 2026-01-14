@@ -83,6 +83,8 @@ namespace Tso {
             std::filesystem::path relPath = std::filesystem::relative(normalizedPath, rootDir);
             normalizedPath = relPath.string();
         }
+        normalizedPath = NormalizePath(normalizedPath);
+
 
         // 场景 A: 从 PAK 读取
         if (s_IsMounted) {

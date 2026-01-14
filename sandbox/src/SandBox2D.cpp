@@ -10,14 +10,14 @@ namespace Tso{
 void RuntimeLayer::OnAttach(){
     // 1. 尝试挂载资源包
     // 此时应该与 exe 同级目录
-    VirtualFileSystem::Init("/Users/SuchanTso/project/Sandbox/bin/Game.pak");
+    VirtualFileSystem::Init("Game.pak");
 
     // 2. 加载项目配置
     // 我们约定打包时，原来的 .tproj 会被重命名并放在包的根目录，叫 "Game.config" 或类似名字
     // 这里假设我们保留了原始名字或者固定名字
     // 如果 Packer 没有改名，我们需要一种机制知道哪个是 Project 文件
     // 简单方案：约定打包后的配置文件名固定为 "App.tproj"
-    m_Project = Project::LoadProject("Untitled.tproj");
+    m_Project = Project::LoadProject("App.tproj");
     
     if (!m_Project) {
         TSO_CORE_ERROR("Failed to load project config!");
@@ -48,6 +48,17 @@ void RuntimeLayer::OnAttach(){
 void RuntimeLayer::OnUpdate(TimeStep ts) {
     Tso::RenderCommand::SetClearColor({ 0.1f, 0.1f, 0.1f, 1.f });
     Tso::RenderCommand::Clear();
+    Tso::Application& app = Tso::Application::Get();
+    auto windowX = app.GetWindow().GetPosX();
+    auto windowY = app.GetWindow().GetPosY();
+    auto windowWidth = app.GetWindow().GetWidth();
+    auto windowHeight = app.GetWindow().GetHeight();
+    if (m_WindowPosX != windowX || m_WindowPosY != windowY) {
+        m_WindowPosX = windowX;
+        m_WindowPosY = windowY;
+        ViewportManager::SetViewportInfo({ windowX,windowY }, { windowWidth,windowHeight });
+        Input::SetViewportBound(windowX, windowY, windowX + windowWidth, windowY + windowHeight);
+    }
     if (m_Scene) {
         m_Scene->OnUpdate(ts);
     }

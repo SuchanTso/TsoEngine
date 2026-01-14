@@ -105,8 +105,13 @@ bool Packer::CompileLua(const std::filesystem::path& inputPath, std::vector<char
     // 假设 luac.exe 在系统 PATH 中，或者你可以写绝对路径 "Vendor\\Bin\\luac.exe"
     // -o: 输出文件
     // -s: 剥离调试信息 (Strip debug info)，让文件更小且难以反编译
+#ifdef TSO_PLATFORM_MACOSX
     std::string command = "assets/luac -s -o " + tempOut + " \"" + inputPath.string() + "\"";
-    
+#elif TSO_PLATFORM_WINDOWS
+    std::string command = " \"\"assets/luac54.exe\" -s -o " + tempOut + " \"" + inputPath.string() + "\" \"";
+    //TSO_CORE_INFO("Compile cmd :[{}]", command);
+
+#endif
     // 如果是 LuaJIT，命令通常是: "luajit -b \"" + inputPath.string() + "\" " + tempOut;
 
     // 执行系统命令
