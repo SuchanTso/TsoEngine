@@ -40,8 +40,7 @@ Scene::Scene(){
     UICamera = CreateRef<SceneCamera>();
     UICamera->SetOrthographicSize(UISystem::VirtualResolutionY);
     UICamera->SetAspectRatio((UISystem::VirtualResolutionX * 1.f) / UISystem::VirtualResolutionY);
-//    UICamera->SetOrthographicNearClip(-1000);
-//    UICamera->SetOrthographicFarClip(1000);
+    UICamera->SetFixAspectRatio(true);
 }
 
 Scene::~Scene(){
@@ -91,6 +90,16 @@ bool Scene::IsEntityActive(entt::entity e){
 
     return res;
 }
+
+void Scene::OnResizeViewport(const unsigned int& width , const unsigned int& height){
+    if(mainCamera){
+        mainCamera->SetViewportSize(width, height);
+    }
+    if(UICamera){
+        UICamera->SetViewportSize(width, height);
+    }
+}
+
 
 
 void Scene::OnUpdate(TimeStep ts)

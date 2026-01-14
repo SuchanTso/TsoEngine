@@ -20,6 +20,18 @@ namespace Tso {
 
 		inline unsigned int GetHeight()const override { return m_Data.Height; }
         
+        inline unsigned int GetScreenWidth()const override {
+            int fbW, fbH;
+            glfwGetFramebufferSize(m_Window, &fbW, &fbH);
+            return fbW;
+        }
+
+        inline unsigned int GetScreenHeight()const override {
+            int fbW, fbH;
+            glfwGetFramebufferSize(m_Window, &fbW, &fbH);
+            return fbH;
+        }
+        
         inline unsigned int GetPosX()const override;
         
         inline unsigned int GetPosY()const override;

@@ -28,9 +28,9 @@ namespace Tso {
 
 		virtual unsigned int GetHeight()const = 0;
         
-//        virtual unsigned int GetScreenWidth()const = 0;
-//
-//        virtual unsigned int GetScreenHeight()const = 0;
+        virtual unsigned int GetScreenWidth()const = 0;
+
+        virtual unsigned int GetScreenHeight()const = 0;
         
         virtual unsigned int GetPosX()const = 0;
         
