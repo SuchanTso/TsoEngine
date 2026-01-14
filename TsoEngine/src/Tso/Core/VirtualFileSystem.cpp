@@ -10,6 +10,76 @@
 
 namespace Tso {
 
+
+#if defined(TSO_PLATFORM_WINDOWS)
+    #include <windows.h>
+#elif defined(TSO_PLATFORM_MACOSX)
+    #include <mach-o/dyld.h>
+    #include <unistd.h>
+#elif defined(TSO_PLATFORM_LINUX)
+    #include <unistd.h>
+    #include <limits.h>
+#endif
+
+namespace Utils {
+
+    void FixWorkingDirectory() {
+        std::filesystem::path exePath;
+
+#if defined(TSO_PLATFORM_WINDOWS)
+        // Windows 获取 exe 路径
+        wchar_t path[MAX_PATH];
+        GetModuleFileNameW(NULL, path, MAX_PATH);
+        exePath = std::filesystem::path(path);
+
+#elif defined(TSO_PLATFORM_MACOSX)
+        char path[1024];
+        uint32_t size = sizeof(path);
+        if (_NSGetExecutablePath(path, &size) == 0) {
+            // 此时 exePath 是 ".../Game.app/Contents/MacOS/Game"
+            exePath = std::filesystem::path(path);
+            
+            // 1. 获取 MacOS 目录
+            std::filesystem::path macOSDir = exePath.parent_path();
+            
+            // 2. 尝试寻找兄弟目录 Resources
+            // 逻辑结构: Game.app -> Contents -> Resources
+            std::filesystem::path contentDir = macOSDir.parent_path();
+            std::filesystem::path resourcesDir = contentDir / "Resources";
+            
+            if (std::filesystem::exists(resourcesDir)) {
+                // >>> 情况 A: 在 App Bundle 内 <<<
+                // 将工作目录设为 Resources，这样 "./Game.pak" 就能被找到
+                std::filesystem::current_path(resourcesDir);
+            } else {
+                // >>> 情况 B: 裸奔的可执行文件 (开发模式) <<<
+                // 设为可执行文件所在的目录
+                std::filesystem::current_path(macOSDir);
+            }
+        }
+
+#elif defined(TSO_PLATFORM_LINUX)
+        // Linux 获取 exe 路径
+        char path[PATH_MAX];
+        ssize_t count = readlink("/proc/self/exe", path, PATH_MAX);
+        if (count != -1) {
+            exePath = std::filesystem::path(std::string(path, count));
+        }
+#endif
+
+        // 获取父目录 (即 exe 所在的文件夹)
+        if (!exePath.empty()) {
+            std::filesystem::path exeDir = exePath.parent_path();
+            
+            // 设置当前工作目录
+            std::filesystem::current_path(exeDir);
+            
+            // Debug 输出验证一下
+            // printf("Working Directory set to: %s\n", exeDir.string().c_str());
+        }
+    }
+}
+
     std::ifstream VirtualFileSystem::s_PakStream;
     std::unordered_map<std::string, PakEntry> VirtualFileSystem::s_IndexTable;
     bool VirtualFileSystem::s_IsMounted = false;
@@ -23,6 +93,7 @@ namespace Tso {
     }
 
     void VirtualFileSystem::Init(const std::string& pakPath) {
+        Utils::FixWorkingDirectory();
         if (std::filesystem::exists(pakPath)) {
             Mount(pakPath);
         } else {
