@@ -26,7 +26,12 @@ namespace Tso{
     }
 
     glm::vec2 AnimationController::Update(float ts) {
-        if (!m_CurrentState || !m_CurrentState->Clip) return glm::vec2(-1.f);
+        if (!m_CurrentState || !m_CurrentState->Clip) {
+            if (!m_DefaultStateName.empty() && m_States.find(m_DefaultStateName) != m_States.end()) {
+                Play(m_DefaultStateName);
+            }
+            return glm::vec2(-1.f);
+        }
 
         const auto& frames = m_CurrentState->Clip->GetFrames();
         if (frames.empty()) return glm::vec2(-1.f);

@@ -206,11 +206,15 @@ namespace Tso {
             
             auto& comp = entity.GetComponent<AnimatorComponent>();
             const auto& states = comp.Controller->GetStates();
+            const auto& defaultState = comp.Controller->GetDefaultState();
             out << YAML::Key << "States" << YAML::Value << YAML::BeginSeq;
             for(auto& [name , clip] : states){
                 out << YAML::BeginMap;
                 out << YAML::Key << "Name" << YAML::Value << name;
                 out << YAML::Key << "Clip" << YAML::Value << clip.Clip->GetUUID();
+                if (name == defaultState) {
+                    out << YAML::Key << "Default" << YAML::Value << 1;
+                }
                 out << YAML::EndMap;
 
             }
@@ -318,7 +322,7 @@ namespace Tso {
             // [MODIFIED] 2. 从内存字符串加载
             // 注意：binary buffer 转 string，YAML::Load 需要一个标准字符串
             std::string yamlString(fileBuffer.DataPtr(), fileBuffer.Size());
-            TSO_CORE_INFO("YAML Content:\n{0}", yamlString);
+            //TSO_CORE_INFO("YAML Content:\n{0}", yamlString);
 
             data = YAML::Load(yamlString);
         }
@@ -500,6 +504,9 @@ namespace Tso {
                         auto clip = Resource::GetResource<AnimationClip>(clipUUID);
                         if(clip){
                             animatorC.Controller->AddState(stateName, clip);
+                        }
+                        if (state["Default"]) {
+                            animatorC.Controller->SetDefaultState(stateName);
                         }
                     }
                 }

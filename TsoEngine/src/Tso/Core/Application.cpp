@@ -97,6 +97,7 @@ namespace Tso {
             TimeStep ts = time - m_LastTime;
 
             m_LastTime = time;
+            if (ts > 0.1f) ts = 0.1f;
 
  
             for(auto layer : m_LayerStack){

@@ -62,7 +62,7 @@ namespace Utils{
             if(type == "Shader"){
                 Tso::Ref<Tso::Shader> shader = Tso::Shader::Create(fullPath.string());
                 shader->SetName(name);
-                shader->SetPath(fullPath);
+                shader->SetPath(fullPath.string());
                 if(shader){
                     Tso::Resource::AddResource(name, uuid, shader);
                     TSO_CORE_TRACE("Add Shader {} successfully", uuid);
@@ -92,7 +92,7 @@ namespace Utils{
             }
             else if(type == "Aniamtion"){
 //                auto animationClip = Tso::CreateRef<Tso::AnimationClip>(path);
-                auto animationClip = Tso::AnimationClip::Create(name, fullPath);
+                auto animationClip = Tso::AnimationClip::Create(name, fullPath.string());
                 if(animationClip){
                     Tso::Resource::AddResource<Tso::AnimationClip>(name, uuid, animationClip);
                 }
@@ -375,7 +375,7 @@ namespace Tso {
             // [MODIFIED] 2. 从内存字符串加载
             // 注意：binary buffer 转 string，YAML::Load 需要一个标准字符串
             std::string yamlString(fileBuffer.DataPtr(), fileBuffer.Size());
-            TSO_CORE_INFO("YAML Content:\n{0}", yamlString);
+            //TSO_CORE_INFO("YAML Content:\n{0}", yamlString);
 
             data = YAML::Load(yamlString);
         }

@@ -23,7 +23,7 @@ namespace Tso {
         s_Project = project;
 		if (serializer.Deserieleze(path.string()))
 		{
-            std::string scriptPath = project->m_ProjectDirectory / project->GetConfig().ScriptModulePath;
+            std::string scriptPath = (project->m_ProjectDirectory / project->GetConfig().ScriptModulePath).string();
 #ifdef TSO_EDITOR
             if((!scriptPath.empty()) && std::filesystem::exists(scriptPath)){
                 ScriptingEngine::SetLuaPackagePath(scriptPath);

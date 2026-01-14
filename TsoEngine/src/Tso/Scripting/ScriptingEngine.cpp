@@ -424,7 +424,7 @@ namespace Utils {
             }
             
             s_Data->EntityClasses[className] = scriptClass;
-            scriptClass->SetPath(path);
+            scriptClass->SetPath(path.string());
             TSO_CORE_INFO("Loaded Lua class: {}", className);
 
         } catch (const sol::error& e) {
