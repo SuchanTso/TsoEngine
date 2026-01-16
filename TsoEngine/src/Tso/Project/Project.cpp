@@ -5,9 +5,11 @@
 #ifdef __APPLE__
 #include <CoreFoundation/CoreFoundation.h>
 #endif
+#include "Resource.h"
 
 namespace Tso {
-
+    
+    
 	Ref<Project> Project::New()
 	{
 		s_Project = CreateRef<Project>();
@@ -33,6 +35,7 @@ namespace Tso {
             ScriptingEngine::SetLuaPackagePath(scriptPath);
             ScriptingEngine::LoadAllScripts(scriptPath , false);
 #endif
+            Resource::InitProject();
 			return s_Project;
 		}
 
