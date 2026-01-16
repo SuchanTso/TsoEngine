@@ -120,7 +120,7 @@ return $ClassName$
                     out << basicScript;
                     out.close();
                     //TODO: stop scene
-                    ScriptingEngine::LoadAllScripts(m_CurrentDirectory,false);
+                    ScriptingEngine::LoadAllScripts(m_CurrentDirectory.string(), false);
                     Resource::ImportAsset(filePath);
                 } else {
                     TSO_CORE_ERROR("Failed to create script file: {0}", filePath.string());
@@ -374,7 +374,7 @@ void ContentBrowserPanel::DrawCreateMaterialPopup() {
                 if (ImGui::BeginDragDropSource()) {
                     // 核心逻辑：尝试获取 UUID
                     // 如果文件存在但没有 UUID (未导入)，此时应该尝试自动导入或者返回 0
-                    UUID uuid = Resource::GetUUIDFromPath(path);
+                    UUID uuid = Resource::GetUUIDFromPath(path.string());
                     
                     if (uuid == 0) {
                         // 尝试即时导入 (Lazy Import)
@@ -427,7 +427,7 @@ void ContentBrowserPanel::DrawCreateMaterialPopup() {
                 if (ImGui::BeginPopupContextItem()) {
                     // 1. 加载文件到内存
                     if (ImGui::MenuItem("Load Asset")) {
-                        UUID uuid = Resource::GetUUIDFromPath(path);
+                        UUID uuid = Resource::GetUUIDFromPath(path.string());
                         if(uuid == 0){
                             uuid = Resource::ImportAsset(path);
                         }
@@ -494,7 +494,7 @@ void ContentBrowserPanel::DrawCreateMaterialPopup() {
                 }
                 if(ImGui::IsItemHovered() && ImGui::IsMouseClicked(ImGuiMouseButton_Left)){
                     if(directoryEntry.is_regular_file()){
-                        UUID uuid = Resource::GetUUIDFromPath(path);
+                        UUID uuid = Resource::GetUUIDFromPath(path.string());
                         if(uuid != 0){
                             ResourceType type = ResourceType::None;
                             if (path.extension() == ".anim") {

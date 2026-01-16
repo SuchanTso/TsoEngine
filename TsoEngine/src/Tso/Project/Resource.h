@@ -47,19 +47,19 @@ public:
     static void AddResource(const std::string& name,const UUID& uuid , Ref<T>resource);
     
     template<>
-    void AddResource<Shader>(const std::string& name , const UUID &uuid, Ref<Shader> resource);
+    static void AddResource<Shader>(const std::string& name , const UUID &uuid, Ref<Shader> resource);
     
     template<>
-    void AddResource<Texture2D>(const std::string& name , const UUID &uuid, Ref<Texture2D> resource);
+    static void AddResource<Texture2D>(const std::string& name , const UUID &uuid, Ref<Texture2D> resource);
     
     template<>
-    void AddResource<Material>(const std::string& name , const UUID &uuid, Ref<Material> resource);
+    static void AddResource<Material>(const std::string& name , const UUID &uuid, Ref<Material> resource);
     
     template<>
-    void AddResource<Font>(const std::string& name , const UUID &uuid, Ref<Font> resource);
+    static void AddResource<Font>(const std::string& name , const UUID &uuid, Ref<Font> resource);
     
     template<>
-    void AddResource<AnimationClip>(const std::string& name , const UUID &uuid, Ref<AnimationClip> resource);
+    static void AddResource<AnimationClip>(const std::string& name , const UUID &uuid, Ref<AnimationClip> resource);
 
     template<typename T>
     static Ref<T> GetResource(const UUID& uuid);
