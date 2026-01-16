@@ -56,6 +56,12 @@ static const char* s_UniformTypes[] = {
         "Float", "Int", "Vec2", "Vec3", "Vec4", "Color (Vec3)", "Color (Vec4)" , "Texture"
     };
 
+void SceneHierarchyPanel::SetSelectedResource(const UUID& uuid , const ResourceType& type){
+    m_SelectedResourceUUID = uuid;
+    m_SelectedType = type;
+}
+
+
 
 // 在类成员中添加状态变量
 // bool m_ShowCreateMaterialPopup = false;
@@ -649,6 +655,16 @@ template<typename T, typename UIFunction>
         ImGui::Text("Material: %s", material->GetName().c_str());
         std::string shaderName = material->GetShader() ? material->GetShader()->GetName() : "None";
         ImGui::Text("Shader: %s", shaderName.c_str());
+        if (ImGui::BeginDragDropTarget()) {
+            if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("RESOURCE_SHADER")) {
+                UUID shaderUUID = *(const UUID*)payload->Data;
+                auto shader = Resource::GetResource<Shader>(shaderUUID);
+                if(shader){
+                    material->SetShader(shader);
+                }
+            }
+            ImGui::EndDragDropTarget();
+        }
         ImGui::Separator();
 
         ImGui::Text("Properties:");
@@ -903,10 +919,17 @@ template<typename T, typename UIFunction>
 		}
 		ImGui::End();
         
-        DrawResourceList();
+//        DrawResourceList();
         DrawResourceInspector();
         m_AnimationPanel.OnImGuiRender();
         m_AnimationControllerPanel.OnImGuiRender();
+        if(Project::GetActive()){
+            if(m_ContentBrowserPanel == nullptr){
+                m_ContentBrowserPanel = CreateRef<ContentBrowserPanel>();
+                m_ContentBrowserPanel->SetSceneHierarchyPanel(this);
+            }
+            m_ContentBrowserPanel->OnImGuiRender();
+        }
 	}
 	void SceneHierarchyPanel::DrwaEntityNode(Entity& entity)
 	{
@@ -975,6 +998,47 @@ void SceneHierarchyPanel::DrawResources(){
     
 }
 
+// 在 SceneHierarchyPanel.cpp 的顶部或 Utils 文件中
+
+template<typename T, typename UIFunction>
+inline static void DrawComponent(const std::string& name, Entity entity, UIFunction uiFunction , bool removable = true)
+{
+    const ImGuiTreeNodeFlags treeNodeFlags = ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_SpanAvailWidth | ImGuiTreeNodeFlags_AllowItemOverlap | ImGuiTreeNodeFlags_FramePadding;
+
+    if (entity.HasComponent<T>())
+    {
+        auto& component = entity.GetComponent<T>();
+        
+        // 计算行高 (字体高度 + 上下 Padding)
+        float lineHeight = ImGui::GetFontSize() + ImGui::GetStyle().FramePadding.y * 2.0f;
+        
+        ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2{ 4, 4 });
+        
+        bool open = ImGui::TreeNodeEx((void*)typeid(T).hash_code(), treeNodeFlags, name.c_str());
+        
+        ImGui::PopStyleVar();
+
+        // 右键菜单
+        bool removeComponent = false;
+        if (removable && ImGui::BeginPopupContextItem())
+        {
+            if (ImGui::MenuItem("Remove Component"))
+                removeComponent = true;
+
+            ImGui::EndPopup();
+        }
+
+        if (open)
+        {
+            uiFunction(entity , component);
+            ImGui::TreePop();
+        }
+
+        if (removeComponent)
+            entity.RemoveComponent<T>();
+    }
+}
+
 
 	void SceneHierarchyPanel::DrawComponents(Entity& entity)
 {
@@ -1000,534 +1064,461 @@ void SceneHierarchyPanel::DrawResources(){
             ImGui::EndPopup();
         }
         
-        if(entity.HasComponent<IDComponent>()){
-            auto comp = entity.GetComponent<IDComponent>();
-            ImGui::Text("ID:%llu" , (uint64_t)comp.ID);
-        }
+        DrawComponent<IDComponent>("UUID", entity, [](Entity& e , auto& comp){
+                ImGui::Text("ID:%llu" , (uint64_t)comp.ID);
+
+        } , false);
+
     
-		if (entity.HasComponent<TagComponent>()) {
+        DrawComponent<TransformComponent>("Transform", entity, [](Entity& e , auto& comp){
+            auto& pos = comp.GetPos();
+            auto& rotate = comp.GetRotate();
+            auto& scale = comp.GetScale();
+            if (ImGui::DragFloat3("pos:", glm::value_ptr(pos) , 0.1f)) {
+                comp.SetPos(pos);
+            }
+            if (ImGui::DragFloat3("rotate:", glm::value_ptr(rotate), 0.1f)) {
+                comp.SetRotate(rotate);
+            }
+            if (ImGui::DragFloat3("scale:", glm::value_ptr(scale), 0.1f)) {
+                comp.SetScale(scale);
+            }
+        });
+        
+        DrawComponent<TagComponent>("Tag", entity, [](Entity& e , auto& comp){
+            auto& tag = comp.GetTagName();
+            char buff[256];
 
-			auto& comp = entity.GetComponent<TagComponent>();
+            strcpy(buff, tag.c_str());
 
-			auto& tag = comp.GetTagName();
-			char buff[256];
-			
-			strcpy(buff, tag.c_str());
+            if (ImGui::InputText("tagName", buff, sizeof(buff))) {
+                comp.SetTagName(buff);
+            }
+        },false);
 
-			if (ImGui::InputText("tagName", buff, sizeof(buff))) {
-				comp.SetTagName(buff);
-			}
-		}
-		if (entity.HasComponent<TransformComponent>()) {
-			if(ImGui::TreeNodeEx("Transform", ImGuiTreeNodeFlags_OpenOnArrow)) {
-				auto& comp = entity.GetComponent<TransformComponent>();
-				auto& pos = comp.GetPos();
-				auto& rotate = comp.GetRotate();
-				auto& scale = comp.GetScale();
-				if (ImGui::DragFloat3("pos:", glm::value_ptr(pos) , 0.1f)) {
-					comp.SetPos(pos);
-				}
-				if (ImGui::DragFloat3("rotate:", glm::value_ptr(rotate), 0.1f)) {
-					comp.SetRotate(rotate);
-				}
-				if (ImGui::DragFloat3("scale:", glm::value_ptr(scale), 0.1f)) {
-					comp.SetScale(scale);
-				}
-				ImGui::TreePop();
-			}
-		}
-
-		if (entity.HasComponent<Rigidbody2DComponent>()) {
-			if (ImGui::TreeNodeEx("Rigidbody", ImGuiTreeNodeFlags_OpenOnArrow)) {
-				auto& comp = entity.GetComponent<Rigidbody2DComponent>();
+        
+        DrawComponent<Rigidbody2DComponent>("Rigidbody2DComponent", entity, [](Entity&e , auto& component)
+            {
                 std::string RigidBodyType[2] = { "Static" , "Dynamic" };
-                std::string currentRigidBodyType = RigidBodyType[(int)comp.Type];
-                if (open) {
-                    if (ImGui::BeginCombo("RigidBodyType", currentRigidBodyType.c_str())) {
-                        for (int i = 0; i < 2; i++)
+                std::string currentRigidBodyType = RigidBodyType[(int)component.Type];
+                if (ImGui::BeginCombo("RigidBodyType", currentRigidBodyType.c_str())) {
+                    for (int i = 0; i < 2; i++)
+                    {
+                        bool isSelected = currentRigidBodyType == RigidBodyType[i];
+                        if (ImGui::Selectable(RigidBodyType[i].c_str(), isSelected))
                         {
-                            bool isSelected = currentRigidBodyType == RigidBodyType[i];
-                            if (ImGui::Selectable(RigidBodyType[i].c_str(), isSelected))
-                            {
-                                currentRigidBodyType = RigidBodyType[i];
-                                comp.Type = (Rigidbody2DComponent::BodyType)i;
-                            }
-
-                            if (isSelected)
-                                ImGui::SetItemDefaultFocus();
+                            currentRigidBodyType = RigidBodyType[i];
+                            component.Type = (Rigidbody2DComponent::BodyType)i;
                         }
 
-                        ImGui::EndCombo();
+                        if (isSelected)
+                            ImGui::SetItemDefaultFocus();
                     }
-                    ImGui::Checkbox("FixRotation" , &comp.FixedRotation);
+
+                    ImGui::EndCombo();
                 }
+                ImGui::Checkbox("FixRotation" , &component.FixedRotation);
 
-				ImGui::TreePop();
-			}
-		}
+            });
 
-        if (entity.HasComponent<BoxCollider2DComponent>()) {
-            if (ImGui::TreeNodeEx("BoxCollider2D", ImGuiTreeNodeFlags_OpenOnArrow)) {
-                auto& comp = entity.GetComponent<BoxCollider2DComponent>();
-                if (open) {
-                    ImGui::DragFloat2("Size", glm::value_ptr(comp.Size));
-                    ImGui::DragFloat2("Offset", glm::value_ptr(comp.Offset));
-
-                    ImGui::DragFloat("Density" , &comp.Density);
-                    ImGui::DragFloat("Friction", &comp.Friction);
-                    ImGui::DragFloat("Restitution", &comp.Restitution);
-                    ImGui::DragFloat("RestitutionThreshold", &comp.RestitutionThreshold);
-                }
-
-                ImGui::TreePop();
-            }
-        }
+        DrawComponent<BoxCollider2DComponent>("BoxCollider", entity, [](Entity&e , auto& comp){
+            ImGui::DragFloat2("Size", glm::value_ptr(comp.Size));
+            ImGui::DragFloat2("Offset", glm::value_ptr(comp.Offset));
+            ImGui::DragFloat("Density" , &comp.Density);
+            ImGui::DragFloat("Friction", &comp.Friction);
+            ImGui::DragFloat("Restitution", &comp.Restitution);
+            ImGui::DragFloat("RestitutionThreshold", &comp.RestitutionThreshold);
+        });
         
-        
-        if(entity.HasComponent<TextComponent>()){
-            if (ImGui::TreeNodeEx("Text", ImGuiTreeNodeFlags_OpenOnArrow)) {
-                auto& comp = entity.GetComponent<TextComponent>();
-                if (open) {
-                    char buff[256];
-                    
-                    strcpy(buff, comp.Text.c_str());
-                    ImGui::LogText("%s", comp.Text.c_str());
-                    if(ImGui::InputTextMultiline("TextContent", buff, sizeof(buff))){
-                        comp.Text = buff;
-                    }
-                    ImGui::DragFloat("linaSpacing", &comp.textParam.LineSpacing , 0.1f , -5.0f ,100.0f);
-                    ImGui::DragFloat("CharaterSpacing", &comp.textParam.CharacterSpacing , 0.1f , -5.0f ,100.0f);
-                    ImGui::DragFloat2("Offset", glm::value_ptr(comp.textParam.offset));
-                    ImGui::DragFloat2("Scale", glm::value_ptr(comp.textParam.scale));
-
-
-//                    if(ImGui::Button("browse:")){
-//                        auto fontPath = FileDialogs::OpenFile("ttf (*.ttf)\0 * .ttf\0");
-//                        if(!fontPath.empty()){
-//                            comp.FontPath = std::filesystem::relative(fontPath, Project::GetProjectDirectory()).generic_string();
-//                            comp.TextFont.reset();
-//                            comp.TextFont = std::make_shared<Font>(fontPath);
-//                        }
-//                    }
-                    if (ImGui::BeginCombo("Font:", comp.TextFont ? comp.TextFont->GetName().c_str() : "None")) {
-                        // 1. 提供一个清空选项
-                        bool isNoneSelected = (comp.TextFont == nullptr);
-                        if (ImGui::Selectable("None", isNoneSelected)) {
-                            comp.TextFont = nullptr;
-                        }
-
-                        auto& fonts = Resource::GetResourceMap<Font>();
-                        for (auto& [uuid, font] : fonts) {
-                            bool isSelected = comp.TextFont && (comp.TextFont->GetUUID() == uuid);
-                            if (ImGui::Selectable(font->GetName().c_str(), isSelected)) {
-                                comp.TextFont = font;
-                            }
-
-                            if (isSelected)
-                                ImGui::SetItemDefaultFocus();
-                        }
-                        ImGui::EndCombo();
-                    }
-                    if (ImGui::BeginDragDropTarget()) {
-                        // 1. 接收 Payload
-                        if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("RESOURCE_FONT")) {
-                            
-                            // 2. 获取数据：payload->Data 是 void*，指向之前 SetPayload 传入的 UUID 内存地址
-                            // 我们将其强转为 UUID* 并解引用，拿到真正的 UUID 数值
-                            UUID fontUUID = *(const UUID*)payload->Data;
-
-                            // 3. 核心逻辑：使用 UUID 去资源管理器查找真正的 Ref<Material> 对象
-                            // 假设你有这样一个全局静态方法
-                            Ref<Font> newFont = Resource::GetResource<Font>(fontUUID);
-                            
-                            // 4. 赋值
-                            if (newFont) {
-                                comp.TextFont = newFont;
-                            }
-                        }
-                        ImGui::EndDragDropTarget();
-                    }
-                    ImGui::SameLine();
-                    if(!comp.FontPath.empty()){
-                        ImGui::Text("%s", comp.FontPath.c_str());
-                    }
-                    comp.isUI = entity.HasComponent<UITransformComponent>();
-                    ImGui::Checkbox("IsUI", &comp.isUI);
-                    if(comp.isUI){
-                        if(!entity.HasComponent<UITransformComponent>()){
-                            entity.AddComponent<UITransformComponent>();
-                        }
-                        auto& uitransformc = entity.GetComponent<UITransformComponent>();
-                        ImGui::DragFloat2("pos:", glm::value_ptr(uitransformc.UIpos) , 0.1f);
-                        ImGui::DragFloat3("size:", glm::value_ptr(uitransformc.UISize), 0.1f);
-                    }
-                    else{
-                        if(entity.HasComponent<UITransformComponent>()){
-                            entity.RemoveComponent<UITransformComponent>();
-                        }
-                    }
-                    
-                    
-
-                }
-
-                ImGui::TreePop();
+        DrawComponent<TextComponent>("Text", entity, [](Entity& e , auto& comp){
+            char buff[256];
+            
+            strcpy(buff, comp.Text.c_str());
+            ImGui::LogText("%s", comp.Text.c_str());
+            if(ImGui::InputTextMultiline("TextContent", buff, sizeof(buff))){
+                comp.Text = buff;
             }
-        }
+            ImGui::DragFloat("linaSpacing", &comp.textParam.LineSpacing , 0.1f , -5.0f ,100.0f);
+            ImGui::DragFloat("CharaterSpacing", &comp.textParam.CharacterSpacing , 0.1f , -5.0f ,100.0f);
+            ImGui::DragFloat2("Offset", glm::value_ptr(comp.textParam.offset));
+            ImGui::DragFloat2("Scale", glm::value_ptr(comp.textParam.scale));
+            if (ImGui::BeginCombo("Font:", comp.TextFont ? comp.TextFont->GetName().c_str() : "None")) {
+                // 1. 提供一个清空选项
+                bool isNoneSelected = (comp.TextFont == nullptr);
+                if (ImGui::Selectable("None", isNoneSelected)) {
+                    comp.TextFont = nullptr;
+                }
 
-        if (entity.HasComponent<Renderable>()) {
-            auto& comp = entity.GetComponent<Renderable>();
-            
-            // 增加 Flags 使得点击整行都能展开，更符合习惯
-            bool open = ImGui::TreeNodeEx("Renderable", ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_SpanAvailWidth | ImGuiTreeNodeFlags_AllowItemOverlap | ImGuiTreeNodeFlags_FramePadding);
-            
-            // 右键菜单移除组件的逻辑通常放在 TreeNode 这一行
-            // (代码略，为了保持和你原有结构一致，放在最后处理)
-
-            if (open) {
-                // --- 1. Material Selector (新增部分) ---
-                {
-                    // 获取当前材质名称
-                    // 假设 Resource::GetMaterial(uuid) 返回 Ref<Material>
-                    Ref<Material> currentMaterial = comp.material;
-                    std::string materialName = currentMaterial ? currentMaterial->GetName() : "None (Default)";
-
-                    if (ImGui::BeginCombo("Material", materialName.c_str())) {
-                        // 1. 提供一个清空选项
-                        bool isNoneSelected = (comp.material == nullptr);
-                        if (ImGui::Selectable("None", isNoneSelected)) {
-                            comp.material = nullptr;
-                        }
-
-                        // 2. 遍历所有材质
-                        // 假设 Resource::GetAllMaterials() 返回 std::unordered_map<UUID, Ref<Material>>
-                        auto& materials = Resource::GetResourceMap<Material>();
-                        for (auto& [uuid, mat] : materials) {
-                            bool isSelected = comp.material && (comp.material->GetRendererID() == uuid);
-                            if (ImGui::Selectable(mat->GetName().c_str(), isSelected)) {
-                                comp.material = mat;
-                            }
-
-                            if (isSelected)
-                                ImGui::SetItemDefaultFocus();
-                        }
-                        ImGui::EndCombo();
+                auto& fonts = Resource::GetResourceMap<Font>();
+                for (auto& [uuid, font] : fonts) {
+                    bool isSelected = comp.TextFont && (comp.TextFont->GetUUID() == uuid);
+                    if (ImGui::Selectable(font->GetName().c_str(), isSelected)) {
+                        comp.TextFont = font;
                     }
 
-                    // --- 拖拽接收 (Drag & Drop Target) ---
-                    // 允许从左侧资源面板拖动材质到这个 Combo 框上
-                    if (ImGui::BeginDragDropTarget()) {
-                        // 1. 接收 Payload
-                        if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("RESOURCE_MATERIAL")) {
-                            
-                            // 2. 获取数据：payload->Data 是 void*，指向之前 SetPayload 传入的 UUID 内存地址
-                            // 我们将其强转为 UUID* 并解引用，拿到真正的 UUID 数值
-                            UUID materialUUID = *(const UUID*)payload->Data;
+                    if (isSelected)
+                        ImGui::SetItemDefaultFocus();
+                }
+                ImGui::EndCombo();
+            }
+            if (ImGui::BeginDragDropTarget()) {
+                // 1. 接收 Payload
+                if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("RESOURCE_FONT")) {
+                    
+                    // 2. 获取数据：payload->Data 是 void*，指向之前 SetPayload 传入的 UUID 内存地址
+                    // 我们将其强转为 UUID* 并解引用，拿到真正的 UUID 数值
+                    UUID fontUUID = *(const UUID*)payload->Data;
 
-                            // 3. 核心逻辑：使用 UUID 去资源管理器查找真正的 Ref<Material> 对象
-                            // 假设你有这样一个全局静态方法
-                            Ref<Material> newMaterial = Resource::GetResource<Material>(materialUUID);
-                            
-                            // 4. 赋值
-                            if (newMaterial) {
-                                comp.material = newMaterial;
-                            }
-                        }
-                        ImGui::EndDragDropTarget();
+                    // 3. 核心逻辑：使用 UUID 去资源管理器查找真正的 Ref<Material> 对象
+                    // 假设你有这样一个全局静态方法
+                    Ref<Font> newFont = Resource::GetResource<Font>(fontUUID);
+                    
+                    // 4. 赋值
+                    if (newFont) {
+                        comp.TextFont = newFont;
                     }
                 }
-                {
-                    // 获取当前 Text 材质名称
-                    Ref<Material> currentTextMat = comp.textMat;
-                    std::string textMatName = currentTextMat ? currentTextMat->GetName() : "None (Default Text Mat)";
-
-                    if (ImGui::BeginCombo("Text Material", textMatName.c_str())) {
-                        // 1. 提供一个清空选项
-                        bool isNoneSelected = (comp.textMat == nullptr);
-                        if (ImGui::Selectable("None", isNoneSelected)) {
-                            comp.textMat = nullptr;
-                        }
-
-                        // 2. 遍历所有材质
-                        auto& materials = Resource::GetResourceMap<Material>();
-                        for (auto& [uuid, mat] : materials) {
-                            // 这里可以过滤一下，只显示适合做文字渲染的材质（如果你的 Material 类有相关标记的话）
-                            bool isSelected = comp.textMat && (comp.textMat->GetRendererID() == uuid);
-                            if (ImGui::Selectable(mat->GetName().c_str(), isSelected)) {
-                                comp.textMat = mat;
-                            }
-
-                            if (isSelected)
-                                ImGui::SetItemDefaultFocus();
-                        }
-                        ImGui::EndCombo();
-                    }
-
-                    // --- 拖拽接收 (Drag & Drop Target) ---
-                    if (ImGui::BeginDragDropTarget()) {
-                        if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("RESOURCE_MATERIAL")) {
-                            
-                            UUID materialUUID = *(const UUID*)payload->Data;
-                            Ref<Material> newMaterial = Resource::GetResource<Material>(materialUUID);
-                            
-                            if (newMaterial) {
-                                comp.textMat = newMaterial;
-                            }
-                        }
-                        ImGui::EndDragDropTarget();
-                    }
+                ImGui::EndDragDropTarget();
+            }
+            ImGui::SameLine();
+            comp.isUI = e.HasComponent<UITransformComponent>();
+            ImGui::Checkbox("IsUI", &comp.isUI);
+            if(comp.isUI){
+                if(!e.HasComponent<UITransformComponent>()){
+                    e.AddComponent<UITransformComponent>();
                 }
-                
-                ImGui::Separator();
+            }
+            else{
+                if(e.HasComponent<UITransformComponent>()){
+                    e.RemoveComponent<UITransformComponent>();
+                }
+            }
+        });
 
-                // --- 2. 原有的 RenderType 逻辑 ---
-                // (即使选了材质，可能还需要保留这个逻辑来决定基础几何体的顶点属性生成方式，或者作为材质的参数输入)
-                std::string QuadRenderType[2] = { "PureColor" , "Texture" };
-                std::string currentRenderType = QuadRenderType[(int)comp.type];
-                
-                if (ImGui::BeginCombo("RenderType", currentRenderType.c_str())) {
-                    for (int i = 0; i < 2; i++) {
-                        bool isSelected = currentRenderType == QuadRenderType[i];
-                        if (ImGui::Selectable(QuadRenderType[i].c_str(), isSelected)) {
-                            currentRenderType = QuadRenderType[i];
-                            comp.type = (RenderType)i;
+        DrawComponent<Renderable>("Renderable", entity, [](Entity& entity , auto& comp){
+            {
+                // material
+                Ref<Material> currentMaterial = comp.material;
+                std::string materialName = currentMaterial ? currentMaterial->GetName() : "None (Default)";
+
+                if (ImGui::BeginCombo("Material", materialName.c_str())) {
+                    // 1. 提供一个清空选项
+                    bool isNoneSelected = (comp.material == nullptr);
+                    if (ImGui::Selectable("None", isNoneSelected)) {
+                        comp.material = nullptr;
+                    }
+
+                    // 2. 遍历所有材质
+                    // 假设 Resource::GetAllMaterials() 返回 std::unordered_map<UUID, Ref<Material>>
+                    auto& materials = Resource::GetResourceMap<Material>();
+                    for (auto& [uuid, mat] : materials) {
+                        bool isSelected = comp.material && (comp.material->GetRendererID() == uuid);
+                        if (ImGui::Selectable(mat->GetName().c_str(), isSelected)) {
+                            comp.material = mat;
                         }
-                        if (isSelected) ImGui::SetItemDefaultFocus();
+
+                        if (isSelected)
+                            ImGui::SetItemDefaultFocus();
                     }
                     ImGui::EndCombo();
                 }
 
-                // ... 原有的属性面板逻辑 ...
-                if (comp.type == RenderType::PureColor) {
-                    ImGui::ColorEdit4("Color", glm::value_ptr(comp.m_Color));
+                // --- 拖拽接收 (Drag & Drop Target) ---
+                if (ImGui::BeginDragDropTarget()) {
+                    // 1. 接收 Payload
+                    if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("RESOURCE_MATERIAL")) {
+                        
+                        UUID materialUUID = *(const UUID*)payload->Data;
+                        Ref<Material> newMaterial = Resource::GetResource<Material>(materialUUID);
+                        if (newMaterial) {
+                            comp.material = newMaterial;
+                        }
+                    }
+                    ImGui::EndDragDropTarget();
                 }
-                else if (comp.type == RenderType::Texture) {
-                    ImGui::Checkbox("Is Subtexture", &comp.isSubtexture);
-                    
-                    // 显示当前纹理路径（如果太长可以截断显示）
-//                    std::string pathText = comp.subTexture ? comp.subTexture->GetTexture()->GetPath() : "None";
-//                    ImGui::Text("UUID: %s", pathText.c_str());
-                    
-//                    ImGui::SameLine();
-                    
-                    
-                    // 同样加上纹理的拖拽接收
+            }
+            if(entity.HasComponent<TextComponent>()){
+                // Text Material
+                Ref<Material> currentTextMat = comp.textMat;
+                std::string textMatName = currentTextMat ? currentTextMat->GetName() : "None (Default Text Mat)";
+
+                if (ImGui::BeginCombo("Text Material", textMatName.c_str())) {
+                    // 1. 提供一个清空选项
+                    bool isNoneSelected = (comp.textMat == nullptr);
+                    if (ImGui::Selectable("None", isNoneSelected)) {
+                        comp.textMat = nullptr;
+                    }
+
+                    // 2. 遍历所有材质
+                    auto& materials = Resource::GetResourceMap<Material>();
+                    for (auto& [uuid, mat] : materials) {
+                        // 这里可以过滤一下，只显示适合做文字渲染的材质（如果你的 Material 类有相关标记的话）
+                        bool isSelected = comp.textMat && (comp.textMat->GetRendererID() == uuid);
+                        if (ImGui::Selectable(mat->GetName().c_str(), isSelected)) {
+                            comp.textMat = mat;
+                        }
+
+                        if (isSelected)
+                            ImGui::SetItemDefaultFocus();
+                    }
+                    ImGui::EndCombo();
+                }
+
+                // --- 拖拽接收 (Drag & Drop Target) ---
+                if (ImGui::BeginDragDropTarget()) {
+                    if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("RESOURCE_MATERIAL")) {
+                        
+                        UUID materialUUID = *(const UUID*)payload->Data;
+                        Ref<Material> newMaterial = Resource::GetResource<Material>(materialUUID);
+                        
+                        if (newMaterial) {
+                            comp.textMat = newMaterial;
+                        }
+                    }
+                    ImGui::EndDragDropTarget();
+                }
+            }
+            {
+                //render
+                ImGui::ColorEdit4("Color", glm::value_ptr(comp.m_Color));
+                ImGui::Checkbox("Subtexture", &comp.isSubtexture);
+
+                if(comp.isSubtexture){
+                    ImGui::SameLine();
+//                    auto texID = comp.subTexture ? comp.subTexture->GetTexture()->GetTextureID() : 0;
+                    ImTextureID texID = comp.subTexture && comp.subTexture->GetTexture() ? (void*)(uintptr_t)comp.subTexture->GetTexture()->GetTextureID() : 0;
+
+                    ImGui::ImageButton(texID, ImVec2(16, 16), ImVec2(0,1), ImVec2(1,0));
+//                    if (ImGui::IsItemHovered()) {
+//                        ImGui::SetTooltip("Click to select texture");
+//                    }
                     if (ImGui::BeginDragDropTarget()) {
                         if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("RESOURCE_TEXTURE")) {
                             UUID texUUID = *(const UUID*)payload->Data;
-                            Ref<Texture2D> texture = Resource::GetResource<Texture2D>(texUUID);
-                            if (texture) {
-                                comp.subTexture = SubTexture2D::CreateByCoord(texture, comp.spriteSize, comp.textureIndex, comp.textureSize);
-                            }
+                            auto texture = Resource::GetResource<Texture2D>(texUUID);
+                            comp.subTexture = SubTexture2D::CreateByCoord(texture, glm::vec2(1.f), glm::vec2(1.f), glm::vec2(1.f));
                         }
                         ImGui::EndDragDropTarget();
                     }
-                    if(comp.isSubtexture && comp.subTexture == nullptr){
-                        TSO_CORE_ASSERT(comp.material != nullprt , "Entity cannot be subtexture without a material!");
-                    }
-
-                    if (comp.isSubtexture && comp.subTexture) {
-                        bool dirty = false;
-                        dirty |= ImGui::DragFloat2("Sprite Size", glm::value_ptr(comp.spriteSize), 1.0f);
-                        dirty |= ImGui::DragFloat2("Sprite Index", glm::value_ptr(comp.textureIndex), 1.0f);
-                        dirty |= ImGui::DragFloat2("Texture Size", glm::value_ptr(comp.textureSize), 1.0f);
-                        
-                        if (dirty) {
-                            comp.subTexture->RecalculateCoords(comp.spriteSize, comp.textureIndex, comp.textureSize);
-                        }
+                }
+                if (comp.isSubtexture && comp.subTexture) {
+                    bool dirty = false;
+                    dirty |= ImGui::DragFloat2("Sprite Size", glm::value_ptr(comp.spriteSize), 1.0f);
+                    dirty |= ImGui::DragFloat2("Sprite Index", glm::value_ptr(comp.textureIndex), 1.0f);
+                    dirty |= ImGui::DragFloat2("Texture Size", glm::value_ptr(comp.textureSize), 1.0f);
+                    
+                    if (dirty) {
+                        comp.subTexture->RecalculateCoords(comp.spriteSize, comp.textureIndex, comp.textureSize);
                     }
                 }
-
-                // --- UIView Logic ---
-                bool& uiview = comp.uiview;
-//                ImGui::Checkbox("UI View", &uiview);
-                
-                // 自动添加/移除组件的逻辑
-//                if (uiview && !entity.HasComponent<UITransformComponent>()) {
-//                    entity.AddComponent<UITransformComponent>();
-//                }
-//                if (!uiview && entity.HasComponent<UITransformComponent>()) {
-//                    entity.RemoveComponent<UITransformComponent>();
+//                if (entity.HasComponent<UITransformComponent>()) {
+//                    auto& uit = entity.GetComponent<UITransformComponent>();
+//                    ImGui::DragFloat2("UI Pos", glm::value_ptr(uit.UIpos), 0.1f);
+//                    ImGui::DragFloat3("UI Size", glm::value_ptr(uit.UISize), 0.1f);
 //                }
 
-                if (entity.HasComponent<UITransformComponent>()) {
-                    auto& uit = entity.GetComponent<UITransformComponent>();
-                    ImGui::DragFloat2("UI Pos", glm::value_ptr(uit.UIpos), 0.1f);
-                    ImGui::DragFloat3("UI Size", glm::value_ptr(uit.UISize), 0.1f);
-                }
-
-                // --- Remove Component Logic ---
-                // 这种在 Tree 内部的 remove 方式需要注意不要在 draw 过程中使得 entity 迭代器失效
-                // 通常在 Inspector 中没问题，因为我们只操作单体
-                if (ImGui::Button("Remove Component") ) {
-                     entity.RemoveComponent<Renderable>();
-                }
-
-                ImGui::TreePop();
             }
-        }
-        if (entity.HasComponent<MaterialInstanceComponent>()) {
-            auto& comp = entity.GetComponent<MaterialInstanceComponent>();
-            
-            // 我们需要获取 Renderable 里的 Material 来知道要显示什么名字
-            if (entity.HasComponent<Renderable>()) {
-                auto& renderable = entity.GetComponent<Renderable>();
-                Ref<Material> material = renderable.material;
-                
-                if (material) {
-                    ImGui::Text("Instance Overrides:");
-                    // 遍历材质定义的参数
-                    for (auto& [name, slot] : material->GetInstanceParams()) {
-                        
-                        // 确保组件里有这个值，没有就初始化为 0
-                        if (comp.FloatOverrides.find(name) == comp.FloatOverrides.end()) {
-                            comp.FloatOverrides[name] = 0.0f;
+        });
+
+
+        DrawComponent<MaterialInstanceComponent>("MaterialInstance", entity, [](Entity& e ,auto& component)
+            {
+                if (e.HasComponent<Renderable>()) {
+                    auto& renderable = e.GetComponent<Renderable>();
+                    Ref<Material> material = renderable.material;
+
+                    if (material) {
+                        ImGui::Text("Instance Overrides:");
+                        // 遍历材质定义的参数
+                        for (auto& [name, slot] : material->GetInstanceParams()) {
+
+                            // 确保组件里有这个值，没有就初始化为 0
+                            if (component.FloatOverrides.find(name) == component.FloatOverrides.end()) {
+                                component.FloatOverrides[name] = 0.0f;
+                            }
+
+                            // 绘制滑块
+                            ImGui::DragFloat(name.c_str(), &component.FloatOverrides[name], 0.01f, 0.0f, 1.0f);
                         }
-                        
-                        // 绘制滑块
-                        ImGui::DragFloat(name.c_str(), &comp.FloatOverrides[name], 0.01f, 0.0f, 1.0f);
                     }
-                }
-            }
-        }
-        // --- Animator Component ---
-                if (entity.HasComponent<AnimatorComponent>()) {
-                    // 默认展开，带边框，宽度自适应
-                    ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_SpanAvailWidth | ImGuiTreeNodeFlags_AllowItemOverlap | ImGuiTreeNodeFlags_FramePadding;
                     
-                    bool open = ImGui::TreeNodeEx("Animator", flags);
-                    
-                    // 右键菜单移除组件
-                    bool removeComponent = false;
-                    if (ImGui::BeginPopupContextItem()) {
-                        if (ImGui::MenuItem("Remove Component")) removeComponent = true;
-                        ImGui::EndPopup();
-                    }
-
-                    if (open) {
-                        auto& comp = entity.GetComponent<AnimatorComponent>();
-
-                        // 1. Controller 选择器
-                        // 获取当前 Controller 的名字，如果没有则显示 "None"
-                        // 假设你的 AnimationController 也有 GetName() 方法，或者是资源管理器管理的
-                        // 这里假设我们通过资源路径或名称来显示
-                        std::string controllerName = "None (Missing)";
-                        if (comp.Controller) {
-                            // 如果 Controller 是资源，应该有名字或路径
-                             controllerName = "Valid Controller"; // 暂时显示这个，建议 comp.Controller->GetName()
-                            if (ImGui::Button("Edit Controller")) {
-                                    // 全局获取 Panel 实例并打开
-                                    m_AnimationControllerPanel.SetContext(comp.Controller);
-                                    // EditorLayer::Get().ShowAnimationControllerPanel(true);
-                            }
-                        }
-
-                        ImGui::Text("Controller");
-                        ImGui::SameLine();
-                        
-                        // 显示一个只读的按钮/输入框，作为 Drop Target
-                        ImGui::Button(controllerName.c_str(), ImVec2(ImGui::GetContentRegionAvail().x, 0.0f));
-
-                        // --- 拖拽接收 (Drag & Drop Target) ---
-                        if (ImGui::BeginDragDropTarget()) {
-                            // 假设你的资源面板拖出来的 payload 叫 "RESOURCE_ANIM_CONTROLLER"
-                            // 或者如果是通用文件，可能是 "CONTENT_BROWSER_ITEM"
-                            if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("RESOURCE_ANIM_CONTROLLER")) {
-                                UUID controllerUUID = *(const UUID*)payload->Data;
-                                // 加载 Controller
-                                // comp.Controller = Resource::GetAnimationController(controllerUUID);
-                            }
-                            ImGui::EndDragDropTarget();
-                        }
-
-                        // 2. 运行时调试信息 (Runtime Debugging)
-                        // 只有当场景正在播放时，显示这些信息才有意义
-                        if (comp.Controller) { // && Scene::IsPlaying()
-                            ImGui::Separator();
-                            ImGui::Text("Runtime Debug:");
-
-                            // 显示当前状态名
-                            std::string stateName = comp.Controller->GetCurrentStateName();
-                            ImGui::LabelText("Current State", "%s", stateName.c_str());
-
-                            // 手动切换状态测试
-                            static char stateBuffer[64] = "";
-                            ImGui::InputText("Test State", stateBuffer, sizeof(stateBuffer));
-                            if (ImGui::Button("Play State")) {
-                                comp.Controller->Play(std::string(stateBuffer));
-                            }
-                        }
-
-                        ImGui::TreePop();
-                    }
-
-                    if (removeComponent) {
-                        entity.RemoveComponent<AnimatorComponent>();
-                    }
                 }
-		if (entity.HasComponent<CameraComponent>()) {
-			if (ImGui::TreeNodeEx("Camera", ImGuiTreeNodeFlags_OpenOnArrow)) {
-				std::string projectionTypeStrings[2] = { "Projection" , "Orthographic" };
-				auto& component = entity.GetComponent<CameraComponent>();
-				auto& camera = component.m_Camera;
-				std::string currentProjectionTypeString = projectionTypeStrings[(int)camera.GetProjectionType()];
-				if (ImGui::BeginCombo("projectionType", currentProjectionTypeString.c_str())) {
-					for (int i = 0; i < 2; i++)
-					{
-						bool isSelected = currentProjectionTypeString == projectionTypeStrings[i];
-						if (ImGui::Selectable(projectionTypeStrings[i].c_str(), isSelected))
-						{
-							currentProjectionTypeString = projectionTypeStrings[i];
-							camera.SetProjectionType((SceneCamera::ProjectionType)i);
-						}
-
-						if (isSelected)
-							ImGui::SetItemDefaultFocus();
-					}
-
-					ImGui::EndCombo();
-				}
-
-				if (camera.GetProjectionType() == SceneCamera::ProjectionType::Projection)
-				{
-					float perspectiveVerticalFov = glm::degrees(camera.GetProjectionFov());
-					if (ImGui::DragFloat("Vertical FOV", &perspectiveVerticalFov))
-						camera.SetProjectionFov(glm::radians(perspectiveVerticalFov));
-
-					float perspectiveNear = camera.GetProjectionNearClip();
-					if (ImGui::DragFloat("Near", &perspectiveNear))
-						camera.SetProjectionNearClip(perspectiveNear);
-
-					float perspectiveFar = camera.GetProjectionFarClip();
-					if (ImGui::DragFloat("Far", &perspectiveFar))
-						camera.SetProjectionFarClip(perspectiveFar);
-				}
-
-				if (camera.GetProjectionType() == SceneCamera::ProjectionType::Orthographic)
-				{
-					float orthoSize = camera.GetOrthographicSize();
-					if (ImGui::DragFloat("Size", &orthoSize))
-						camera.SetOrthographicSize(orthoSize);
-
-					float orthoNear = camera.GetOrthographicNearClip();
-					if (ImGui::DragFloat("Near", &orthoNear))
-						camera.SetOrthographicNearClip(orthoNear);
-
-					float orthoFar = camera.GetOrthographicFarClip();
-					if (ImGui::DragFloat("Far", &orthoFar))
-						camera.SetOrthographicFarClip(orthoFar);
-
-                    if(ImGui::Checkbox("Fixed Aspect Ratio", &component.FixedAspectRatio)){
-                        component.m_Camera.SetFixAspectRatio(component.FixedAspectRatio);
-                    }
-                    ImGui::Checkbox("Primary", &component.m_Pramiary);
-
-				}
-
-				ImGui::TreePop();
-			}
-		}
+                else{
+                    ImGui::Text("Add <Renderable> to use");
+                }
+            });
         
+        // --- Animator Component ---
+        DrawComponent<AnimatorComponent>("Animator", entity, [&](Entity& e , auto& comp){
+            {
+                auto& comp = e.GetComponent<AnimatorComponent>();
+
+                std::string controllerName = "None (Missing)";
+                if (comp.Controller) {
+                    // 如果 Controller 是资源，应该有名字或路径
+                     controllerName = "Valid Controller"; // 暂时显示这个，建议 comp.Controller->GetName()
+                    if (ImGui::Button("Edit Controller")) {
+                            // 全局获取 Panel 实例并打开
+                            m_AnimationControllerPanel.SetContext(comp.Controller);
+                            // EditorLayer::Get().ShowAnimationControllerPanel(true);
+                    }
+                }
+
+                if (comp.Controller) { // && Scene::IsPlaying()
+                    ImGui::Separator();
+                    ImGui::Text("Runtime Debug:");
+
+                    // 显示当前状态名
+                    std::string stateName = comp.Controller->GetCurrentStateName();
+                    ImGui::LabelText("Current State", "%s", stateName.c_str());
+
+                    // 手动切换状态测试
+                    static char stateBuffer[64] = "";
+                    ImGui::InputText("Test State", stateBuffer, sizeof(stateBuffer));
+                    if (ImGui::Button("Play State")) {
+                        comp.Controller->Play(std::string(stateBuffer));
+                    }
+                }
+
+            }
+        });
+        
+        DrawComponent<CameraComponent>("Camera", entity, [](Entity& e , auto& component){
+            std::string projectionTypeStrings[2] = { "Projection" , "Orthographic" };
+
+            auto& camera = component.m_Camera;
+            std::string currentProjectionTypeString = projectionTypeStrings[(int)camera.GetProjectionType()];
+            if (ImGui::BeginCombo("projectionType", currentProjectionTypeString.c_str())) {
+                for (int i = 0; i < 2; i++)
+                {
+                    bool isSelected = currentProjectionTypeString == projectionTypeStrings[i];
+                    if (ImGui::Selectable(projectionTypeStrings[i].c_str(), isSelected))
+                    {
+                        currentProjectionTypeString = projectionTypeStrings[i];
+                        camera.SetProjectionType((SceneCamera::ProjectionType)i);
+                    }
+
+                    if (isSelected)
+                        ImGui::SetItemDefaultFocus();
+                }
+
+                ImGui::EndCombo();
+            }
+
+            if (camera.GetProjectionType() == SceneCamera::ProjectionType::Projection)
+            {
+                float perspectiveVerticalFov = glm::degrees(camera.GetProjectionFov());
+                if (ImGui::DragFloat("Vertical FOV", &perspectiveVerticalFov))
+                    camera.SetProjectionFov(glm::radians(perspectiveVerticalFov));
+
+                float perspectiveNear = camera.GetProjectionNearClip();
+                if (ImGui::DragFloat("Near", &perspectiveNear))
+                    camera.SetProjectionNearClip(perspectiveNear);
+
+                float perspectiveFar = camera.GetProjectionFarClip();
+                if (ImGui::DragFloat("Far", &perspectiveFar))
+                    camera.SetProjectionFarClip(perspectiveFar);
+            }
+
+            if (camera.GetProjectionType() == SceneCamera::ProjectionType::Orthographic)
+            {
+                float orthoSize = camera.GetOrthographicSize();
+                if (ImGui::DragFloat("Size", &orthoSize))
+                    camera.SetOrthographicSize(orthoSize);
+
+                float orthoNear = camera.GetOrthographicNearClip();
+                if (ImGui::DragFloat("Near", &orthoNear))
+                    camera.SetOrthographicNearClip(orthoNear);
+
+                float orthoFar = camera.GetOrthographicFarClip();
+                if (ImGui::DragFloat("Far", &orthoFar))
+                    camera.SetOrthographicFarClip(orthoFar);
+
+                if(ImGui::Checkbox("Fixed Aspect Ratio", &component.FixedAspectRatio)){
+                    component.m_Camera.SetFixAspectRatio(component.FixedAspectRatio);
+                }
+                ImGui::Checkbox("Primary", &component.m_Pramiary);
+
+            }
+        });
+
+//		if (entity.HasComponent<CameraComponent>()) {
+//			if (ImGui::TreeNodeEx("Camera", ImGuiTreeNodeFlags_OpenOnArrow)) {
+//				std::string projectionTypeStrings[2] = { "Projection" , "Orthographic" };
+//				auto& component = entity.GetComponent<CameraComponent>();
+//				auto& camera = component.m_Camera;
+//				std::string currentProjectionTypeString = projectionTypeStrings[(int)camera.GetProjectionType()];
+//				if (ImGui::BeginCombo("projectionType", currentProjectionTypeString.c_str())) {
+//					for (int i = 0; i < 2; i++)
+//					{
+//						bool isSelected = currentProjectionTypeString == projectionTypeStrings[i];
+//						if (ImGui::Selectable(projectionTypeStrings[i].c_str(), isSelected))
+//						{
+//							currentProjectionTypeString = projectionTypeStrings[i];
+//							camera.SetProjectionType((SceneCamera::ProjectionType)i);
+//						}
+//
+//						if (isSelected)
+//							ImGui::SetItemDefaultFocus();
+//					}
+//
+//					ImGui::EndCombo();
+//				}
+//
+//				if (camera.GetProjectionType() == SceneCamera::ProjectionType::Projection)
+//				{
+//					float perspectiveVerticalFov = glm::degrees(camera.GetProjectionFov());
+//					if (ImGui::DragFloat("Vertical FOV", &perspectiveVerticalFov))
+//						camera.SetProjectionFov(glm::radians(perspectiveVerticalFov));
+//
+//					float perspectiveNear = camera.GetProjectionNearClip();
+//					if (ImGui::DragFloat("Near", &perspectiveNear))
+//						camera.SetProjectionNearClip(perspectiveNear);
+//
+//					float perspectiveFar = camera.GetProjectionFarClip();
+//					if (ImGui::DragFloat("Far", &perspectiveFar))
+//						camera.SetProjectionFarClip(perspectiveFar);
+//				}
+//
+//				if (camera.GetProjectionType() == SceneCamera::ProjectionType::Orthographic)
+//				{
+//					float orthoSize = camera.GetOrthographicSize();
+//					if (ImGui::DragFloat("Size", &orthoSize))
+//						camera.SetOrthographicSize(orthoSize);
+//
+//					float orthoNear = camera.GetOrthographicNearClip();
+//					if (ImGui::DragFloat("Near", &orthoNear))
+//						camera.SetOrthographicNearClip(orthoNear);
+//
+//					float orthoFar = camera.GetOrthographicFarClip();
+//					if (ImGui::DragFloat("Far", &orthoFar))
+//						camera.SetOrthographicFarClip(orthoFar);
+//
+//                    if(ImGui::Checkbox("Fixed Aspect Ratio", &component.FixedAspectRatio)){
+//                        component.m_Camera.SetFixAspectRatio(component.FixedAspectRatio);
+//                    }
+//                    ImGui::Checkbox("Primary", &component.m_Pramiary);
+//
+//				}
+//
+//				ImGui::TreePop();
+//			}
+//		}
+        
+//        DrawComponent<NativeScriptComponent>("NativeScript", entity, [](Entity& e , auto& component){
+//            if(!component.hasBind){
+//                if (ImGui::Button("Add Behavior"))
+//                    ImGui::OpenPopup("AddBehavior");
+//                
+//                if (ImGui::BeginPopup("AddBehavior"))
+//                {
+//                    component.Bind<CircleBehavior>();
+//                    TSO_CORE_INFO("add circle");
+//                    ImGui::EndPopup();
+//                }
+//                
+//            }
+//        });
         if (entity.HasComponent<NativeScriptComponent>()) {
             bool open = ImGui::TreeNodeEx("NativeScript", ImGuiTreeNodeFlags_OpenOnArrow);
             bool removeComponent = false;
@@ -1562,11 +1553,7 @@ void SceneHierarchyPanel::DrawResources(){
             }
             
         }
-
-        if (entity.HasComponent<ScriptComponent>()) {
-
-            auto& comp = entity.GetComponent<ScriptComponent>();
-
+        DrawComponent<ScriptComponent>("Script", entity, [](Entity&e , auto& comp){
             auto& className = comp.ClassName;
             char buff[256];
 
@@ -1581,12 +1568,18 @@ void SceneHierarchyPanel::DrawResources(){
             if (ImGui::InputText("ScriptClass", buff, sizeof(buff))) {
                 comp.ClassName = buff;
             }
+            if (ImGui::BeginDragDropTarget()) {
+                if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("RESOURCE_SCRIPT")) {
+                    std::string name = *(const std::string*)payload->Data;
+                    comp.ClassName = name;
+                }
+                ImGui::EndDragDropTarget();
+            }
             if (!classExist) {
                 ImGui::PopStyleColor();
             }
+        });
 
-            
-        }
 
         if (entity.HasComponent<NetworkComponent>()) {
             auto& comp = entity.GetComponent<NetworkComponent>();
@@ -1600,44 +1593,56 @@ void SceneHierarchyPanel::DrawResources(){
             }
         }
         
-        if(entity.HasComponent<ButtonComponent>()){
-            TSO_ASSERT(entity.HasComponent<UITransformComponent>() , "UI lacks virtual Transform component!");
-            if (ImGui::TreeNodeEx("Button", ImGuiTreeNodeFlags_OpenOnArrow)) {
-                auto& uitransformc = entity.GetComponent<UITransformComponent>();
-                auto& comp = entity.GetComponent<ButtonComponent>();
-                auto& pos = uitransformc.UIpos;
-                auto& size = uitransformc.UISize;
-                if (ImGui::DragFloat2("pos:", glm::value_ptr(pos) , 0.1f)) {
-                    uitransformc.UIpos = pos;
-                }
-                if (ImGui::DragFloat3("size:", glm::value_ptr(size), 0.1f)) {
-                    uitransformc.UISize = size;
-                }
-                ImGui::ColorEdit4("Hover Tint", glm::value_ptr(comp.HoverColor));
-                ImGui::ColorEdit4("Click Tint", glm::value_ptr(comp.PressedColor));
-
-                ImGui::TreePop();
-            }
-        }
+        DrawComponent<ButtonComponent>("Button", entity, [](Entity&entity , auto& comp){
+            ImGui::ColorEdit4("Hover Tint", glm::value_ptr(comp.HoverColor));
+            ImGui::ColorEdit4("Click Tint", glm::value_ptr(comp.PressedColor));
+        });
         
-        if(entity.HasComponent<InputFieldComponent>()){
-            TSO_ASSERT(entity.HasComponent<UITransformComponent>() , "UI lacks virtual Transform component!");
-            if (ImGui::TreeNodeEx("Input", ImGuiTreeNodeFlags_OpenOnArrow)) {
-                auto& uitransformc = entity.GetComponent<UITransformComponent>();
-                auto& comp = entity.GetComponent<InputFieldComponent>();
-                auto& pos = uitransformc.UIpos;
-                auto& size = uitransformc.UISize;
-                if (ImGui::DragFloat2("pos:", glm::value_ptr(pos) , 0.1f)) {
-                    uitransformc.UIpos = pos;
-                }
-                if (ImGui::DragFloat3("size:", glm::value_ptr(size), 0.1f)) {
-                    uitransformc.UISize = size;
-                }
-                ImGui::ColorEdit4("color", glm::value_ptr(comp.FocusedColor));
-
-                ImGui::TreePop();
-            }
-        }
+//        if(entity.HasComponent<ButtonComponent>()){
+//            TSO_ASSERT(entity.HasComponent<UITransformComponent>() , "UI lacks virtual Transform component!");
+//            if (ImGui::TreeNodeEx("Button", ImGuiTreeNodeFlags_OpenOnArrow)) {
+//                auto& uitransformc = entity.GetComponent<UITransformComponent>();
+//                auto& comp = entity.GetComponent<ButtonComponent>();
+//                auto& pos = uitransformc.UIpos;
+//                auto& size = uitransformc.UISize;
+//                if (ImGui::DragFloat2("pos:", glm::value_ptr(pos) , 0.1f)) {
+//                    uitransformc.UIpos = pos;
+//                }
+//                if (ImGui::DragFloat3("size:", glm::value_ptr(size), 0.1f)) {
+//                    uitransformc.UISize = size;
+//                }
+//                ImGui::ColorEdit4("Hover Tint", glm::value_ptr(comp.HoverColor));
+//                ImGui::ColorEdit4("Click Tint", glm::value_ptr(comp.PressedColor));
+//
+//                ImGui::TreePop();
+//            }
+//        }
+        DrawComponent<InputFieldComponent>("Input", entity, [](Entity&entity , auto& comp){
+            ImGui::ColorEdit4("color", glm::value_ptr(comp.FocusedColor));
+        });
+        
+        DrawComponent<UITransformComponent>("UITransform", entity, [](Entity&entity , auto& comp){
+            ImGui::DragFloat2("pos:", glm::value_ptr(comp.UIpos) , 0.1f);
+            ImGui::DragFloat3("size:", glm::value_ptr(comp.UISize), 0.1f);
+        });
+//        if(entity.HasComponent<InputFieldComponent>()){
+//            TSO_ASSERT(entity.HasComponent<UITransformComponent>() , "UI lacks virtual Transform component!");
+//            if (ImGui::TreeNodeEx("Input", ImGuiTreeNodeFlags_OpenOnArrow)) {
+//                auto& uitransformc = entity.GetComponent<UITransformComponent>();
+//                auto& comp = entity.GetComponent<InputFieldComponent>();
+//                auto& pos = uitransformc.UIpos;
+//                auto& size = uitransformc.UISize;
+//                if (ImGui::DragFloat2("pos:", glm::value_ptr(pos) , 0.1f)) {
+//                    uitransformc.UIpos = pos;
+//                }
+//                if (ImGui::DragFloat3("size:", glm::value_ptr(size), 0.1f)) {
+//                    uitransformc.UISize = size;
+//                }
+//                ImGui::ColorEdit4("color", glm::value_ptr(comp.FocusedColor));
+//
+//                ImGui::TreePop();
+//            }
+//        }
         
         
 	}

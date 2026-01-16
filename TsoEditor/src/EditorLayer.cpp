@@ -14,6 +14,7 @@
 #include "Tso/Renderer/ViewportManager.h"
 #include "Tso/Renderer/Renderer2DMaterial.h"
 #include "Tso/Project/Packer.h"
+#include "imgui_internal.h"
 
 namespace Utils{
 
@@ -318,8 +319,12 @@ void EditorLayer::DrawEditorInterface(){
     const auto& buttonActive = colors[ImGuiCol_ButtonActive];
     ImGui::PushStyleColor(ImGuiCol_ButtonActive, ImVec4(buttonActive.x, buttonActive.y, buttonActive.z, 0.5f));
 
+    ImGuiWindowClass window_class;
+    window_class.DockNodeFlagsOverrideSet = ImGuiDockNodeFlags_NoTabBar;
+    ImGui::SetNextWindowClass(&window_class);
     // 3. 开始绘制窗口
     ImGui::Begin("##toolbar", nullptr, ImGuiWindowFlags_NoDecoration | ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
+    
 
     // 4. 计算居中位置
     // 假设图标大小为窗口高度的大部分
@@ -329,8 +334,8 @@ void EditorLayer::DrawEditorInterface(){
     // 估算一下总宽度，以便居中 (图标宽度 + 3个文字按钮宽度 + 间距)
     // 这里为了简单，假设文字按钮宽 80，图标宽 size
     float textBtnWidth = 80.0f;
-    int textBtnCount = 3;
-    if (!Project::GetActive()) textBtnCount = 2; // 如果没项目，Reload不显示
+    int textBtnCount = 1;
+    if (!Project::GetActive()) textBtnCount = 0; // 如果没项目，Reload不显示
 
     float totalWidth = size + (textBtnCount * textBtnWidth) + (textBtnCount * ImGui::GetStyle().ItemSpacing.x);
     
@@ -359,16 +364,16 @@ void EditorLayer::DrawEditorInterface(){
     // 6. 绘制其他功能按钮 (保持文字风格，但享受透明背景样式)
     // 这里的文字按钮因为背景透明，看起来就像菜单项，很整洁
     
-    ImGui::SameLine();
-    if (ImGui::Button("Connect", ImVec2(textBtnWidth, size))) {
-        if (NetWorkEngine::Connect("127.0.0.1", 6000)) TSO_INFO("connect sucussfully");
-    }
-
-    ImGui::SameLine();
-    if (ImGui::Button("Disconnect", ImVec2(textBtnWidth, size))) {
-        if (NetWorkEngine::DisConnect()) TSO_INFO("disconnect sucussfully");
-        else TSO_ERROR("unable to disconnect");
-    }
+//    ImGui::SameLine();
+//    if (ImGui::Button("Connect", ImVec2(textBtnWidth, size))) {
+//        if (NetWorkEngine::Connect("127.0.0.1", 6000)) TSO_INFO("connect sucussfully");
+//    }
+//
+//    ImGui::SameLine();
+//    if (ImGui::Button("Disconnect", ImVec2(textBtnWidth, size))) {
+//        if (NetWorkEngine::DisConnect()) TSO_INFO("disconnect sucussfully");
+//        else TSO_ERROR("unable to disconnect");
+//    }
     
     if (Project::GetActive()) {
         ImGui::SameLine();
@@ -707,20 +712,63 @@ void EditorLayer::DrawEditorInterface(){
         }
     }
 
-    void EditorLayer::SaveProject()
-    {
-        auto& projPath = Project::GetActive()->GetProjectDirectory();
-        if (projPath.empty()) {
-            projPath = FileDialogs::SaveFile("Tso Project(*.tproj)\0 * .tproj\0");
+
+    void EditorLayer::SaveProject(){
+        auto project = Project::GetActive();
+        std::string projPathStr = project->GetProjectDirectory().string(); // 假设 GetProjectDirectory 返回 path
+        bool newProj = false;
+        // 1. 如果是新建项目（路径为空），弹出保存对话框
+        if (projPathStr.empty()) {
+            projPathStr = FileDialogs::SaveFile("Tso Project (*.tproj)\0*.tproj\0");
+            if (projPathStr.empty()) return; // 用户取消
+            newProj = true;
+            // 确保后缀正确
+            if (std::filesystem::path(projPathStr).extension() != ".tproj") {
+                projPathStr += ".tproj";
+            }
         }
-        auto projDir = projPath;
-        if(m_ScenePath.empty()){
-            auto rootPath = std::filesystem::path(projPath).parent_path();
-            m_ScenePath = rootPath.string() + "/newScene.teScene";
+
+        std::filesystem::path projFilePath(projPathStr);
+        std::filesystem::path projRootDir = projFilePath;
+        if(newProj){
+            projRootDir = projRootDir.parent_path();
         }
-        SaveScene();
-        Project::GetActive()->GetConfig().FirstScene = std::filesystem::path(m_ScenePath).lexically_relative(projDir);
-        Project::SaveActive(projPath);
+
+        // =========================================================
+        // 2. 创建目录结构 (核心修改)
+        // =========================================================
+        // std::filesystem::create_directories 会递归创建目录，且如果已存在不会报错
+        // 跨平台兼容 (Windows/Mac/Linux)
+        
+        std::filesystem::create_directories(projRootDir / "Assets");
+        std::filesystem::create_directories(projRootDir / "Assets" / "Shader");
+        std::filesystem::create_directories(projRootDir / "Assets" / "Animations");
+        std::filesystem::create_directories(projRootDir / "Assets" / "Sprites");
+        std::filesystem::create_directories(projRootDir / "Assets" / "Scripts");
+        std::filesystem::create_directories(projRootDir / "Assets" / "Material");
+
+        // =========================================================
+
+        // 3. 处理场景保存
+        if (m_ScenePath.empty()) {
+            // 如果是新项目，默认创建一个场景在 Assets/Scene 下 (如果你想规范化的话)
+            // 或者直接在根目录
+            // 建议放在 Assets/Scenes 下，或者根目录
+            // 这里沿用你的逻辑：根目录下
+            m_ScenePath = (projRootDir / "newScene.teScene").string();
+        }
+        
+        SaveScene(); // 保存当前场景文件
+
+        // 4. 更新 Project 配置
+        // 计算 StartScene 相对于 Project 文件的相对路径
+        std::filesystem::path sceneAbsPath(m_ScenePath);
+        std::filesystem::path sceneRelPath = std::filesystem::relative(sceneAbsPath, projRootDir);
+        
+        project->GetConfig().FirstScene = sceneRelPath;
+        
+        // 5. 保存 Project 文件
+        Project::SaveActive(projFilePath.string());
     }
 
     bool EditorLayer::OpenProject()

@@ -16,6 +16,7 @@ namespace Tso {
 
 	class Project {
 	public:
+        Project() = default;
 		static Ref<Project> New();
 		static Ref<Project> LoadProject(const std::filesystem::path& path);
 		static bool SaveActive(const std::filesystem::path& path);

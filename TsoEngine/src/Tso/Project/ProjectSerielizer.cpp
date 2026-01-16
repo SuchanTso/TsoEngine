@@ -249,103 +249,103 @@ namespace Tso {
                 out << YAML::Key << "AssetDirectory" << YAML::Value << config.AssetPath.string();
                 out << YAML::Key << "ScriptModulePath" << YAML::Value << config.ScriptModulePath.string();
 
-                // --- 2. Resource 列表 (Texture & Shader) ---
-                out << YAML::Key << "Resource" << YAML::Value << YAML::BeginSeq;
-
-                // 2.1 序列化 Textures
-                auto& textures = Resource::GetResourceMap<Texture2D>();
-                for (auto& [uuid, texture] : textures)
-                {
-                    out << YAML::BeginMap;
-                    out << YAML::Key << "Type" << YAML::Value << "Texture";
-                    out << YAML::Key << "Name" << YAML::Value << texture->GetName();
-                    out << YAML::Key << "UUID" << YAML::Value << (uint64_t)uuid; // 确保存储为数字
-                    
-                    // 计算相对路径： assets/sprites.png
-                    std::filesystem::path absPath = texture->GetPath();
-                    std::string relPath = std::filesystem::relative(absPath, projectDir).generic_string(); // generic_string 确保使用 / 分隔符
-                    out << YAML::Key << "Path" << YAML::Value << relPath;
-                    
-                    out << YAML::EndMap;
-                }
-
-                // 2.2 序列化 Shaders
-                auto& shaders = Resource::GetResourceMap<Shader>();
-                for (auto& [uuid, shader] : shaders)
-                {
-                    out << YAML::BeginMap;
-                    out << YAML::Key << "Type" << YAML::Value << "Shader";
-                    out << YAML::Key << "Name" << YAML::Value << shader->GetName();
-                    out << YAML::Key << "UUID" << YAML::Value << (uint64_t)uuid;
-
-                    // 假设 Shader 类有 GetFilePath()
-                    std::filesystem::path absPath = shader->GetPath();
-                    std::string relPath = std::filesystem::relative(absPath, projectDir).generic_string();
-                    out << YAML::Key << "Path" << YAML::Value << relPath;
-
-                    out << YAML::EndMap;
-                }
-                
-                auto& fonts = Resource::GetResourceMap<Font>();
-                for (auto& [uuid, font] : fonts)
-                {
-                    out << YAML::BeginMap;
-                    out << YAML::Key << "Type" << YAML::Value << "Font";
-                    out << YAML::Key << "Name" << YAML::Value << font->GetName();
-                    out << YAML::Key << "UUID" << YAML::Value << (uint64_t)uuid;
-
-                    // 假设 Shader 类有 GetFilePath()
-                    std::filesystem::path absPath = font->GetPath();
-                    std::string relPath = std::filesystem::relative(absPath, projectDir).generic_string();
-                    out << YAML::Key << "Path" << YAML::Value << relPath;
-
-                    out << YAML::EndMap;
-                }
-                
-                auto& animations = Resource::GetResourceMap<AnimationClip>();
-                for(auto& [uuid , animation] : animations){
-                    out << YAML::BeginMap;
-                    out << YAML::Key << "Type" << YAML::Value << "Aniamtion";
-                    out << YAML::Key << "Name" << YAML::Value << animation->GetName();
-                    out << YAML::Key << "UUID" << YAML::Value << (uint64_t)uuid;
-
-                    // 假设 Shader 类有 GetFilePath()
-                    std::filesystem::path absPath = animation->GetPath();
-                    std::string relPath = std::filesystem::relative(absPath, projectDir).generic_string();
-                    out << YAML::Key << "Path" << YAML::Value << relPath;
-                    out << YAML::EndMap;
-                }
-
-                out << YAML::EndSeq; // End Resource List
-
-
-                // --- 3. Materials 列表 ---
-                // 注意：材质的具体参数保存在 .mat 文件中，这里只保存项目引用了哪些材质文件
-                out << YAML::Key << "Materials" << YAML::Value << YAML::BeginSeq;
-
+//                // --- 2. Resource 列表 (Texture & Shader) ---
+//                out << YAML::Key << "Resource" << YAML::Value << YAML::BeginSeq;
+//
+//                // 2.1 序列化 Textures
+//                auto& textures = Resource::GetResourceMap<Texture2D>();
+//                for (auto& [uuid, texture] : textures)
+//                {
+//                    out << YAML::BeginMap;
+//                    out << YAML::Key << "Type" << YAML::Value << "Texture";
+//                    out << YAML::Key << "Name" << YAML::Value << texture->GetName();
+//                    out << YAML::Key << "UUID" << YAML::Value << (uint64_t)uuid; // 确保存储为数字
+//                    
+//                    // 计算相对路径： assets/sprites.png
+//                    std::filesystem::path absPath = texture->GetPath();
+//                    std::string relPath = std::filesystem::relative(absPath, projectDir).generic_string(); // generic_string 确保使用 / 分隔符
+//                    out << YAML::Key << "Path" << YAML::Value << relPath;
+//                    
+//                    out << YAML::EndMap;
+//                }
+//
+//                // 2.2 序列化 Shaders
+//                auto& shaders = Resource::GetResourceMap<Shader>();
+//                for (auto& [uuid, shader] : shaders)
+//                {
+//                    out << YAML::BeginMap;
+//                    out << YAML::Key << "Type" << YAML::Value << "Shader";
+//                    out << YAML::Key << "Name" << YAML::Value << shader->GetName();
+//                    out << YAML::Key << "UUID" << YAML::Value << (uint64_t)uuid;
+//
+//                    // 假设 Shader 类有 GetFilePath()
+//                    std::filesystem::path absPath = shader->GetPath();
+//                    std::string relPath = std::filesystem::relative(absPath, projectDir).generic_string();
+//                    out << YAML::Key << "Path" << YAML::Value << relPath;
+//
+//                    out << YAML::EndMap;
+//                }
+//                
+//                auto& fonts = Resource::GetResourceMap<Font>();
+//                for (auto& [uuid, font] : fonts)
+//                {
+//                    out << YAML::BeginMap;
+//                    out << YAML::Key << "Type" << YAML::Value << "Font";
+//                    out << YAML::Key << "Name" << YAML::Value << font->GetName();
+//                    out << YAML::Key << "UUID" << YAML::Value << (uint64_t)uuid;
+//
+//                    // 假设 Shader 类有 GetFilePath()
+//                    std::filesystem::path absPath = font->GetPath();
+//                    std::string relPath = std::filesystem::relative(absPath, projectDir).generic_string();
+//                    out << YAML::Key << "Path" << YAML::Value << relPath;
+//
+//                    out << YAML::EndMap;
+//                }
+//                
+//                auto& animations = Resource::GetResourceMap<AnimationClip>();
+//                for(auto& [uuid , animation] : animations){
+//                    out << YAML::BeginMap;
+//                    out << YAML::Key << "Type" << YAML::Value << "Aniamtion";
+//                    out << YAML::Key << "Name" << YAML::Value << animation->GetName();
+//                    out << YAML::Key << "UUID" << YAML::Value << (uint64_t)uuid;
+//
+//                    // 假设 Shader 类有 GetFilePath()
+//                    std::filesystem::path absPath = animation->GetPath();
+//                    std::string relPath = std::filesystem::relative(absPath, projectDir).generic_string();
+//                    out << YAML::Key << "Path" << YAML::Value << relPath;
+//                    out << YAML::EndMap;
+//                }
+//
+//                out << YAML::EndSeq; // End Resource List
+//
+//
+//                // --- 3. Materials 列表 ---
+//                // 注意：材质的具体参数保存在 .mat 文件中，这里只保存项目引用了哪些材质文件
+//                out << YAML::Key << "Materials" << YAML::Value << YAML::BeginSeq;
+//
                 auto& materials = Resource::GetResourceMap<Material>();
                 for (auto& [uuid, material] : materials)
                 {
-                    // 只有当材质有对应的物理文件路径时才保存到 Project 中
-                    // 内存中临时创建的材质如果不保存为 .mat，这里可能没法记录路径
-                    // 假设 Material 类有 GetPath() 成员
+//                    // 只有当材质有对应的物理文件路径时才保存到 Project 中
+//                    // 内存中临时创建的材质如果不保存为 .mat，这里可能没法记录路径
+//                    // 假设 Material 类有 GetPath() 成员
                     std::string matPathStr = material->GetPath();
                     if (matPathStr.empty()) continue;
                     material->Serealize();
-                    out << YAML::BeginMap;
-                    out << YAML::Key << "UUID" << YAML::Value << (uint64_t)uuid;
-
-                    std::filesystem::path absPath = matPathStr;
-                    std::string relPath = std::filesystem::relative(absPath, projectDir).generic_string();
-                    out << YAML::Key << "Path" << YAML::Value << relPath;
-                    
-                    out << YAML::EndMap;
-                    
-                    // 顺便：通常在这里我们也应该调用 MaterialSerializer::Serialize(material, absPath);
-                    // 确保材质本身的参数（颜色、贴图引用）也被保存到 .mat 文件中
+//                    out << YAML::BeginMap;
+//                    out << YAML::Key << "UUID" << YAML::Value << (uint64_t)uuid;
+//
+//                    std::filesystem::path absPath = matPathStr;
+//                    std::string relPath = std::filesystem::relative(absPath, projectDir).generic_string();
+//                    out << YAML::Key << "Path" << YAML::Value << relPath;
+//                    
+//                    out << YAML::EndMap;
+//                    
+//                    // 顺便：通常在这里我们也应该调用 MaterialSerializer::Serialize(material, absPath);
+//                    // 确保材质本身的参数（颜色、贴图引用）也被保存到 .mat 文件中
                 }
-
-                out << YAML::EndSeq; // End Materials List
+//
+//                out << YAML::EndSeq; // End Materials List
 
                 out << YAML::EndMap; // End Project Map
             }
@@ -393,12 +393,12 @@ namespace Tso {
 		config.FirstScene = std::filesystem::path(projectNode["StartScene"].as<std::string>());
 		config.AssetPath = std::filesystem::path(projectNode["AssetDirectory"].as<std::string>());//not used
 		config.ScriptModulePath = std::filesystem::path(projectNode["ScriptModulePath"].as<std::string>());
-        if(auto resourceNode = projectNode["Resource"]){
-            Utils::LoadProjectAsset(resourceNode);
-        }
-        if(auto matNode = projectNode["Materials"]){
-            Utils::LoadMaterials(matNode);
-        }
+//        if(auto resourceNode = projectNode["Resource"]){
+//            Utils::LoadProjectAsset(resourceNode);
+//        }
+//        if(auto matNode = projectNode["Materials"]){
+//            Utils::LoadMaterials(matNode);
+//        }
 		return true;
 	}
 }

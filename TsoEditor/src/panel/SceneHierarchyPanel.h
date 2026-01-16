@@ -4,6 +4,7 @@
 #include "Tso/Scene/Entity.h"
 #include "AnimationPanel.h"
 #include "AnimationControllerPanel.h"
+#include "ContentBrowserPanel.h"
 
 namespace Tso {
 	class Entity;
@@ -17,6 +18,8 @@ namespace Tso {
         std::unordered_map<unsigned int, std::string> SourceBuffers;
         bool IsDirty = false;
     };
+    enum class ResourceType { None, Texture, Shader, Material , Font , Animation };
+
 	class SceneHierarchyPanel {
 	public:
 		SceneHierarchyPanel() = default;
@@ -32,7 +35,8 @@ namespace Tso {
         
         void DrawResourceList();      // 绘制左侧列表
         void DrawResourceInspector(); // 绘制右侧详细信息
-        
+        void SetSelectedResource(const UUID& uuid , const ResourceType& type);
+
     private:
 
         void DrawMaterialNode(Ref<Material> material);
@@ -51,13 +55,14 @@ namespace Tso {
         
 		void DrwaEntityNode(Entity& entity);
 		void DrawComponents(Entity& entity);
+        
         void DrawResources();
+        
 	private:
 		friend class Scene;
 		Ref<Scene> m_Context = nullptr;
 		Entity m_SelectedEntity{entt::null , nullptr};
 		Entity m_DeletedEntity{ entt::null , nullptr };
-        enum class ResourceType { None, Texture, Shader, Material , Font , Animation };
         UUID m_SelectedResourceUUID = 0;
         ResourceType m_SelectedType = ResourceType::None;
         ShaderEditorSession m_ShaderCache;
@@ -77,6 +82,7 @@ namespace Tso {
         std::string m_TextureSlotToChange;
         AnimationPanel m_AnimationPanel;
         AnimationControllerPanel m_AnimationControllerPanel;
+        Ref<ContentBrowserPanel> m_ContentBrowserPanel = nullptr;
 	};
 
 }

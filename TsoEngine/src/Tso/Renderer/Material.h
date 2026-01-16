@@ -23,8 +23,14 @@ namespace Tso {
     class Material {
     public:
         Material(Ref<Shader> shader, const std::string& name = "Unnamed Material");
+        
+        Material(const std::string& name = "Unnamed Material");
 
         static Ref<Material> Create(Ref<Shader> shader, const std::string& name = "Unnamed Material");
+        
+        static Ref<Material> Create(const std::string& name = "nnamed Material");
+        
+        static Ref<Material> Create(const std::string& path , const UUID& uuid);
 
         void Bind() const;
 
@@ -47,6 +53,7 @@ namespace Tso {
         void SetTexture(const std::string& name, const Ref<Texture2D>& texture);
         
         // --- Getter ---
+        void SetShader(Ref<Shader>shader){m_Shader = shader;}
         Ref<Shader> GetShader() const { return m_Shader; }
         const std::string& GetName() const { return m_Name; }
         UUID& GetRendererID(){return m_RendererID;}
@@ -58,6 +65,8 @@ namespace Tso {
         void SetPath(const std::string& filePath){m_filePath = filePath;}
         
         void Serealize();
+        
+        static Ref<Material> Desealize(const std::string& path , const UUID& uuid);
         
         void SetUUID(const UUID& uuid){m_UUID = uuid;}
         
