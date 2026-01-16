@@ -64,7 +64,7 @@ namespace Utils{
                 shader->SetName(name);
                 shader->SetPath(fullPath.string());
                 if(shader){
-                    Tso::Resource::AddResource(name, uuid, shader);
+                    Tso::Resource::AddResource<Tso::Shader>(name, uuid, shader);
                     TSO_CORE_TRACE("Add Shader {} successfully", uuid);
                 }
                 else{
@@ -76,7 +76,7 @@ namespace Utils{
                 auto texture = Tso::Texture2D::Create(fullPath.string());
                 texture->SetName(name);
                 if(texture){
-                    Tso::Resource::AddResource(name , uuid, texture);
+                    Tso::Resource::AddResource<Tso::Texture2D>(name , uuid, texture);
                     TSO_CORE_TRACE("Add Texture {} successfully", uuid);
                 }
                 else{
@@ -87,7 +87,7 @@ namespace Utils{
                 auto font = Tso::CreateRef<Tso::Font>(fullPath.string());
                 
                 if(font){
-                    Tso::Resource::AddResource(name, uuid, font);
+                    Tso::Resource::AddResource<Tso::Font>(name, uuid, font);
                 }
             }
             else if(type == "Aniamtion"){

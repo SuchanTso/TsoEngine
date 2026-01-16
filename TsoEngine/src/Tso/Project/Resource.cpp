@@ -24,7 +24,7 @@ void Resource::InitProject(){
     std::filesystem::path assetsDir = projectRoot / "Assets";
     
     // 递归遍历
-    for (auto& file : VirtualFileSystem::GetFiles(assetsDir)) {
+    for (auto& file : VirtualFileSystem::GetFiles(assetsDir.string())) {
         std::filesystem::path entry = std::filesystem::path(file);
         if (entry.extension() == ".meta") {
             // 读取 meta 里的 UUID
@@ -35,13 +35,13 @@ void Resource::InitProject(){
             assetPath.replace_extension("");
             
             // 存入注册表
-            s_Resource->m_ResourceData->resourceUUIDPathMap[uuid] = assetPath;
+            s_Resource->m_ResourceData->resourceUUIDPathMap[uuid] = assetPath.string();
         }
     }
 }
 
     UUID Resource::ReadUUIDFromMeta(const std::filesystem::path& path){
-            Tso::Buffer fileBuffer = Tso::VirtualFileSystem::ReadFile(path);
+            Tso::Buffer fileBuffer = Tso::VirtualFileSystem::ReadFile(path.string());
 
             if (!fileBuffer.IsValid()) {
                 TSO_CORE_ASSERT(false, "Failed to load file from VFS: {0}", path.string());
@@ -342,8 +342,8 @@ UUID Resource::GetUUIDFromPath(const std::string &path){
 
             // 5. 注册到运行时系统 (内存映射)
             // 假设你有 s_AssetRegistry 或类似的 Map
-        s_Resource->m_ResourceData->resourcePathMap[path] = uuid;
-        s_Resource->m_ResourceData->resourceUUIDPathMap[uuid] = path;
+        s_Resource->m_ResourceData->resourcePathMap[path.string()] = uuid;
+        s_Resource->m_ResourceData->resourceUUIDPathMap[uuid] = path.string();
 
             TSO_CORE_INFO("Imported Asset: {0} (UUID: {1})", path.filename().string(), (uint64_t)uuid);
             return uuid;
