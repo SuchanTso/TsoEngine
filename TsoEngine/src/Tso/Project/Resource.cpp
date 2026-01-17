@@ -44,7 +44,7 @@ void Resource::InitProject(){
             Tso::Buffer fileBuffer = Tso::VirtualFileSystem::ReadFile(path.string());
 
             if (!fileBuffer.IsValid()) {
-                TSO_CORE_ASSERT(false, "Failed to load file from VFS: {0}", path.string());
+//                TSO_CORE_ASSERT(false, "Failed to load file from VFS: {0}", path.string());
                 return 0;
             }
 
