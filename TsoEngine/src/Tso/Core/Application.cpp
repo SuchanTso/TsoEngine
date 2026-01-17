@@ -119,8 +119,24 @@ namespace Tso {
         ScriptingEngine::ShutDown();
 	}
 
-bool Application::OnWindowClosed(const WindowCloseEvent &e){
-    m_Running = false;
-    return true;
-}
+    void Application::ForceClose() {
+        m_ShowClosePrompt = false; // 关闭弹窗标记
+        m_BlockClose = true;       // 下次不再拦截
+        m_Running = false;         // 退出循环
+    }
+
+    bool Application::OnWindowClosed(const WindowCloseEvent &e){
+        if (m_BlockClose) {
+            m_Running = false;
+            return true;
+        }
+
+        if (!Project::GetActive()) {
+            m_Running = false;
+            return true;
+        }
+
+        m_ShowClosePrompt = true;
+        return true;
+    }
 }
