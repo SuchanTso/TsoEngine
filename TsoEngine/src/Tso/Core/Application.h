@@ -19,6 +19,9 @@ namespace Tso {
 		virtual ~Application();
 
 		void Run();
+        bool IsShowClosePrompt() const { return m_ShowClosePrompt; }
+        void SetShowClosePrompt(bool show) { m_ShowClosePrompt = show; }
+        void ForceClose();
 
 		void OnEvent(Event& e);
 
@@ -52,6 +55,8 @@ namespace Tso {
 
         Ref<Shader> m_Shader;
         Ref<VertexArray> m_VertexArray;
+        bool m_ShowClosePrompt = false; // 是否显示保存提示
+        bool m_BlockClose = false;      // 是否拦截了关闭事件
 
 //        OrthographicCamera m_Camera;
 

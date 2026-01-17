@@ -127,12 +127,50 @@ void EditorLayer::DrawStartScreen()
 
 
     void EditorLayer::OnImGuiRender(){
+        
         if (!Project::GetActive())
             {
                 DrawStartScreen();
             }
             else
             {
+                if (Application::Get().IsShowClosePrompt()) {
+                    ImGui::OpenPopup("Save Project?");
+                    Application::Get().SetShowClosePrompt(false); // 只触发一次 OpenPopup
+                }
+                ImVec2 center = ImGui::GetMainViewport()->GetCenter();
+                ImGui::SetNextWindowPos(center, ImGuiCond_Appearing, ImVec2(0.5f, 0.5f));
+
+                if (ImGui::BeginPopupModal("Save Project?", NULL, ImGuiWindowFlags_AlwaysAutoResize)) {
+                    ImGui::Text("Do you want to save the project before closing?");
+                    ImGui::Separator();
+
+                    // 1. Save & Quit
+                    if (ImGui::Button("Save", ImVec2(120, 0))) {
+                        SaveProject(); // 调用你的保存函数
+                        SaveScene();
+                        
+                        Application::Get().ForceClose(); // 设置 m_BlockClose=true 并 m_Running=false
+                        ImGui::CloseCurrentPopup();
+                    }
+                    ImGui::SetItemDefaultFocus();
+                    ImGui::SameLine();
+                    
+                    // 2. Don't Save & Quit
+                    if (ImGui::Button("Don't Save", ImVec2(120, 0))) {
+                        Application::Get().ForceClose();
+                        ImGui::CloseCurrentPopup();
+                    }
+                    ImGui::SameLine();
+
+                    // 3. Cancel
+                    if (ImGui::Button("Cancel", ImVec2(120, 0))) {
+                        ImGui::CloseCurrentPopup();
+                        // 什么都不做，继续运行
+                    }
+
+                    ImGui::EndPopup();
+                }
                 DrawEditorInterface();
             }
     }
