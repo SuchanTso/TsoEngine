@@ -2,6 +2,7 @@
 #include "Component.h"
 #include "Tso/Renderer/Renderer2D.h"
 #include "Tso/Project/Resource.h"
+#include "Tso/Scripting/ScriptingEngine.h"
 namespace Tso {
 
 

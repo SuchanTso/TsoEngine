@@ -12,6 +12,7 @@
 #include "Tso/Protocol/LuaBridge.h"
 #include "Tso/Project/Resource.h"
 #include "Tso/Scripting/ScriptTaskManager.h"
+#include "Tso/Scene/Prefab.h"
 
 namespace Tso {
 
@@ -304,6 +305,12 @@ void ScriptGlue::RegisterFunctions() {
                 return self.Controller->GetCurrentStateName();
             }
 
+    );
+    lua.new_usertype<Prefab>("Prefab",
+     "Instantiate", [](Ref<Prefab>& self){
+        auto scene = ScriptingEngine::GetSceneContext();
+        return self->Instantiate(scene);
+    } // 暴露给 Lua
     );
 
     // --- 核心类绑定 ---

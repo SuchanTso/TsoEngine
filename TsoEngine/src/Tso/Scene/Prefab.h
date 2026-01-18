@@ -30,7 +30,7 @@ namespace Tso {
         Entity GetEntity() { return m_Entity; }
         
         // 实例化到目标场景 (核心功能)
-        Entity Instantiate(Ref<Scene> targetScene);
+        Entity Instantiate(Scene* targetScene);
         
         static Ref<Prefab> Deserialize(const std::string& path);
         

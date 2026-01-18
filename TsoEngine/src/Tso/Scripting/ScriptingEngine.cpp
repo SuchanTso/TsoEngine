@@ -9,18 +9,8 @@
 #include "Tso/Scene/Component.h"
 #include "Tso/Protocol/LuaBridge.h"
 #include "Tso/Core/VirtualFileSystem.h"
-
-//
-//
-//#include "mono/jit/jit.h"
-//#include "mono/metadata/assembly.h"
-//#include "mono/metadata/object.h"
-//#include "mono/metadata/tabledefs.h"
-//#include "mono/metadata/mono-debug.h"
-//#include "mono/metadata/threads.h"
-//#include "mono/metadata/image.h"
-//
-
+#include "Tso/Scene/Prefab.h"
+#include "Tso/Renderer/Material.h"
 
 
 
@@ -44,7 +34,9 @@ static std::unordered_map<std::string, ScriptFieldType> s_ScriptFieldTypeMap =
 	{ "Tso.Vector4", ScriptFieldType::Vector4 },
 
 	{ "Tso.Entity", ScriptFieldType::Entity },
-	{ "Tso.SpriteAnimationIdle", ScriptFieldType::SpriteAnimationIdle },
+    { "Tso.Prefab", ScriptFieldType::Prefab },
+    { "Tso.Material", ScriptFieldType::Material },
+	{ "Tso.Animation", ScriptFieldType::Animation },
 
 };
 
@@ -198,50 +190,7 @@ namespace Utils {
         }
     }
 
-//    void ScriptingEngine::SetLuaPackagePath(const std::string& rootPath){
-//        lua_State* L = GetLuaState();
-//
-//            // 1. 定义我们的新搜索模板
-//            // 我们希望 require("core.entity") 能找到 "rootPath/core/entity.lua"
-//            // `?/init.lua` 是为了支持将模块作为一个目录，例如 require("my_module") 会寻找 my_module/init.lua
-//            std::string new_search_path = rootPath + "/?.lua;" + rootPath + "/?/init.lua;";
-//
-//            // 2. 获取 Lua 全局的 package table
-//            lua_getglobal(L, "package");
-//            if (!lua_istable(L, -1)) {
-//                TSO_CORE_ERROR("Could not get 'package' table from Lua");
-//                lua_pop(L, 1); // 清理栈
-//                return;
-//            }
-//
-//            // 3. 获取当前的 package.path
-//            lua_getfield(L, -1, "path");
-//            if (!lua_isstring(L, -1)) {
-//                TSO_CORE_ERROR("Could not get 'package.path' string from Lua");
-//                lua_pop(L, 2); // 清理 'nil' 和 'package' table
-//                return;
-//            }
-//            const char* current_path = lua_tostring(L, -1);
-//
-//            // 4. 构建新的 path 字符串 (我们的路径 + 现有路径)
-//            new_search_path.append(current_path);
-//
-//            // 5. 将旧的 path string 从栈上弹出
-//            lua_pop(L, 1);
-//
-//            // 6. 将新的 path 字符串压入栈
-//            lua_pushstring(L, new_search_path.c_str());
-//
-//            // 7. 设置 package.path = new_path_string
-//            // setfield 会自动弹出栈顶的值
-//            // 此时栈是 [..., package_table, new_path_string]
-//            lua_setfield(L, -2, "path");
-//
-//            // 8. 清理栈上的 package table
-//            lua_pop(L, 1);
-//
-//            TSO_CORE_INFO("Lua package.path updated to: {}", new_search_path);
-//    }
+
     void ScriptingEngine::SetLuaPackagePath(const std::string& rootPath) {
         // [MODIFIED] 使用 sol2 的方式修改 package.path，更简洁
         sol::table package = s_Data->L["package"];
@@ -279,12 +228,11 @@ namespace Utils {
 			s_Data->EntityInstances[entityID] = instance;
 
 			// Copy field values
-			if (s_Data->EntityScriptFields.find(entityID) != s_Data->EntityScriptFields.end())
-			{
-				const ScriptFieldMap& fieldMap = s_Data->EntityScriptFields.at(entityID);
-				for (const auto& [name, fieldInstance] : fieldMap)
-					instance->SetFieldValueInternal(name, fieldInstance.m_Buffer);
-			}
+            auto scriptC = entity.GetComponent<ScriptComponent>();
+            
+//				const ScriptFieldMap& fieldMap = s_Data->EntityScriptFields.at(entityID);
+            for (const auto& [name, fieldInstance] : scriptC.FieldInstances)
+                instance->SetFieldValueInternal(name, fieldInstance.m_Buffer);
 
 			instance->InvokeOnCreate();
 		}
@@ -304,19 +252,6 @@ namespace Utils {
 		}
 	}
 
-//	void ScriptingEngine::OnCollideEntity(Entity& thisEntity, Entity& otherEntity)
-//	{
-//		auto entityUUID = thisEntity.GetUUID();
-//		if (auto it = s_Data->EntityInstances.find(entityUUID) != s_Data->EntityInstances.end())
-//		{
-//			Ref<ScriptInstance> instance = s_Data->EntityInstances[entityUUID];
-//			instance->InvokeOnCollider(otherEntity.GetUUID());
-//		}
-//		else
-//		{
-//			TSO_CORE_ERROR("Could not find ScriptInstance for entity {}", entityUUID);
-//		}
-//	}
 
 
 	Scene* ScriptingEngine::GetSceneContext()
@@ -338,50 +273,6 @@ namespace Utils {
 		}
 	}
 
-//void ScriptingEngine::LoadScriptClasses(const std::filesystem::path& path)
-//	{
-//    // 执行 Lua 脚本文件，它会返回一个 table 在栈顶
-//        if (luaL_dofile(s_Data->L, path.string().c_str()) != LUA_OK) {
-//            // 错误处理...
-//            TSO_CORE_ERROR("Unable to load file{} :[{}]" , path.string().c_str() , lua_tostring(s_Data->L, -1));
-//            return;
-//        }
-//
-//        if (!lua_istable(s_Data->L, -1)) {
-//            // 脚本没有返回一个 table，格式错误
-//            lua_pop(s_Data->L, 1);
-//            return;
-//        }
-//
-//        // 从返回的 table 中提取类名 (从文件名获取)
-//        std::string className = path.stem().string();
-//        
-//        Ref<ScriptClass> scriptClass = std::make_shared<ScriptClass>(className , luaL_ref(s_Data->L, LUA_REGISTRYINDEX));
-//        
-//        // --- 解析公共字段 (Fields) ---
-//        // 再次把 metatable 推到栈上
-//        lua_rawgeti(s_Data->L, LUA_REGISTRYINDEX, scriptClass->m_MetatableRef);
-//        lua_getfield(s_Data->L, -1, "Fields");
-//        if (lua_istable(s_Data->L, -1)) {
-//            lua_pushnil(s_Data->L); // 开始遍历
-//            while (lua_next(s_Data->L, -2) != 0) {
-//                // key at -2, value at -1
-//                const char* fieldName = lua_tostring(s_Data->L, -2);
-//                const char* fieldTypeStr = lua_tostring(s_Data->L, -1);
-//                scriptClass->m_Fields[fieldName] = {s_ScriptFieldTypeMap[fieldTypeStr] , fieldName}; // 使用你现有的 map
-//                TSO_CORE_INFO("Scipt class{}:{}",fieldName , fieldTypeStr);
-//                lua_pop(s_Data->L, 1); // 弹出 value，保留 key 给下一次迭代
-//            }
-//        }
-//        lua_pop(s_Data->L, 1); // 弹出 Fields table
-//
-//        
-//        lua_pop(s_Data->L, 1); // 弹出 metatable
-//
-//        s_Data->EntityClasses[className] = scriptClass;
-//        TSO_CORE_INFO("Loaded Lua class: {}", className);
-//		
-//	}
     void ScriptingEngine::LoadScriptClasses(const std::filesystem::path& path) {
         // 路径标准化：确保路径分隔符一致，方便 VFS 查找
         std::string pathStr = path.string();
@@ -412,16 +303,34 @@ namespace Utils {
             Ref<ScriptClass> scriptClass = std::make_shared<ScriptClass>(className, luaClassTable);
             
             // 解析 Fields (保持原有逻辑不变)
-            sol::optional<sol::table> fields = luaClassTable["Fields"];
-            if (fields) {
-                for (const auto& kvp : fields.value()) {
-                    std::string fieldName = kvp.first.as<std::string>();
-                    std::string fieldTypeStr = kvp.second.as<std::string>();
-                    if (s_ScriptFieldTypeMap.count(fieldTypeStr)) {
-                        scriptClass->m_Fields[fieldName] = {s_ScriptFieldTypeMap.at(fieldTypeStr), fieldName};
-                    }
-                }
-            }
+            sol::optional<sol::table> properties = luaClassTable["Properties"];
+            if (properties) {
+               for (const auto& kvp : properties.value()) {
+                   std::string fieldName = kvp.first.as<std::string>();
+                   
+                   // kvp.second 是一个 sol::object，我们需要把它当作 table 处理
+                   if (!kvp.second.is<sol::table>()) continue;
+                   sol::table propData = kvp.second.as<sol::table>();
+                   
+                   // [修正] 使用 .get<>() 获取 Type 字符串
+                   // 检查是否存在 "Type" 键
+                   sol::optional<std::string> typeStrOpt = propData["Type"];
+                   if (!typeStrOpt) {
+                       TSO_CORE_WARN("Property '{}' in script '{}' missing 'Type' field.", fieldName, className);
+                       continue;
+                   }
+                   
+                   std::string fieldTypeStr = typeStrOpt.value();
+                   
+                   // 查找映射
+                   if (s_ScriptFieldTypeMap.count(fieldTypeStr)) {
+                       ScriptFieldType type = s_ScriptFieldTypeMap.at(fieldTypeStr);
+                       scriptClass->m_Fields[fieldName] = { type, fieldName };
+                   } else {
+                       TSO_CORE_WARN("Unknown field type '{0}' in script '{1}'", fieldTypeStr, className);
+                   }
+               }
+           }
             
             s_Data->EntityClasses[className] = scriptClass;
             scriptClass->SetPath(path.string());
@@ -436,6 +345,14 @@ namespace Utils {
 	{
 		return s_Data->EntityClasses.find(className) != s_Data->EntityClasses.end();
 	}
+
+    Ref<ScriptClass> ScriptingEngine::GetScriptClass(const std::string& className){
+        if(EntityClassExists(className)){
+            return s_Data->EntityClasses[className];
+        }
+        return nullptr;
+    }
+
 
 
     bool ScriptingEngine::EntityInstanceExists(const UUID& uuid){
@@ -471,24 +388,7 @@ Ref<ScriptInstance> ScriptingEngine::GetScriptInstance(const UUID& uuid){
 	{
 		
 	}
-//
-//	MonoObject* ScriptClass::Instantiate()
-//	{
-//		return ScriptingEngine::InstantiateClass(m_MonoClass);
-//	}
-//
-//	MonoMethod* ScriptClass::GetMethod(const std::string& name, int parameterCount)
-//	{
-//		return mono_class_get_method_from_name(m_MonoClass, name.c_str(), parameterCount);
-//	}
-//
-//	MonoObject* ScriptClass::InvokeMethod(MonoObject* instance, MonoMethod* method, void** params = nullptr)
-//	{
-//		MonoObject* exception = nullptr;
-//		return mono_runtime_invoke(method, instance, params, &exception);
-//	}
-//s
-//
+
     ScriptInstance::ScriptInstance(Ref<ScriptClass> scriptClass, Entity entity)
         : m_ScriptClass(scriptClass) {
         
@@ -515,63 +415,6 @@ Ref<ScriptInstance> ScriptingEngine::GetScriptInstance(const UUID& uuid){
         }
     }
 
-//	ScriptInstance::ScriptInstance(Ref<ScriptClass> scriptClass, Entity entity)
-//		: m_ScriptClass(scriptClass)
-//	{
-////		m_Instance = scriptClass->Instantiate();
-//        lua_rawgeti(s_Data->L , LUA_REGISTRYINDEX , scriptClass->GetMetatableRef());
-//
-//        //constructor
-//        auto entityID = entity.GetUUID();
-//
-//        lua_getfield(s_Data->L, -1, "new");
-//        if (lua_isfunction(s_Data->L, -1)) {
-//            m_Constructor = luaL_ref(s_Data->L, LUA_REGISTRYINDEX);
-//        }
-//        else{
-//            lua_pop(s_Data->L,1);
-//            TSO_CORE_ERROR("Unable to fetch Constructor function for entity {}" , entityID);
-//        }
-//        lua_rawgeti(s_Data->L , LUA_REGISTRYINDEX , m_Constructor);
-//        
-////        lua_pushnumber(s_Data->L, entityID);
-//        lua_pushstring(s_Data->L, std::to_string(entityID).c_str());
-//        if(lua_pcall(s_Data->L, 1, 1, 0) != LUA_OK){
-//            TSO_CORE_ERROR("Unable to call constructor when instantiating entity:{}",entityID);
-//            TSO_CORE_ERROR("Error:[{}]" , lua_tostring(s_Data->L, -1));
-//        }
-//        m_InstanceTableRef = luaL_ref(s_Data->L , LUA_REGISTRYINDEX);
-//
-////        lua_rawgeti(s_Data->L , LUA_REGISTRYINDEX , m_InstanceTableRef);
-//        lua_getfield(s_Data->L, -1, "OnCreate");
-//        if(lua_isfunction(s_Data->L, -1)){
-//            m_OnCreateRef = luaL_ref(s_Data->L, LUA_REGISTRYINDEX);
-//        }
-//        else {
-//            TSO_CORE_ERROR("Unable to fetch OnCreate() function for entity {}" , entityID);
-//            lua_pop(s_Data->L, 1); // 弹出 nil
-//        }
-//        
-//        lua_getfield(s_Data->L, -1, "OnUpdate");
-//        if(lua_isfunction(s_Data->L, -1)){
-//            m_OnUpdateRef = luaL_ref(s_Data->L, LUA_REGISTRYINDEX);
-//        }
-//        else{
-//            lua_pop(s_Data->L, 1);
-//        }
-//        
-//        lua_pop(s_Data->L, 1); // 弹出 instance table
-//	}
-//
-//	void ScriptInstance::InvokeOnCreate()
-//	{
-//        if (m_OnCreateRef != LUA_NOREF) {
-//            lua_rawgeti(s_Data->L, LUA_REGISTRYINDEX, m_OnCreateRef);
-//            // OnCreate 的第一个参数是 self (instance table)
-//            lua_rawgeti(s_Data->L, LUA_REGISTRYINDEX, m_InstanceTableRef);
-//            lua_pcall(s_Data->L, 1, 0, 0); // 1个参数(self), 0个返回值
-//        }
-//	}
     void ScriptInstance::InvokeOnCreate() {
         if (!m_LuaInstance.valid()) return;
 
@@ -589,24 +432,6 @@ Ref<ScriptInstance> ScriptingEngine::GetScriptInstance(const UUID& uuid){
         // 如果 OnCreate 不存在（onCreate.valid() 为 false），则什么也不做
     }
 
-//	void ScriptInstance::InvokeOnUpdate(float ts)
-//	{
-//        if (m_OnUpdateRef != LUA_NOREF){
-//            // 推入 OnUpdate 函数
-//            lua_rawgeti(s_Data->L, LUA_REGISTRYINDEX, m_OnUpdateRef);
-//            
-//            // 推入参数1：self (instance table)
-//            lua_rawgeti(s_Data->L, LUA_REGISTRYINDEX, m_InstanceTableRef);
-//            
-//            // 推入参数2：ts (timestep)
-//            lua_pushnumber(s_Data->L, (float)ts);
-//            
-//            // 调用：2个参数，0个返回值
-//            if (lua_pcall(s_Data->L, 2, 0, 0) != LUA_OK) {
-//                TSO_CORE_ERROR("Unable to update entity");
-//            }
-//        }
-//	}
     void ScriptInstance::InvokeOnUpdate(float ts) {
         if (m_LuaInstance.valid() && m_LuaInstance["OnUpdate"].is<sol::function>()) {
             sol::protected_function onUpdate = m_LuaInstance["OnUpdate"];
@@ -617,101 +442,7 @@ Ref<ScriptInstance> ScriptingEngine::GetScriptInstance(const UUID& uuid){
             }
         }
     }
-//
-//	bool ScriptInstance::GetFieldValueInternal(const std::string& name, void* buffer)
-//	{
-//		const auto& fields = m_ScriptClass->GetFields();
-//		auto it = fields.find(name);
-//		if (it == fields.end())
-//			return false;
-//
-//		const ScriptField& field = it->second;
-//		mono_field_get_value(m_Instance, field.ClassField, buffer);
-//		return true;
-//	}
-//
-//	bool ScriptInstance::SetFieldValueInternal(const std::string& name, const void* value)
-//	{
-//        lua_rawgeti(s_Data->L , LUA_REGISTRYINDEX , m_InstanceTableRef);
-//        if(!lua_istable(s_Data->L, -1)){
-//            lua_pop(s_Data->L, 1); // 弹出 nil 或非 table 值
-//            TSO_CORE_ERROR("ScriptInstance's table is invalid!");
-//            return false;
-//        }
-//		const auto& fields = m_ScriptClass->GetFields();
-//		auto it = fields.find(name);
-//        if (it == fields.end()){
-//            lua_pop(s_Data->L, 1); // 弹出 instance table
-//            TSO_CORE_WARN("Trying to set non-existent or non-public field '{}'", name);
-//            return false;
-//        }
-//		const ScriptField& field = it->second;
-//        lua_pushstring(s_Data->L, name.c_str());
-//        switch (field.Type)
-//            {
-//                case ScriptFieldType::Float:   lua_pushnumber(s_Data->L, *(const float*)value); break;
-//                case ScriptFieldType::Double:  lua_pushnumber(s_Data->L, *(const double*)value); break;
-//                case ScriptFieldType::Bool:    lua_pushboolean(s_Data->L, *(const bool*)value); break;
-//                case ScriptFieldType::Char:    { char str[2] = { *(const char*)value, '\0' }; lua_pushstring(s_Data->L, str); break; }
-//                case ScriptFieldType::Short:   lua_pushinteger(s_Data->L, *(const int16_t*)value); break;
-//                case ScriptFieldType::Int:     lua_pushinteger(s_Data->L, *(const int32_t*)value); break;
-//                case ScriptFieldType::Long:    lua_pushinteger(s_Data->L, *(const int64_t*)value); break;
-//                case ScriptFieldType::Byte:    lua_pushinteger(s_Data->L, *(const uint8_t*)value); break;
-//                case ScriptFieldType::UShort:  lua_pushinteger(s_Data->L, *(const uint16_t*)value); break;
-//                case ScriptFieldType::UInt:    lua_pushinteger(s_Data->L, *(const uint32_t*)value); break;
-//                case ScriptFieldType::ULong:   lua_pushinteger(s_Data->L, *(const uint64_t*)value); break;
-//
-//                // 对于向量类型，我们需要创建一个 table
-//                case ScriptFieldType::Vector2:
-//                {
-//                    const glm::vec2& vec = *(const glm::vec2*)value;
-//                    lua_newtable(s_Data->L);
-//                    lua_pushnumber(s_Data->L, vec.x); lua_setfield(s_Data->L, -2, "x");
-//                    lua_pushnumber(s_Data->L, vec.y); lua_setfield(s_Data->L, -2, "y");
-//                    // 你也可以在这里关联一个 Vector2 的 metatable，让它在 Lua 中有自己的方法
-//                    break;
-//                }
-//                case ScriptFieldType::Vector3:
-//                {
-//                    const glm::vec3& vec = *(const glm::vec3*)value;
-//                    lua_newtable(s_Data->L);
-//                    lua_pushnumber(s_Data->L, vec.x); lua_setfield(s_Data->L, -2, "x");
-//                    lua_pushnumber(s_Data->L, vec.y); lua_setfield(s_Data->L, -2, "y");
-//                    lua_pushnumber(s_Data->L, vec.z); lua_setfield(s_Data->L, -2, "z");
-//                    break;
-//                }
-//                case ScriptFieldType::Vector4:
-//                {
-//                    const glm::vec4& vec = *(const glm::vec4*)value;
-//                    lua_newtable(s_Data->L);
-//                    lua_pushnumber(s_Data->L, vec.x); lua_setfield(s_Data->L, -2, "x");
-//                    lua_pushnumber(s_Data->L, vec.y); lua_setfield(s_Data->L, -2, "y");
-//                    lua_pushnumber(s_Data->L, vec.z); lua_setfield(s_Data->L, -2, "z");
-//                    lua_pushnumber(s_Data->L, vec.w); lua_setfield(s_Data->L, -2, "w");
-//                    break;
-//                }
-//
-//                // 对于实体，我们存储它的 UUID
-//                case ScriptFieldType::Entity:
-//                {
-//                    const uint64_t& uuid = *(const uint64_t*)value;
-//                    lua_pushnumber(s_Data->L, uuid); // 在 Lua 端存储为数字 ID
-//                    break;
-//                }
-//                    
-//                default:
-//                    TSO_CORE_ERROR("Unknown script field type!");
-//                    lua_pop(s_Data->L, 2); // 弹出 instance table 和 key
-//                    return false;
-//            }
-//        
-//        
-//        lua_settable(s_Data->L, -3);
-//        // 6. 弹出 instance table
-//        lua_pop(s_Data->L, 1);
-//
-//		return true;
-//	}
+
     bool ScriptInstance::SetFieldValueInternal(const std::string& name, const void* value) {
         if (!m_LuaInstance.valid()) return false;
 
@@ -732,7 +463,40 @@ Ref<ScriptInstance> ScriptingEngine::GetScriptInstance(const UUID& uuid){
             case ScriptFieldType::Vector2: m_LuaInstance[name] = *(const glm::vec2*)value; break;
             case ScriptFieldType::Vector3: m_LuaInstance[name] = *(const glm::vec3*)value; break;
             case ScriptFieldType::Vector4: m_LuaInstance[name] = *(const glm::vec4*)value; break;
-            case ScriptFieldType::Entity:  m_LuaInstance[name] = *(const uint64_t*)value; break;
+            case ScriptFieldType::Prefab: {
+                uint64_t uuid = *(const uint64_t*)value;
+                // 尝试加载资源对象并传给 Lua
+                Ref<Prefab> prefab = Resource::GetResource<Prefab>(uuid);
+                // 注意：你需要先在 Sol2 中注册好 Prefab 类，否则这里会报错
+                if (prefab) m_LuaInstance[name] = prefab;
+                else m_LuaInstance[name] = sol::lua_nil;
+                break;
+            }
+            case ScriptFieldType::Material: {
+                uint64_t uuid = *(const uint64_t*)value;
+                Ref<Material> mat = Resource::GetResource<Material>(uuid);
+                if (mat) m_LuaInstance[name] = mat;
+                else m_LuaInstance[name] = sol::lua_nil;
+                break;
+            }
+            case ScriptFieldType::Animation: {
+                // Animation 可能对应 AnimationClip
+                uint64_t uuid = *(const uint64_t*)value;
+                Ref<AnimationClip> clip = Resource::GetResource<AnimationClip>(uuid);
+                if (clip) m_LuaInstance[name] = clip;
+                else m_LuaInstance[name] = sol::lua_nil;
+                break;
+            }
+            case ScriptFieldType::Entity: {
+                uint64_t uuid = *(const uint64_t*)value;
+                // 需要获取当前场景才能 Find Entity
+                // 假设 ScriptInstance 持有 entity 引用，可以通过 entity.GetScene() 获取
+                // 或者你需要通过全局 Application::GetActiveScene() 获取
+                Entity target = ScriptingEngine::GetSceneContext()->GetEntityByUUID(uuid);
+                if (target) m_LuaInstance[name] = target;
+                else m_LuaInstance[name] = sol::lua_nil;
+                break;
+            }
             default: TSO_CORE_ERROR("Unknown script field type!"); return false;
         }
         return true;

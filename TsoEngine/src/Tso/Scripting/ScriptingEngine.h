@@ -4,16 +4,6 @@
 #include "Tso/Core/TimeStep.h"
 #include "sol/sol.hpp"
 
-
-extern "C" {
-//	typedef struct _MonoClass MonoClass;
-	typedef struct _MonoObject MonoObject;
-	typedef struct _MonoMethod MonoMethod;
-	typedef struct _MonoAssembly MonoAssembly;
-	typedef struct _MonoImage MonoImage;
-	typedef struct _MonoClassField MonoClassField;
-	typedef struct _MonoString MonoString;
-}
 extern "C" {
 #include "lua.h"
 #include "lauxlib.h"
@@ -31,8 +21,9 @@ namespace Tso {
 		Bool, Char, Byte, Short, Int, Long,
 		UByte, UShort, UInt, ULong,
 		Vector2, Vector3, Vector4,
-		Entity,
-		SpriteAnimationIdle
+		Entity,Prefab,Material,
+        Texture,
+        Animation
 	};
 
 	struct ScriptField
@@ -52,7 +43,7 @@ namespace Tso {
 		}
 
 		template<typename T>
-		T GetValue()
+		T GetValue()const
 		{
 			static_assert(sizeof(T) <= 16, "Type too large!");
 			return *(T*)m_Buffer;
@@ -81,6 +72,7 @@ namespace Tso {
         static void LoadAllScripts(const std::string& directory , bool reset = true);
 		static void ShutDown();
 		static bool EntityClassExists(const std::string& className);
+        static Ref<ScriptClass> GetScriptClass(const std::string& className);
         static bool EntityInstanceExists(const UUID& uuid);
 		static void OnScenePlay(Scene* context);
 		static void OnSceneStop();
@@ -119,9 +111,6 @@ namespace Tso {
 	public:
 		ScriptClass() = default;
 		ScriptClass(const std::string& className, sol::table luaClassTable);
-		MonoObject* Instantiate();
-		MonoMethod* GetMethod(const std::string& name, int parameterCount);
-		MonoObject* InvokeMethod(MonoObject* instance, MonoMethod* method, void** params);
 		const std::unordered_map<std::string, ScriptField>& GetFields() const { return m_Fields; }
 //        int GetMetatableRef(){return m_MetatableRef;}
         sol::table GetLuaClassTable()&{return m_LuaClassTable;}

@@ -5,6 +5,7 @@
 #include "AnimationPanel.h"
 #include "AnimationControllerPanel.h"
 #include "ContentBrowserPanel.h"
+#include "Tso/Scripting/ScriptingEngine.h"
 
 namespace Tso {
 	class Entity;
@@ -18,7 +19,7 @@ namespace Tso {
         std::unordered_map<unsigned int, std::string> SourceBuffers;
         bool IsDirty = false;
     };
-    enum class ResourceType { None, Texture, Shader, Material , Font , Animation };
+    enum class ResourceType { None, Texture, Shader, Material , Font , Animation,Script };
 
 	class SceneHierarchyPanel {
 	public:
@@ -41,6 +42,7 @@ namespace Tso {
 
         void DrawMaterialNode(Ref<Material> material);
         void DrawTextureNode(Ref<Texture2D> texture);
+        void DrawScriptField(const std::string& name, ScriptFieldInstance& fieldInst);
         void DrawShaderNode(Ref<Shader> shader);
         void SyncShaderToCache(Ref<Shader> shader);
         void CreateMaterialPrompt();

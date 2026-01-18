@@ -13,9 +13,9 @@
 #include "sol/sol.hpp"
 #include "Renderer/Material.h"
 #include "Tso/Animation/AnimationController.h"
+#include "Tso/Scripting/ScriptingEngine.h"
 
 namespace Tso {
-
 	enum class ComponentID: uint16_t {
 		None = 0,
 		TransformComponent = 1,
@@ -162,7 +162,7 @@ namespace Tso {
 	struct ScriptComponent {
 		ScriptComponent() = default;
 		ScriptComponent(const ScriptComponent& sc) = default;
-
+        std::unordered_map<std::string, ScriptFieldInstance> FieldInstances;
 		std::string ClassName = "";
 	};
 
