@@ -492,13 +492,29 @@ void ScriptGlue::RegisterFunctions() {
              // ... 其他组件 ...
              return sol::lua_nil;
          },
-         "GetScript", [](Entity& entity) -> sol::object {
-                     auto instance = ScriptingEngine::GetScriptInstance(entity.GetUUID());
-                     if (instance) {
-                         return instance->GetLuaInstance();
-                     }
+         "GetScript", [](Entity self, const std::string& scriptName) -> sol::object {
+                 // 1. 检查是否有 ScriptComponent
+                 if (!self.HasComponent<ScriptComponent>()) return sol::lua_nil;
+
+                 auto& sc = self.GetComponent<ScriptComponent>();
+                 
+                 // 2. 检查脚本类名是否匹配 (可选，如果你允许一个 Entity 挂多个脚本，逻辑会复杂点)
+                 // 目前假设一个 Entity 只有一个 ScriptComponent
+                 if (sc.ClassName != scriptName) {
+                     // TSO_CORE_WARN("Entity does not have script '{}'", scriptName);
                      return sol::lua_nil;
                  }
+
+                 // 3. 获取运行时的 Lua 实例
+                 // 注意：只有在运行时 (OnRuntimeStart 之后) 实例才存在
+                 Ref<ScriptInstance> instance = ScriptingEngine::GetEntityScriptInstance(self.GetUUID());
+                 if (instance) {
+                     // 返回内部的 Lua Table
+                     return instance->GetLuaInstance(); // 需要在 ScriptInstance 加个 Getter
+                 }
+                 
+                 return sol::lua_nil;
+             }
     );
     
     // --- 绑定 ByteStream (现在同时用于发送和接收) ---

@@ -35,6 +35,9 @@ namespace Tso {
     Entity Prefab::Instantiate(Scene* targetScene) {
         Entity newEntity = targetScene->CopyEntity(m_Entity);
         TSO_CORE_TRACE("Insantiate prefab {}" , newEntity.GetUUID());
+        if(newEntity.HasComponent<ScriptComponent>()){
+            ScriptingEngine::OnCreateEntity(newEntity);
+        }
         return newEntity;
     }
 

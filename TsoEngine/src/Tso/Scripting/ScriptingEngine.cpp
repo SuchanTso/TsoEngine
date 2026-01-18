@@ -219,6 +219,9 @@ namespace Utils {
 
 	void ScriptingEngine::OnCreateEntity(Entity entity)
 	{
+        if(!s_Data->SceneContext || !s_Data->SceneContext->IsScenePlay()){
+            return;
+        }
 		const auto& sc = entity.GetComponent<ScriptComponent>();
 		if (ScriptingEngine::EntityClassExists(sc.ClassName))
 		{
@@ -357,6 +360,13 @@ namespace Utils {
 
     bool ScriptingEngine::EntityInstanceExists(const UUID& uuid){
         return s_Data->EntityInstances.find(uuid) != s_Data->EntityInstances.end();
+    }
+
+    Ref<ScriptInstance> ScriptingEngine::GetEntityScriptInstance(UUID entityID) {
+        auto it = s_Data->EntityInstances.find(entityID);
+        if (it != s_Data->EntityInstances.end())
+            return it->second;
+        return nullptr;
     }
 
 
