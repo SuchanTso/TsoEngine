@@ -806,7 +806,7 @@ void EditorLayer::DrawEditorInterface(){
         project->GetConfig().FirstScene = sceneRelPath;
         
         // 5. 保存 Project 文件
-        Project::SaveActive(projFilePath.string());
+        Project::SaveActive(projPathStr);
     }
 
     bool EditorLayer::OpenProject()

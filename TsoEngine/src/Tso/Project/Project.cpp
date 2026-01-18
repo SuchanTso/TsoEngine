@@ -72,7 +72,7 @@ namespace Tso {
 		ProjectSerielizer serializer(s_Project);
 		if (serializer.Serielize(path.string()))
 		{
-			s_Project->m_ProjectDirectory = path.parent_path();
+            s_Project->m_ProjectDirectory = path;
 			return true;
 		}
 
