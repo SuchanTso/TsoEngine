@@ -62,6 +62,7 @@ Entity Scene::CreateEntityWithID(const UUID& uuid , const std::string& name){
     res.AddComponent<TagComponent>(entityName);
     res.AddComponent<ActiveComponent>();
     m_EntityMap[uuid] = (uint32_t)entityID;
+    TSO_CORE_TRACE("Create entity {}" , uuid);
     return res;
 }
 
@@ -428,6 +429,7 @@ void Scene::DeleteEntity(Entity entity){
 
 void Scene::OnScenePlay()
 {
+    m_Pause = false;
     ScriptingEngine::OnScenePlay(this);
 
     const auto& sView = m_Registry.view<ScriptComponent>();
@@ -449,11 +451,11 @@ void Scene::OnScenePlay()
         Entity entity = { e, this };
         CreatePhysicBody(entity);
     }
-    m_Pause = false;
 }
 
 void Scene::OnSceneStop()
 {
+    m_Pause = true;
     if (m_PhysicWorld) {
         delete m_PhysicWorld;
         m_PhysicWorld = nullptr;
@@ -463,7 +465,6 @@ void Scene::OnSceneStop()
         m_PhysicsListener = nullptr;
     }
     ScriptingEngine::OnSceneStop();
-    m_Pause = true;
 }
 
 SceneCamera* Scene::GetMainCamera()

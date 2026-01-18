@@ -84,6 +84,8 @@ namespace Tso {
 //        static lua_State* GetLuaState();
 		static Scene* GetSceneContext();
         static std::unordered_map<uint8_t, Ref<LuaProtocolHandler>>& GetLuaProtocolHandlers();
+        static Ref<ScriptInstance> GetEntityScriptInstance(UUID entityID);
+
 
         
         static void SetLuaPackagePath(const std::string& rootPath);

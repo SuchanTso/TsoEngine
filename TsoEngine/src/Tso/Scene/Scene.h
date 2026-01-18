@@ -55,6 +55,8 @@ namespace Tso {
 		SceneCamera* GetMainCamera();
         
         Ref<SceneCamera>GetUICamera(){return UICamera;}
+        
+        bool IsScenePlay(){return !m_Pause;}
 
         
         glm::mat4* GetMainCameraTransform(){return m_MainCameraTransform;}
