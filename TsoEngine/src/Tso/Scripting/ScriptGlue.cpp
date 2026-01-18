@@ -148,9 +148,18 @@ void ScriptGlue::RegisterFunctions() {
         // 在Lua中写 transform.position 时，会调用 GetPosition
         // 写 transform.position = myVec3 时，会调用 SetPosition
         // [MODIFIED] 假设 TransformComponent 有 Get/SetPosition 方法
-        "position", sol::property(&TransformComponent::GetPos, &TransformComponent::SetPos)
+        "position", sol::property(&TransformComponent::GetPos, &TransformComponent::SetPos),
+         "rotation" ,sol::property(&TransformComponent::GetRotate, &TransformComponent::SetRotate),
+         "scale" ,sol::property(&TransformComponent::GetScale, &TransformComponent::SetScale)
 
     );
+    
+    lua.new_usertype<Material>("Material",
+    "Uniform",
+        [](Ref<Material> self , const std::string& name , const float& val){
+            self->SetFloat(name, val);
+        }
+   );
 
 
     // 绑定 Renderable
@@ -212,7 +221,10 @@ void ScriptGlue::RegisterFunctions() {
                 r.subTexture = SubTexture2D::CreateByCoord(texture, r.spriteSize, r.textureIndex, r.textureSize);
             }
              }
-         )
+         ),
+     "material", sol::property(
+        [](const Renderable& r){return r.material;}
+        )
     );
     lua.new_usertype<IDComponent>("UUIDComponent",
         "uuid", sol::property(
