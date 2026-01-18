@@ -29,7 +29,7 @@ namespace Tso {
     }
 
 
-    static void SeriealizeEntity(YAML::Emitter& out, Entity& entity)
+    void Seriealizer::SeriealizeEntity(YAML::Emitter& out, Entity& entity)
     {
         out << YAML::BeginMap; // Entity
         out << YAML::Key << "Entity" << YAML::Value << entity.GetUUID();
@@ -119,7 +119,7 @@ namespace Tso {
                 out << YAML::Key << "TextureSize" << YAML::Value << comp.textureSize;
             
             }
-            if(comp .material){
+            if(comp.material){
                 out << YAML::Key << "Material" << YAML::Value << comp.material->GetUUID();
             }
             if(comp.textMat){
@@ -341,178 +341,7 @@ namespace Tso {
         auto entities = data["Entities"];
         if(entities){
             for(auto entity : entities){
-
-                std::string name;
-                auto tagComponent = entity["TagComponent"];
-                if(tagComponent){
-                    name = tagComponent["Tag"].as<std::string>();
-                }
-                uint64_t uuid = entity["Entity"].as<uint64_t>();
-                Entity deserializedEntity = m_Scene->CreateEntityWithID(uuid , name);
-                if (name == "SceneCamera") {
-                    m_Scene->SetSceneCamera(deserializedEntity);
-                }
-                if (entity["ParentEntity"]) {
-                    m_ParentMap[uuid] = entity["ParentEntity"].as<uint64_t>();
-                }
-                auto transformComponent = entity["TransformComponent"];
-                if(transformComponent){
-                    auto& transform = deserializedEntity.GetComponent<TransformComponent>();
-                    transform.SetPos(transformComponent["Translate"] ? transformComponent["Translate"].as<glm::vec3>() : glm::vec3(0.0f));
-                    transform.SetRotate(transformComponent["Rotation"] ? transformComponent["Rotation"].as<glm::vec3>() : glm::vec3(0.0f));
-                    transform.SetScale(transformComponent["Scale"] ? transformComponent["Scale"].as<glm::vec3>() : glm::vec3(1.0f));
-                }
-
-                auto scriptComponent = entity["ScriptComponent"];
-                if (scriptComponent) {
-                    auto& sc = deserializedEntity.AddComponent<ScriptComponent>();
-                    sc.ClassName = scriptComponent["className"] ? scriptComponent["className"].as<std::string>() : "";
-                }
-            
-                auto cameraComponent = entity["CamermaComponent"];
-                if(cameraComponent){
-                    auto& cameraComp = deserializedEntity.AddComponent<CameraComponent>();
-                    auto& camera = cameraComp.m_Camera;
-                    camera.SetProjectionType(SceneCamera::ProjectionType(cameraComponent["ProjectionType"] ? cameraComponent["ProjectionType"].as<int>() : 0));
-                    camera.SetProjectionFov(cameraComponent["ProjectionFov"] ? cameraComponent["ProjectionFov"].as<float>() : glm::radians(45.f));
-                    camera.SetProjectionNearClip(cameraComponent["ProjectionNearClip"] ? cameraComponent["ProjectionNearClip"].as<float>() : 0.01f);
-                    camera.SetProjectionFarClip(cameraComponent["ProjectionFarClip"] ? cameraComponent["ProjectionFarClip"].as<float>() : 1000.f);
-                
-                    camera.SetOrthographicSize(cameraComponent["OrthographicSize"] ? cameraComponent["OrthographicSize"].as<float>() : 10.f);
-                    camera.SetOrthographicNearClip(cameraComponent["OrthographicNear"] ? cameraComponent["OrthographicNear"].as<float>() : -1.0f);
-                    camera.SetOrthographicFarClip(cameraComponent["OrthographicFar"] ? cameraComponent["OrthographicFar"].as<float>() : 1.f);
-                    cameraComp.m_Pramiary = cameraComponent["Primary"] ? cameraComponent["Primary"].as<bool>() : false;
-                    cameraComp.FixedAspectRatio = cameraComponent["FixedAspect"] ? cameraComponent["FixedAspect"].as<bool>() : false;
-                    cameraComp.m_Camera.SetFixAspectRatio(cameraComp.FixedAspectRatio);
-                
-                }
-            
-                auto renderComponent = entity["RenderableComponent"];
-                if(renderComponent){
-                    auto& renderComp = deserializedEntity.AddComponent<Renderable>(glm::vec4(0.8f , 0.3f , 0.2f , 1.0f));
-                    renderComp.m_Color = renderComponent["Color"] ? renderComponent["Color"].as<glm::vec4>() : glm::vec4(1.0f);
-                    renderComp.type = (RenderType)(renderComponent["Type"] ? renderComponent["Type"].as<int>() : 0);
-                    renderComp.isSubtexture = renderComponent["SubTexture"] ? renderComponent["SubTexture"].as<bool>() : false;
-                    if(renderComponent["Texture"]){
-                        auto textureUUID = renderComponent["Texture"].as<uint64_t>();
-                        auto texture = Resource::GetResource<Texture2D>(textureUUID);
-                        glm::vec2 spriteSize = renderComponent["SpriteSize"] ? renderComponent["SpriteSize"].as<glm::vec2>() : glm::vec2(1.0f , 1.0f);
-                        glm::vec2 spriteIndex = renderComponent["SpriteIndex"] ? renderComponent["SpriteIndex"].as<glm::vec2>() : glm::vec2(0.0f , 0.0f);
-                        glm::vec2 texSize = renderComponent["TextureSize"] ? renderComponent["TextureSize"].as<glm::vec2>() : glm::vec2(1.0f , 1.0f);
-                        renderComp.spriteSize = spriteSize;
-                        renderComp.textureIndex = spriteIndex;
-                        renderComp.textureSize = texSize;
-                        renderComp.subTexture = SubTexture2D::CreateByCoord(texture, spriteSize, spriteIndex, texSize);
-                    }
-                    if(renderComponent["Material"]){
-                        auto matUUID = renderComponent["Material"].as<uint64_t>();
-                        auto material = Resource::GetResource<Material>(matUUID);
-                        renderComp.material = material;
-                        auto MaterialInstance = entity["MaterialInstance"];// make MaterialInstance a child component of Material
-                        if(MaterialInstance){
-                            auto& matIns = deserializedEntity.AddComponent<MaterialInstanceComponent>();
-                            auto params = MaterialInstance["Params"];
-                            if(params){
-                                for(auto param : params){
-                                    int slot = param["Slot"].as<int>();
-                                    std::string name = param["Name"].as<std::string>();
-                                    float value = param["Value"].as<float>();
-                                    TSO_CORE_ASSERT(slot < 4 , "Material Instance not supports more than 4 value now");
-                                    matIns.FloatOverrides[name] = value;
-                                    if(renderComp.material){
-                                        renderComp.material->DefineInstanceParam(name, slot);
-                                    }
-                                }
-                            }
-                        }
-                    }
-                    if(renderComponent["TextMaterial"]){
-                        auto matUUID = renderComponent["TextMaterial"].as<uint64_t>();
-                        auto material = Resource::GetResource<Material>(matUUID);
-                        renderComp.textMat = material;
-                    }
-                }
-                auto buttonComp = entity["ButtonComponent"];
-                if(buttonComp){
-                    deserializedEntity.AddComponent<ButtonComponent>();
-                    if(!deserializedEntity.HasComponent<UITransformComponent>()){
-                        deserializedEntity.AddComponent<UITransformComponent>();
-                    }
-                    auto& uiTrans = deserializedEntity.GetComponent<UITransformComponent>();
-                    auto& button = deserializedEntity.GetComponent<ButtonComponent>();
-                    uiTrans.UISize = buttonComp["UISize"].as<glm::vec2>();
-                    uiTrans.Rotation_Z = buttonComp["UI_Rotation_z"].as<float>();
-                    uiTrans.UIpos = buttonComp["UIPos"].as<glm::vec2>();
-                    button.HoverColor = buttonComp["Hover_Color"].as<glm::vec4>();
-                    button.PressedColor = buttonComp["Pressed_Color"].as<glm::vec4>();
-                }
-                auto InputComp = entity["InputComponent"];
-                if(InputComp){
-                    deserializedEntity.AddComponent<InputFieldComponent>();
-                    if(!deserializedEntity.HasComponent<UITransformComponent>()){
-                        deserializedEntity.AddComponent<UITransformComponent>();
-                    }
-                    auto& uiTrans = deserializedEntity.GetComponent<UITransformComponent>();
-                    uiTrans.UISize = InputComp["UISize"].as<glm::vec2>();
-                    uiTrans.Rotation_Z = InputComp["UI_Rotation_z"].as<float>();
-                    uiTrans.UIpos = InputComp["UIPos"].as<glm::vec2>();
-                    
-                }
-
-                auto RigidBoxComponent = entity["Rigidbody2DComponent"];
-                if (RigidBoxComponent) {
-                    auto& rbc = deserializedEntity.AddComponent< Rigidbody2DComponent>();
-                    rbc.FixedRotation = RigidBoxComponent["FixedRotation"] ? RigidBoxComponent["FixedRotation"].as<bool>() : false; 
-                    rbc.Type = Rigidbody2DComponent::BodyType(RigidBoxComponent["Type"] ? RigidBoxComponent["Type"].as<int>() : 0);
-
-                }
-
-
-                auto box2dcollide = entity["BoxCollider2DComponent"];
-                if (box2dcollide) {
-                    auto& rbc = deserializedEntity.AddComponent<BoxCollider2DComponent>();
-                    rbc.Density = box2dcollide["Density"] ? box2dcollide["Density"].as<float>() : 1.0f;
-                    rbc.Friction = box2dcollide["Friction"] ? box2dcollide["Friction"].as<float>() : 0.5f;
-                    rbc.Restitution = box2dcollide["Restitution"] ? box2dcollide["Restitution"].as<float>() : 2.0f;
-                    rbc.RestitutionThreshold = box2dcollide["RestitutionThreshold"] ? box2dcollide["RestitutionThreshold"].as<float>() : 0.5f;
-
-                    rbc.Size = box2dcollide["Size"] ? box2dcollide["Size"].as<glm::vec2>() : glm::vec2(0.5f , 0.5f);
-                    rbc.Offset = box2dcollide["Offset"] ? box2dcollide["Offset"].as<glm::vec2>() : glm::vec2(0.0f, 0.0f);
-                }
-            
-                auto textComponent = entity["TextComponent"];
-                if(textComponent){
-                    auto& textc = deserializedEntity.AddComponent<TextComponent>();
-//                    textc.FontPath = textComponent["FontPath"] ? textComponent["FontPath"].as<std::string>() : "";
-                    textc.Text  = textComponent["Text"] ? textComponent["Text"].as<std::string>() : "";
-                    textc.textParam.LineSpacing = textComponent["LineSpacing"] ? textComponent["LineSpacing"].as<float>() : 0.0f;
-                    textc.textParam.CharacterSpacing = textComponent["CharacterSpacing"] ? textComponent["CharacterSpacing"].as<float>() : 0.0f;
-                    textc.textParam.scale = textComponent["Scale"] ? textComponent["Scale"].as<glm::vec2>() : glm::vec2(1.f);
-                    textc.textParam.offset = textComponent["Offset"] ? textComponent["Offset"].as<glm::vec2>() : glm::vec2(0.f);
-                    auto fontPath = textComponent["FontPath"].as<uint64_t>();
-                    textc.TextFont = Resource::GetResource<Font>(fontPath);
-                    
-                }
-                
-                auto animator = entity["Animator"];
-                if(animator){
-                    auto states = animator["States"];
-                    auto animatorC = deserializedEntity.AddComponent<AnimatorComponent>();
-                    for(auto state : states){
-                        std::string stateName = state["Name"].as<std::string>();
-                        UUID clipUUID = state["Clip"].as<uint64_t>();
-                        auto clip = Resource::GetResource<AnimationClip>(clipUUID);
-                        if(clip){
-                            animatorC.Controller->AddState(stateName, clip);
-                        }
-                        if (state["Default"]) {
-                            animatorC.Controller->SetDefaultState(stateName);
-                        }
-                    }
-                }
-            
-            
-            
+                DeserializeEntity(entity);
             }
 
             for (auto& it : m_ParentMap) {
@@ -532,6 +361,181 @@ namespace Tso {
         }
         return m_TextureCache[path];
     }
+
+Entity Seriealizer::DeserializeEntity(const YAML::Node &entity){
+    
+    std::string name;
+    auto tagComponent = entity["TagComponent"];
+    if(tagComponent){
+        name = tagComponent["Tag"].as<std::string>();
+    }
+    uint64_t uuid = entity["Entity"].as<uint64_t>();
+    Entity deserializedEntity = m_Scene->CreateEntityWithID(uuid , name);
+    if (name == "SceneCamera") {
+        m_Scene->SetSceneCamera(deserializedEntity);
+    }
+    if (entity["ParentEntity"]) {
+        m_ParentMap[uuid] = entity["ParentEntity"].as<uint64_t>();
+    }
+    auto transformComponent = entity["TransformComponent"];
+    if(transformComponent){
+        auto& transform = deserializedEntity.GetComponent<TransformComponent>();
+        transform.SetPos(transformComponent["Translate"] ? transformComponent["Translate"].as<glm::vec3>() : glm::vec3(0.0f));
+        transform.SetRotate(transformComponent["Rotation"] ? transformComponent["Rotation"].as<glm::vec3>() : glm::vec3(0.0f));
+        transform.SetScale(transformComponent["Scale"] ? transformComponent["Scale"].as<glm::vec3>() : glm::vec3(1.0f));
+    }
+
+    auto scriptComponent = entity["ScriptComponent"];
+    if (scriptComponent) {
+        auto& sc = deserializedEntity.AddComponent<ScriptComponent>();
+        sc.ClassName = scriptComponent["className"] ? scriptComponent["className"].as<std::string>() : "";
+    }
+
+    auto cameraComponent = entity["CamermaComponent"];
+    if(cameraComponent){
+        auto& cameraComp = deserializedEntity.AddComponent<CameraComponent>();
+        auto& camera = cameraComp.m_Camera;
+        camera.SetProjectionType(SceneCamera::ProjectionType(cameraComponent["ProjectionType"] ? cameraComponent["ProjectionType"].as<int>() : 0));
+        camera.SetProjectionFov(cameraComponent["ProjectionFov"] ? cameraComponent["ProjectionFov"].as<float>() : glm::radians(45.f));
+        camera.SetProjectionNearClip(cameraComponent["ProjectionNearClip"] ? cameraComponent["ProjectionNearClip"].as<float>() : 0.01f);
+        camera.SetProjectionFarClip(cameraComponent["ProjectionFarClip"] ? cameraComponent["ProjectionFarClip"].as<float>() : 1000.f);
+    
+        camera.SetOrthographicSize(cameraComponent["OrthographicSize"] ? cameraComponent["OrthographicSize"].as<float>() : 10.f);
+        camera.SetOrthographicNearClip(cameraComponent["OrthographicNear"] ? cameraComponent["OrthographicNear"].as<float>() : -1.0f);
+        camera.SetOrthographicFarClip(cameraComponent["OrthographicFar"] ? cameraComponent["OrthographicFar"].as<float>() : 1.f);
+        cameraComp.m_Pramiary = cameraComponent["Primary"] ? cameraComponent["Primary"].as<bool>() : false;
+        cameraComp.FixedAspectRatio = cameraComponent["FixedAspect"] ? cameraComponent["FixedAspect"].as<bool>() : false;
+        cameraComp.m_Camera.SetFixAspectRatio(cameraComp.FixedAspectRatio);
+    
+    }
+
+    auto renderComponent = entity["RenderableComponent"];
+    if(renderComponent){
+        auto& renderComp = deserializedEntity.AddComponent<Renderable>(glm::vec4(0.8f , 0.3f , 0.2f , 1.0f));
+        renderComp.m_Color = renderComponent["Color"] ? renderComponent["Color"].as<glm::vec4>() : glm::vec4(1.0f);
+        renderComp.type = (RenderType)(renderComponent["Type"] ? renderComponent["Type"].as<int>() : 0);
+        renderComp.isSubtexture = renderComponent["SubTexture"] ? renderComponent["SubTexture"].as<bool>() : false;
+        if(renderComponent["Texture"]){
+            auto textureUUID = renderComponent["Texture"].as<uint64_t>();
+            auto texture = Resource::GetResource<Texture2D>(textureUUID);
+            glm::vec2 spriteSize = renderComponent["SpriteSize"] ? renderComponent["SpriteSize"].as<glm::vec2>() : glm::vec2(1.0f , 1.0f);
+            glm::vec2 spriteIndex = renderComponent["SpriteIndex"] ? renderComponent["SpriteIndex"].as<glm::vec2>() : glm::vec2(0.0f , 0.0f);
+            glm::vec2 texSize = renderComponent["TextureSize"] ? renderComponent["TextureSize"].as<glm::vec2>() : glm::vec2(1.0f , 1.0f);
+            renderComp.spriteSize = spriteSize;
+            renderComp.textureIndex = spriteIndex;
+            renderComp.textureSize = texSize;
+            renderComp.subTexture = SubTexture2D::CreateByCoord(texture, spriteSize, spriteIndex, texSize);
+        }
+        if(renderComponent["Material"]){
+            auto matUUID = renderComponent["Material"].as<uint64_t>();
+            auto material = Resource::GetResource<Material>(matUUID);
+            renderComp.material = material;
+            auto MaterialInstance = entity["MaterialInstance"];// make MaterialInstance a child component of Material
+            if(MaterialInstance){
+                auto& matIns = deserializedEntity.AddComponent<MaterialInstanceComponent>();
+                auto params = MaterialInstance["Params"];
+                if(params){
+                    for(auto param : params){
+                        int slot = param["Slot"].as<int>();
+                        std::string name = param["Name"].as<std::string>();
+                        float value = param["Value"].as<float>();
+                        TSO_CORE_ASSERT(slot < 4 , "Material Instance not supports more than 4 value now");
+                        matIns.FloatOverrides[name] = value;
+                        if(renderComp.material){
+                            renderComp.material->DefineInstanceParam(name, slot);
+                        }
+                    }
+                }
+            }
+        }
+        if(renderComponent["TextMaterial"]){
+            auto matUUID = renderComponent["TextMaterial"].as<uint64_t>();
+            auto material = Resource::GetResource<Material>(matUUID);
+            renderComp.textMat = material;
+        }
+    }
+    auto buttonComp = entity["ButtonComponent"];
+    if(buttonComp){
+        deserializedEntity.AddComponent<ButtonComponent>();
+        if(!deserializedEntity.HasComponent<UITransformComponent>()){
+            deserializedEntity.AddComponent<UITransformComponent>();
+        }
+        auto& uiTrans = deserializedEntity.GetComponent<UITransformComponent>();
+        auto& button = deserializedEntity.GetComponent<ButtonComponent>();
+        uiTrans.UISize = buttonComp["UISize"].as<glm::vec2>();
+        uiTrans.Rotation_Z = buttonComp["UI_Rotation_z"].as<float>();
+        uiTrans.UIpos = buttonComp["UIPos"].as<glm::vec2>();
+        button.HoverColor = buttonComp["Hover_Color"].as<glm::vec4>();
+        button.PressedColor = buttonComp["Pressed_Color"].as<glm::vec4>();
+    }
+    auto InputComp = entity["InputComponent"];
+    if(InputComp){
+        deserializedEntity.AddComponent<InputFieldComponent>();
+        if(!deserializedEntity.HasComponent<UITransformComponent>()){
+            deserializedEntity.AddComponent<UITransformComponent>();
+        }
+        auto& uiTrans = deserializedEntity.GetComponent<UITransformComponent>();
+        uiTrans.UISize = InputComp["UISize"].as<glm::vec2>();
+        uiTrans.Rotation_Z = InputComp["UI_Rotation_z"].as<float>();
+        uiTrans.UIpos = InputComp["UIPos"].as<glm::vec2>();
+        
+    }
+
+    auto RigidBoxComponent = entity["Rigidbody2DComponent"];
+    if (RigidBoxComponent) {
+        auto& rbc = deserializedEntity.AddComponent< Rigidbody2DComponent>();
+        rbc.FixedRotation = RigidBoxComponent["FixedRotation"] ? RigidBoxComponent["FixedRotation"].as<bool>() : false;
+        rbc.Type = Rigidbody2DComponent::BodyType(RigidBoxComponent["Type"] ? RigidBoxComponent["Type"].as<int>() : 0);
+
+    }
+
+
+    auto box2dcollide = entity["BoxCollider2DComponent"];
+    if (box2dcollide) {
+        auto& rbc = deserializedEntity.AddComponent<BoxCollider2DComponent>();
+        rbc.Density = box2dcollide["Density"] ? box2dcollide["Density"].as<float>() : 1.0f;
+        rbc.Friction = box2dcollide["Friction"] ? box2dcollide["Friction"].as<float>() : 0.5f;
+        rbc.Restitution = box2dcollide["Restitution"] ? box2dcollide["Restitution"].as<float>() : 2.0f;
+        rbc.RestitutionThreshold = box2dcollide["RestitutionThreshold"] ? box2dcollide["RestitutionThreshold"].as<float>() : 0.5f;
+
+        rbc.Size = box2dcollide["Size"] ? box2dcollide["Size"].as<glm::vec2>() : glm::vec2(0.5f , 0.5f);
+        rbc.Offset = box2dcollide["Offset"] ? box2dcollide["Offset"].as<glm::vec2>() : glm::vec2(0.0f, 0.0f);
+    }
+
+    auto textComponent = entity["TextComponent"];
+    if(textComponent){
+        auto& textc = deserializedEntity.AddComponent<TextComponent>();
+//                    textc.FontPath = textComponent["FontPath"] ? textComponent["FontPath"].as<std::string>() : "";
+        textc.Text  = textComponent["Text"] ? textComponent["Text"].as<std::string>() : "";
+        textc.textParam.LineSpacing = textComponent["LineSpacing"] ? textComponent["LineSpacing"].as<float>() : 0.0f;
+        textc.textParam.CharacterSpacing = textComponent["CharacterSpacing"] ? textComponent["CharacterSpacing"].as<float>() : 0.0f;
+        textc.textParam.scale = textComponent["Scale"] ? textComponent["Scale"].as<glm::vec2>() : glm::vec2(1.f);
+        textc.textParam.offset = textComponent["Offset"] ? textComponent["Offset"].as<glm::vec2>() : glm::vec2(0.f);
+        auto fontPath = textComponent["FontPath"].as<uint64_t>();
+        textc.TextFont = Resource::GetResource<Font>(fontPath);
+        
+    }
+    
+    auto animator = entity["Animator"];
+    if(animator){
+        auto states = animator["States"];
+        auto animatorC = deserializedEntity.AddComponent<AnimatorComponent>();
+        for(auto state : states){
+            std::string stateName = state["Name"].as<std::string>();
+            UUID clipUUID = state["Clip"].as<uint64_t>();
+            auto clip = Resource::GetResource<AnimationClip>(clipUUID);
+            if(clip){
+                animatorC.Controller->AddState(stateName, clip);
+            }
+            if (state["Default"]) {
+                animatorC.Controller->SetDefaultState(stateName);
+            }
+        }
+    }
+
+    return deserializedEntity;
+
+}
 
 
 	
