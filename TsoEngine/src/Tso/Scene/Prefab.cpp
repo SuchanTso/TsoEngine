@@ -32,7 +32,7 @@ namespace Tso {
         m_Entity = m_PrefabScene->CopyEntity(sourceEntity);
     }
 
-    Entity Prefab::Instantiate(Ref<Scene> targetScene) {
+    Entity Prefab::Instantiate(Scene* targetScene) {
         Entity newEntity = targetScene->CopyEntity(m_Entity);
         TSO_CORE_TRACE("Insantiate prefab {}" , newEntity.GetUUID());
         return newEntity;

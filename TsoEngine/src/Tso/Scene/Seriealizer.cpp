@@ -8,7 +8,7 @@
 #include <filesystem>
 #include "Tso/Project/Resource.h"
 #include "Tso/Project/ProjectSerielizer.h"
-
+#include "Tso/Scripting/ScriptingEngine.h"
 namespace Utils{
 static std::string GetCurrentRelativePath(const std::string& filePath){
     std::filesystem::path currentFilePath = std::filesystem::current_path();
@@ -52,12 +52,64 @@ namespace Tso {
         if (entity.HasComponent<ScriptComponent>())
         {
             out << YAML::Key << "ScriptComponent";
-            out << YAML::BeginMap; // TagComponent
+            out << YAML::BeginMap; // ScriptComponent
 
-            auto& className = entity.GetComponent<ScriptComponent>().ClassName;
-            out << YAML::Key << "className" << YAML::Value << className.c_str();
+            auto& sc = entity.GetComponent<ScriptComponent>();
+            out << YAML::Key << "className" << YAML::Value << sc.ClassName;
 
-            out << YAML::EndMap; // TagComponent
+            // 序列化字段值
+            // 只有当有 Instance 数据时才写
+            if (!sc.FieldInstances.empty())
+            {
+                out << YAML::Key << "Fields" << YAML::Value << YAML::BeginSeq;
+
+                for (const auto& [name, fieldInst] : sc.FieldInstances)
+                {
+                    out << YAML::BeginMap;
+                    out << YAML::Key << "Name" << YAML::Value << name;
+                    out << YAML::Key << "Type" << YAML::Value << (int)fieldInst.Field.Type; // 存枚举值方便，也可以存字符串
+
+                    // 根据类型写入 Value
+                    out << YAML::Key << "Value";
+                    
+                    switch (fieldInst.Field.Type)
+                    {
+                        case ScriptFieldType::Float:   out << fieldInst.GetValue<float>(); break;
+                        case ScriptFieldType::Double:  out << fieldInst.GetValue<double>(); break;
+                        case ScriptFieldType::Bool:    out << fieldInst.GetValue<bool>(); break;
+                        case ScriptFieldType::Char:    out << fieldInst.GetValue<char>(); break;
+                        case ScriptFieldType::Byte:    out << (int)fieldInst.GetValue<uint8_t>(); break; // yaml-cpp char bug workaround
+                        case ScriptFieldType::Short:   out << fieldInst.GetValue<int16_t>(); break;
+                        case ScriptFieldType::Int:     out << fieldInst.GetValue<int32_t>(); break;
+                        case ScriptFieldType::Long:    out << fieldInst.GetValue<int64_t>(); break;
+                        case ScriptFieldType::UShort:  out << fieldInst.GetValue<uint16_t>(); break;
+                        case ScriptFieldType::UInt:    out << fieldInst.GetValue<uint32_t>(); break;
+                        case ScriptFieldType::ULong:   out << fieldInst.GetValue<uint64_t>(); break;
+                        
+                        case ScriptFieldType::Vector2: out << fieldInst.GetValue<glm::vec2>(); break;
+                        case ScriptFieldType::Vector3: out << fieldInst.GetValue<glm::vec3>(); break;
+                        case ScriptFieldType::Vector4: out << fieldInst.GetValue<glm::vec4>(); break;
+
+                        case ScriptFieldType::Entity:
+                        case ScriptFieldType::Prefab:
+                        case ScriptFieldType::Material:
+                        case ScriptFieldType::Texture:
+                        case ScriptFieldType::Animation:
+                            out << fieldInst.GetValue<uint64_t>(); // 资源/实体存 UUID
+                            break;
+                            
+                        default:
+                            // 处理异常或跳过
+                            out << YAML::Value << 0;
+                            break;
+                    }
+
+                    out << YAML::EndMap;
+                }
+                out << YAML::EndSeq;
+            }
+
+            out << YAML::EndMap; // ScriptComponent
         }
 
         if (entity.HasComponent<TransformComponent>())
@@ -386,9 +438,72 @@ Entity Seriealizer::DeserializeEntity(const YAML::Node &entity){
     }
 
     auto scriptComponent = entity["ScriptComponent"];
-    if (scriptComponent) {
+    if (scriptComponent)
+    {
         auto& sc = deserializedEntity.AddComponent<ScriptComponent>();
-        sc.ClassName = scriptComponent["className"] ? scriptComponent["className"].as<std::string>() : "";
+        sc.ClassName = scriptComponent["className"].as<std::string>();
+
+        auto scriptFields = scriptComponent["Fields"];
+        if (scriptFields)
+        {
+            // 我们需要 ScriptClass 定义来填充 Field 元数据 (Type, Name 等)
+            Ref<ScriptClass> scriptClass = ScriptingEngine::GetScriptClass(sc.ClassName);
+            
+            if (scriptClass)
+            {
+                const auto& classFields = scriptClass->GetFields();
+
+                for (auto scriptField : scriptFields)
+                {
+                    std::string name = scriptField["Name"].as<std::string>();
+                    
+                    // [关键] 检查这个字段是否依然存在于当前的 Lua 脚本中
+                    // 如果脚本改了把变量删了，这里就跳过，不加载旧数据
+                    if (classFields.find(name) != classFields.end())
+                    {
+                        ScriptFieldInstance& fieldInst = sc.FieldInstances[name];
+                        fieldInst.Field = classFields.at(name); // 恢复元数据
+
+                        // 根据类型读取 Value 并 SetValue
+                        ScriptFieldType type = (ScriptFieldType)scriptField["Type"].as<int>();
+                        
+                        // 防御性编程：确保 YAML 存的类型和脚本现在的类型一致
+                        // 如果不一致（比如 float 改成了 int），可能需要转换或丢弃
+                        if (type != fieldInst.Field.Type) {
+                            TSO_CORE_WARN("Field type mismatch for {0}.{1}, skipping data load.", sc.ClassName, name);
+                            continue;
+                        }
+
+                        switch (type)
+                        {
+                            case ScriptFieldType::Float:   fieldInst.SetValue(scriptField["Value"].as<float>()); break;
+                            case ScriptFieldType::Double:  fieldInst.SetValue(scriptField["Value"].as<double>()); break;
+                            case ScriptFieldType::Bool:    fieldInst.SetValue(scriptField["Value"].as<bool>()); break;
+                            case ScriptFieldType::Char:    fieldInst.SetValue(scriptField["Value"].as<char>()); break;
+                            case ScriptFieldType::Byte:    fieldInst.SetValue((uint8_t)scriptField["Value"].as<int>()); break;
+                            case ScriptFieldType::Short:   fieldInst.SetValue(scriptField["Value"].as<int16_t>()); break;
+                            case ScriptFieldType::Int:     fieldInst.SetValue(scriptField["Value"].as<int32_t>()); break;
+                            case ScriptFieldType::Long:    fieldInst.SetValue(scriptField["Value"].as<int64_t>()); break;
+                            case ScriptFieldType::UShort:  fieldInst.SetValue(scriptField["Value"].as<uint16_t>()); break;
+                            case ScriptFieldType::UInt:    fieldInst.SetValue(scriptField["Value"].as<uint32_t>()); break;
+                            case ScriptFieldType::ULong:   fieldInst.SetValue(scriptField["Value"].as<uint64_t>()); break;
+
+                            case ScriptFieldType::Vector2: fieldInst.SetValue(scriptField["Value"].as<glm::vec2>()); break;
+                            case ScriptFieldType::Vector3: fieldInst.SetValue(scriptField["Value"].as<glm::vec3>()); break;
+                            case ScriptFieldType::Vector4: fieldInst.SetValue(scriptField["Value"].as<glm::vec4>()); break;
+
+                            case ScriptFieldType::Entity:
+                            case ScriptFieldType::Prefab:
+                            case ScriptFieldType::Material:
+                            case ScriptFieldType::Texture:
+                            case ScriptFieldType::Animation:
+                                fieldInst.SetValue(scriptField["Value"].as<uint64_t>());
+                                break;
+                        }
+                    }
+                }
+            }
+        }
     }
 
     auto cameraComponent = entity["CamermaComponent"];

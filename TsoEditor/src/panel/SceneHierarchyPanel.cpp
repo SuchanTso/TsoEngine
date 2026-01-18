@@ -485,6 +485,9 @@ void main(){
                 Ref<AnimationClip> animation = Resource::GetResource<AnimationClip>(m_SelectedResourceUUID);
                 if(animation) m_AnimationPanel.SetContext(animation);
             }
+            case ResourceType::Script:{
+                
+            }
             default: break;
         }
         
@@ -870,6 +873,149 @@ template<typename T, typename UIFunction>
         }
     }
 
+void SceneHierarchyPanel::DrawScriptField(const std::string& name, ScriptFieldInstance& fieldInstance) {
+    
+    // 使用 PushID 防止同名冲突
+    ImGui::PushID(name.c_str());
+
+    // 左侧显示变量名
+    ImGui::Text("%s", name.c_str());
+    ImGui::SameLine();
+
+    // 根据类型绘制不同的控件
+    switch (fieldInstance.Field.Type) {
+        
+        // --- 基础类型 ---
+        case ScriptFieldType::Float: {
+            float data = fieldInstance.GetValue<float>();
+            if (ImGui::DragFloat("##v", &data, 0.1f)) {
+                fieldInstance.SetValue(data);
+            }
+            break;
+        }
+        case ScriptFieldType::Double: {
+            double data = fieldInstance.GetValue<double>();
+            // ImGui 只有 float，转一下
+            float fData = (float)data;
+            if (ImGui::DragFloat("##v", &fData, 0.1f)) {
+                fieldInstance.SetValue((double)fData);
+            }
+            break;
+        }
+        case ScriptFieldType::Int: {
+            int data = fieldInstance.GetValue<int>();
+            if (ImGui::DragInt("##v", &data)) {
+                fieldInstance.SetValue(data);
+            }
+            break;
+        }
+        case ScriptFieldType::Bool: {
+            bool data = fieldInstance.GetValue<bool>();
+            if (ImGui::Checkbox("##v", &data)) {
+                fieldInstance.SetValue(data);
+            }
+            break;
+        }
+        case ScriptFieldType::Vector2: {
+            glm::vec2 data = fieldInstance.GetValue<glm::vec2>();
+            if (ImGui::DragFloat2("##v", &data.x)) {
+                fieldInstance.SetValue(data);
+            }
+            break;
+        }
+        case ScriptFieldType::Vector3: {
+            glm::vec3 data = fieldInstance.GetValue<glm::vec3>();
+            if (ImGui::DragFloat3("##v", &data.x)) {
+                fieldInstance.SetValue(data);
+            }
+            break;
+        }
+        case ScriptFieldType::Vector4: {
+            glm::vec4 data = fieldInstance.GetValue<glm::vec4>();
+            if (ImGui::DragFloat4("##v", &data.x)) {
+                fieldInstance.SetValue(data);
+            }
+            break;
+        }
+
+        // --- 资源类型 (Texture, Prefab, Material, Animation) ---
+        // 它们本质都是存储 UUID，表现为接收拖拽的按钮
+        case ScriptFieldType::Texture:
+        case ScriptFieldType::Prefab:
+        case ScriptFieldType::Material:
+        case ScriptFieldType::Animation:
+        {
+            uint64_t uuid = fieldInstance.GetValue<uint64_t>();
+            
+            // 获取显示的名称
+            std::string label = "None";
+            if (uuid != 0) {
+                // 尝试从资源系统获取路径或名称
+                // 如果你的 Resource 支持反查，可以用 Resource::GetPath(uuid).stem().string()
+                // 这里暂时显示 UUID，你可以优化
+                label = std::to_string(uuid);
+            }
+
+            // 绘制按钮，填满剩余宽度
+            if (ImGui::Button(label.c_str(), ImVec2(ImGui::GetContentRegionAvail().x, 0.0f))) {
+                // 可选：点击高亮资源或者打开选择器
+            }
+
+            // 接收拖拽
+            if (ImGui::BeginDragDropTarget()) {
+                // 根据类型确定 Payload 标签
+                const char* payloadType = nullptr;
+                if (fieldInstance.Field.Type == ScriptFieldType::Texture) payloadType = "RESOURCE_TEXTURE";
+                if (fieldInstance.Field.Type == ScriptFieldType::Prefab) payloadType = "RESOURCE_PREFAB";
+                if (fieldInstance.Field.Type == ScriptFieldType::Material) payloadType = "RESOURCE_MATERIAL";
+                if (fieldInstance.Field.Type == ScriptFieldType::Animation) payloadType = "RESOURCE_ANIM_CLIP";
+
+                if (payloadType) {
+                    if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload(payloadType)) {
+                        uint64_t newUUID = *(const uint64_t*)payload->Data;
+                        fieldInstance.SetValue(newUUID);
+                    }
+                }
+                ImGui::EndDragDropTarget();
+            }
+            break;
+        }
+
+        // --- 实体类型 ---
+        case ScriptFieldType::Entity: {
+            uint64_t uuid = fieldInstance.GetValue<uint64_t>();
+            std::string label = "None (Entity)";
+            
+            if (uuid != 0) {
+                // 尝试获取 Entity 名字 (需要 Context)
+                if (m_Context) { // m_Context 是当前 Scene
+                    Entity e = m_Context->GetEntityByUUID(uuid);
+                    if (e) label = e.GetComponent<TagComponent>().m_Name;
+                    else label = "Invalid Entity";
+                }
+            }
+
+            ImGui::Button(label.c_str(), ImVec2(ImGui::GetContentRegionAvail().x, 0.0f));
+
+            // 接收来自 Hierarchy 的拖拽 (假设你在 Hierarchy 实现了 "SCENE_ENTITY_UUID" 的 Source)
+            if (ImGui::BeginDragDropTarget()) {
+                if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("SCENE_ENTITY_UUID")) {
+                    uint64_t newUUID = *(const uint64_t*)payload->Data;
+                    fieldInstance.SetValue(newUUID);
+                }
+                ImGui::EndDragDropTarget();
+            }
+            break;
+        }
+
+        default:
+            ImGui::Text("Unknown Type");
+            break;
+    }
+
+    ImGui::PopID();
+}
+
 
 
 
@@ -939,7 +1085,7 @@ template<typename T, typename UIFunction>
                 UUID prefabUUID = *(const UUID*)payload->Data;
                 Ref<Prefab> newPrefab = Resource::GetResource<Prefab>(prefabUUID);
                 if (newPrefab) {
-                    newPrefab->Instantiate(m_Context);
+                    newPrefab->Instantiate(m_Context.get());
                 }
             }
             ImGui::EndDragDropTarget();
@@ -1591,15 +1737,14 @@ inline static void DrawComponent(const std::string& name, Entity entity, UIFunct
             }
             
         }
-        DrawComponent<ScriptComponent>("Script", entity, [](Entity&e , auto& comp){
+        DrawComponent<ScriptComponent>("Script", entity, [this](Entity&e , auto& comp){
             auto& className = comp.ClassName;
             char buff[256];
 
             strcpy(buff, className.c_str());
 
-
-            bool classExist = ScriptingEngine::EntityClassExists(comp.ClassName);
-            if (!classExist) {
+            auto script = ScriptingEngine::GetScriptClass(comp.ClassName);
+            if (!script) {
                 ImGui::PushStyleColor(0, { 0.8 , 0.3 , 0.2 , 1.0 });
             }
 
@@ -1613,7 +1758,18 @@ inline static void DrawComponent(const std::string& name, Entity entity, UIFunct
                 }
                 ImGui::EndDragDropTarget();
             }
-            if (!classExist) {
+            if(script){
+                const auto& fields = script->GetFields();
+                for (const auto& [name, fieldDef] : fields) {
+                    if (comp.FieldInstances.find(name) == comp.FieldInstances.end()) {
+                        ScriptFieldInstance& inst = comp.FieldInstances[name];
+                        inst.Field = fieldDef;
+                        inst.SetValue<uint64_t>(0);
+                    }
+                    DrawScriptField(name, comp.FieldInstances[name]);
+                }
+            }
+            if (!script) {
                 ImGui::PopStyleColor();
             }
         });

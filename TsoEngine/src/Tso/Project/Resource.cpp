@@ -174,7 +174,7 @@ template<>Ref<Prefab>Resource::GetResource(const UUID& uuid){
             AddResource<Prefab>(name, uuid, prefab);
             return prefab;
         }
-        TSO_CORE_WARN("Font {} not found!" , uuid);
+        TSO_CORE_WARN("Prefab {} not found!" , uuid);
         return nullptr;
     }
     return s_Resource->m_ResourceData->prefabMap[uuid];
