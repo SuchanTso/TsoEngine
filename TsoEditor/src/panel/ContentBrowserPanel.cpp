@@ -287,7 +287,8 @@ void ContentBrowserPanel::DrawCreateMaterialPopup() {
                 Ref<Shader> shader = Resource::GetResource<Shader>(selectedShaderUUID);
                 Ref<Material> newMat = Material::Create(matName);
                 if (shader) {
-                    Ref<Material> newMat = Material::Create(shader, matName);
+//                    newMat = Material::Create(shader, matName);
+                    newMat->SetShader(shader);
                 }
                 
                 std::filesystem::path projDir = Project::GetProjectDirectory(); // 获取项目根目录
