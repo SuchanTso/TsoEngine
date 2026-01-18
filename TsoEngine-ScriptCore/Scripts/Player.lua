@@ -1,5 +1,5 @@
 -- player.lua
-local Keycode = require("core.Keycode")
+local Keycode = require("script.core.Keycode")
 local Player = {}
 Player.__index = Player
 
@@ -36,10 +36,13 @@ function Player:OnUpdate(ts)
     if not self.entity then return end
 
     if World.IsKeyPressed(Keycode.TSO_KEY_W) then
-        
         local transform = self.entity:GetComponent("TransformComponent")
         if transform then
             transform:Translate({ x = 0, y = self.Speed * ts, z = 0 })
+        end
+        local render = self.entity:GetComponent("Renderable")
+        if render then
+            render:ChangeSpriteIndex({ x =1, y =0 })
         end
     end
     if World.IsKeyPressed(Keycode.TSO_KEY_S) then
@@ -47,6 +50,10 @@ function Player:OnUpdate(ts)
         local transform = self.entity:GetComponent("TransformComponent")
         if transform then
             transform:Translate({ x = 0, y = - self.Speed * ts, z = 0 })
+        end
+        local render = self.entity:GetComponent("Renderable")
+        if render then
+            render:SetSpriteIndex({ x = 1, y =0 })
         end
     end
 
