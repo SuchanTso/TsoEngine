@@ -124,7 +124,7 @@ namespace Tso {
     struct IDComponent{
         IDComponent() = default;
         IDComponent(const UUID& uuid):ID(uuid){}
-        IDComponent(const IDComponent& other) = default;
+        IDComponent(const IDComponent& other):ID(UUID()){}
         UUID ID;
     };
 
@@ -296,9 +296,12 @@ struct UITransformComponent{
 	};
 
 	using AllComponents =
-		ComponentGroup<TransformComponent , Renderable,
+		ComponentGroup<TransformComponent , Renderable,UITransformComponent,ButtonComponent,InputFieldComponent,
 		CameraComponent,ScriptComponent,
+        TagComponent,
 		 Rigidbody2DComponent, BoxCollider2DComponent,
+        AnimatorComponent,MaterialInstanceComponent,
+        NetworkComponent,
 		TextComponent>;
 
 	

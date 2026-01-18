@@ -784,6 +784,7 @@ void EditorLayer::DrawEditorInterface(){
         std::filesystem::create_directories(projRootDir / "Assets" / "Sprites");
         std::filesystem::create_directories(projRootDir / "Assets" / "Scripts");
         std::filesystem::create_directories(projRootDir / "Assets" / "Material");
+        std::filesystem::create_directories(projRootDir / "Assets" / "Prefabs");
 
         // =========================================================
 

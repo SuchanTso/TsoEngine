@@ -17,6 +17,7 @@ namespace Tso{
 class SubTexture2D;
 class Material;
 class AnimationClip;
+class Prefab;
 struct ResourceData{
     Ref<Font> font;
     std::unordered_map<std::string, Ref<Texture2D>> textures;//save for now. delete once uuid system done build
@@ -24,7 +25,8 @@ struct ResourceData{
     std::unordered_map<UUID, Ref<Material>>  materialMap;
     std::unordered_map<UUID, Ref<Shader>> shaderMap;
     std::unordered_map<UUID, Ref<Font>> fontMap;
-    std::unordered_map<UUID, Ref<AnimationClip>> animationClipMap;    
+    std::unordered_map<UUID, Ref<AnimationClip>> animationClipMap;
+    std::unordered_map<UUID, Ref<Prefab>> prefabMap;
 //    std::unordered_map<std::string , UUID> textureNameMap;
 //    std::unordered_map<std::string , UUID> materialNameMap;
 //    std::unordered_map<std::string , UUID> shaderNameMap;
@@ -54,6 +56,9 @@ public:
     
     template<>
     static void AddResource<Material>(const std::string& name , const UUID &uuid, Ref<Material> resource);
+    
+    template<>
+    static void AddResource<Prefab>(const std::string& name , const UUID &uuid, Ref<Prefab> resource);
     
     template<>
     static void AddResource<Font>(const std::string& name , const UUID &uuid, Ref<Font> resource);

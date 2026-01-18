@@ -1,5 +1,7 @@
 #pragma once
 #include "Entity.h"
+#include "yaml-cpp/yaml.h"
+
 
 namespace Tso {
 
@@ -16,8 +18,9 @@ namespace Tso {
         
         Ref<Texture2D> GetTextureByPath(std::string& path);
 
-        
+        Entity DeserializeEntity(const YAML::Node& node);
 
+        static void SeriealizeEntity(YAML::Emitter& out, Entity& entity);
 
 	private:
 		Scene* m_Scene;

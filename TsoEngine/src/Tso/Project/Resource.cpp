@@ -10,6 +10,7 @@
 #include "Tso/Renderer/Material.h"
 #include "Tso/Animation/AnimationClip.h"
 #include "Tso/Scripting/ScriptingEngine.h"
+#include "Tso/Scene/Prefab.h"
 
 namespace Tso{
 void Resource::Init(){
@@ -163,6 +164,22 @@ template<>Ref<Font>Resource::GetResource(const UUID& uuid){
     return s_Resource->m_ResourceData->fontMap[uuid];
 }
 
+template<>Ref<Prefab>Resource::GetResource(const UUID& uuid){
+    TSO_CORE_ASSERT(s_Resource != nullptr && s_Resource->m_ResourceData != nullptr , "didn't init resource yet");
+    if(s_Resource->m_ResourceData->prefabMap.find(uuid) == s_Resource->m_ResourceData->prefabMap.end()){
+        if(s_Resource->m_ResourceData->resourceUUIDPathMap.find(uuid) != s_Resource->m_ResourceData->resourceUUIDPathMap.end()){
+            auto path = s_Resource->m_ResourceData->resourceUUIDPathMap[uuid];
+            auto prefab = Prefab::Create(path);
+            auto name = std::filesystem::path(path).stem().string();
+            AddResource<Prefab>(name, uuid, prefab);
+            return prefab;
+        }
+        TSO_CORE_WARN("Font {} not found!" , uuid);
+        return nullptr;
+    }
+    return s_Resource->m_ResourceData->prefabMap[uuid];
+}
+
 template<>Ref<AnimationClip>Resource::GetResource(const UUID& uuid){
     TSO_CORE_ASSERT(s_Resource != nullptr && s_Resource->m_ResourceData != nullptr , "didn't init resource yet");
     if(s_Resource->m_ResourceData->animationClipMap.find(uuid) == s_Resource->m_ResourceData->animationClipMap.end()){
@@ -206,6 +223,10 @@ template<>std::unordered_map<UUID , Ref<AnimationClip>>& Resource::GetResourceMa
     TSO_CORE_ASSERT(s_Resource != nullptr && s_Resource->m_ResourceData != nullptr , "didn't init resource yet");
     return s_Resource->m_ResourceData->animationClipMap;
 }
+template<>std::unordered_map<UUID , Ref<Prefab>>& Resource::GetResourceMap(){
+    TSO_CORE_ASSERT(s_Resource != nullptr && s_Resource->m_ResourceData != nullptr , "didn't init resource yet");
+    return s_Resource->m_ResourceData->prefabMap;
+}
 
 //=============================================GetResourceMap===========================================================
 
@@ -228,6 +249,16 @@ template<> void Resource::AddResource<Material>(const std::string& name , const 
     }
     s_Resource->m_ResourceData->materialMap[uuid] = resource;
     resource->SetUUID(uuid);
+    s_Resource->m_ResourceData->resourcePathMap[resource->GetPath()] = uuid;
+}
+
+template<> void Resource::AddResource<Prefab>(const std::string& name , const UUID &uuid, Ref<Prefab> resource){
+    TSO_CORE_ASSERT(s_Resource != nullptr && s_Resource->m_ResourceData != nullptr , "didn't init resource yet");
+    if(s_Resource->m_ResourceData->prefabMap.find(uuid) != s_Resource->m_ResourceData->prefabMap.end()){
+        TSO_CORE_WARN("Duplicated material {} added in the asset, replacing..." , uuid);
+    }
+    s_Resource->m_ResourceData->prefabMap[uuid] = resource;
+//    resource->SetUUID(uuid);
     s_Resource->m_ResourceData->resourcePathMap[resource->GetPath()] = uuid;
 }
 
@@ -269,7 +300,7 @@ template<> void Resource::AddResource<AnimationClip >(const std::string& name , 
 std::vector<std::filesystem::path> Resource::GetAllResourceToExport(){
     TSO_CORE_ASSERT(s_Resource != nullptr && s_Resource->m_ResourceData != nullptr , "didn't init resource yet");
     std::vector<std::filesystem::path>res;
-    int resourceCount = GetResourceMap<Texture2D>().size() + GetResourceMap<Shader>().size() + GetResourceMap<Material>().size() + GetResourceMap<Font>().size() + GetResourceMap<AnimationClip>().size() + ScriptingEngine::GetScriptClasses().size();
+    int resourceCount = GetResourceMap<Texture2D>().size() + GetResourceMap<Shader>().size() + GetResourceMap<Material>().size() + GetResourceMap<Font>().size() + GetResourceMap<AnimationClip>().size() + ScriptingEngine::GetScriptClasses().size() + GetResourceMap<Prefab>().size();
     res.reserve(resourceCount * 2);
     for(auto& [uuid , texture] : GetResourceMap<Texture2D>()){
         res.push_back(texture->GetPath());
@@ -290,6 +321,10 @@ std::vector<std::filesystem::path> Resource::GetAllResourceToExport(){
     for(auto& [uuid , font] : GetResourceMap<Font>()){
         res.push_back(font->GetPath());
         res.push_back(GetMetaPath(font->GetPath()));
+    }
+    for(auto& [uuid , prefab] : GetResourceMap<Prefab>()){
+        res.push_back(prefab->GetPath());
+        res.push_back(GetMetaPath(prefab->GetPath()));
     }
     for(auto& [name , script] : ScriptingEngine::GetScriptClasses()){
         res.push_back(script->GetPath());
@@ -328,6 +363,7 @@ UUID Resource::GetUUIDFromPath(const std::string &path){
         else if (ext == ".mat") typeString = "Material";
         else if (ext == ".anim") typeString = "Animation";
         else if (ext == ".lua") typeString = "Script";
+        else if (ext == ".prefab") typeString = "Prefab";
 
         // 4. 创建并写入 .meta 文件
         YAML::Emitter out;

@@ -411,6 +411,10 @@ void ContentBrowserPanel::DrawCreateMaterialPopup() {
                             ImGui::SetDragDropPayload("RESOURCE_SHADER", &uuid, sizeof(UUID));
                             ImGui::Text("shader: %s", filenameString.c_str());
                         }
+                        else if(path.extension() == ".prefab"){
+                            ImGui::SetDragDropPayload("RESOURCE_PREFAB", &uuid, sizeof(UUID));
+                            ImGui::Text("prefab: %s", filenameString.c_str());
+                        }
                         else {
                             // 通用文件 Payload
                             ImGui::SetDragDropPayload("CONTENT_BROWSER_ITEM", &uuid, sizeof(UUID));
@@ -492,9 +496,7 @@ void ContentBrowserPanel::DrawCreateMaterialPopup() {
                     if (directoryEntry.is_directory()) {
                         m_CurrentDirectory /= path.filename();
                     }
-                }
-                if(ImGui::IsItemHovered() && ImGui::IsMouseClicked(ImGuiMouseButton_Left)){
-                    if(directoryEntry.is_regular_file()){
+                    else if (directoryEntry.is_regular_file()){
                         UUID uuid = Resource::GetUUIDFromPath(path.string());
                         if(uuid != 0){
                             ResourceType type = ResourceType::None;
@@ -517,6 +519,7 @@ void ContentBrowserPanel::DrawCreateMaterialPopup() {
                                 m_SceneHPanel->SetSelectedResource(uuid, type);
                             }
                         }
+                    
                     }
                 }
 

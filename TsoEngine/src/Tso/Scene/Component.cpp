@@ -25,7 +25,7 @@ TransformComponent::TransformComponent(const glm::vec3& pos)
 
 Renderable::Renderable(const Renderable& other)
     :type(other.type) , isSubtexture(other.isSubtexture) , m_Color(other.m_Color) ,
-    spriteSize(other.spriteSize) , textureIndex(other.textureIndex) , textureSize(other.textureSize)
+    spriteSize(other.spriteSize) , textureIndex(other.textureIndex) , textureSize(other.textureSize),material(other.material),textMat(other.textMat)
 {    
     if(other.subTexture && other.subTexture->GetTexture())
     subTexture = SubTexture2D::CreateByCoord(other.subTexture->GetTexture(), spriteSize, textureIndex, textureSize); 

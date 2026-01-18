@@ -11,6 +11,7 @@
 #include "Tso/Project/Resource.h"
 #include "Tso/Core/UUID.h"
 #include <fstream>
+#include "Tso/Scene/Prefab.h"
 
 namespace Tso {
 template<> void SceneHierarchyPanel::DisplayAddComponentEntry<ButtonComponent>(const std::string &entryName){
@@ -907,7 +908,44 @@ template<typename T, typename UIFunction>
                 ImGui::EndPopup();
             }
         }
+        else{
+            if (ImGui::BeginPopupContextWindow(0, 1)){
+                if (ImGui::MenuItem("Delete Entity")){
+                    m_DeletedEntity = m_SelectedEntity;
+                }
+                if (ImGui::MenuItem("Create Prefab")){
+                    std::string prefabPath = (Project::GetProjectDirectory() / "Assets/Prefabs" / m_SelectedEntity.GetComponent<TagComponent>().m_Name).string() + ".prefab";
+                    auto prefab = CreateRef<Prefab>();
+                    prefab->Create(m_SelectedEntity);
+                    prefab->Serialize(prefabPath);
+                    Resource::ImportAsset(prefabPath);
+                }
+                
+
+                ImGui::EndPopup();
+            }
+        }
+        ImVec2 contentAvail = ImGui::GetContentRegionAvail();
+            
+        // 如果列表很长没填满，或者为了保险，至少给一点高度
+        if (contentAvail.y < 50.0f) contentAvail.y = 50.0f;
+        
+        // 绘制一个看不见的占位符，填满剩余空间
+        ImGui::Dummy(contentAvail);
+
+        // 在这个占位符上接收拖拽
+        if (ImGui::BeginDragDropTarget()) {
+            if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("RESOURCE_PREFAB")) {
+                UUID prefabUUID = *(const UUID*)payload->Data;
+                Ref<Prefab> newPrefab = Resource::GetResource<Prefab>(prefabUUID);
+                if (newPrefab) {
+                    newPrefab->Instantiate(m_Context);
+                }
+            }
+            ImGui::EndDragDropTarget();
+        }
 		ImGui::End();
+        
 
 		if (ImGui::IsMouseDown(0) && ImGui::IsWindowHovered()) {
 			m_SelectedEntity.m_EntityID = entt::null;
