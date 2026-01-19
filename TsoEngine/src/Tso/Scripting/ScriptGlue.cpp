@@ -25,7 +25,7 @@ void ScriptGlue::RegisterFunctions() {
     //======================================================================================
 
     // 创建一个名为 "World" 的全局表 (命名空间)
-    sol::table world = lua.create_table("World");
+    sol::table world = lua.create_table("TSO");
 
     // 绑定全局函数
     world["Log"] = [](const std::string& message) {
@@ -33,6 +33,8 @@ void ScriptGlue::RegisterFunctions() {
     };
 
     world["IsKeyPressed"] = &Input::IsKeyPressed;
+    
+    world["IsMousePressed"] = &Input::IsMouseButtonPressed;
     
     world["CreateEntity"] = [](sol::optional<std::string> tag) -> Entity {
             Scene* scene = ScriptingEngine::GetSceneContext();
@@ -76,6 +78,24 @@ void ScriptGlue::RegisterFunctions() {
     };
     world["RunLater"] = [](sol::protected_function func, float delay) {
         ScriptTaskManager::Get().AddTask(func, delay);
+    };
+    world["GetMouseViewportPos"] = []{
+        glm::vec2 mousePos = {Input::GetViewportMouseX() , Input::GetViewportMouseY()};
+        return sol::make_object(ScriptingEngine::GetLuaState(), mousePos);
+    };
+    world["GetMouseWorldPos"] = []{
+        glm::vec2 mousePos = {Input::GetViewportMouseX() , Input::GetViewportMouseY()};
+        glm::vec3 worldPos = ScriptingEngine::GetSceneContext()->GetWorldPositionFromMouse(mousePos.x, mousePos.y);
+        return sol::make_object(ScriptingEngine::GetLuaState(), worldPos);
+    };
+    world["Instantiate"] = [](const std::string& uuid_str) -> sol::object {
+        uint64_t uuid_val = strtoull(uuid_str.c_str(), NULL, 0);
+
+        auto prefab = Resource::GetResource<Prefab>(uuid_val);
+        if(prefab){
+            return sol::make_object(ScriptingEngine::GetLuaState(), prefab->Instantiate(ScriptingEngine::GetSceneContext()));
+        }
+        return sol::lua_nil;
     };
 
 

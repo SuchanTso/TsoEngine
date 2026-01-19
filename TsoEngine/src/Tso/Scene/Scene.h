@@ -29,6 +29,8 @@ namespace Tso {
 		bool EntityExist(const UUID& uuid);
         
         void DeleteEntity(Entity entity);
+        
+        void DealDeleteEntity();
 
 		void OnScenePlay();
 
@@ -60,6 +62,8 @@ namespace Tso {
 
         
         glm::mat4* GetMainCameraTransform(){return m_MainCameraTransform;}
+        
+        glm::vec3 GetWorldPositionFromMouse(float mouseX, float mouseY);
 
 		void SetSceneCamera(const Entity& cameraEntity);
         
@@ -119,6 +123,8 @@ namespace Tso {
         glm::mat4* m_MainCameraTransform = nullptr;
         
         UISystem* m_UISystem = nullptr;
+        
+        std::vector<Entity> m_DeleteEntityQueue;
 
 
 	};

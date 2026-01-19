@@ -16,6 +16,7 @@
 #include "Tso/Core/Application.h"
 #include "Tso/UI/UISystem.h"
 #include "Tso/Scripting/ScriptTaskManager.h"
+#include "Tso/Renderer/ViewportManager.h"
 
 namespace Utils {
     b2BodyType Rigidbody2DTypeToBox2DBody(Tso::Rigidbody2DComponent::BodyType bodyType)
@@ -91,6 +92,32 @@ bool Scene::IsEntityActive(entt::entity e){
 
     return res;
 }
+
+glm::vec3 Scene::GetWorldPositionFromMouse(float mouseX, float mouseY){
+    auto windowWidth = ViewportManager::GetWidth();
+    auto windowHeight = ViewportManager::GetHeight();
+    float ndcX = (2.0f * mouseX) / windowWidth - 1.0f;
+    float ndcY = (2.0f * mouseY) / windowHeight - 1.0f;
+    glm::vec4 ndc(ndcX, ndcY, 0.0f, 1.0f);
+    glm::mat4 viewProj = glm::mat4(1.f);
+    if(mainCamera){
+        viewProj = mainCamera->GetProjection() * glm::inverse(*m_MainCameraTransform);
+    }
+    else if(m_SceneCamera){
+        viewProj = m_SceneCamera->GetComponent<Camera>().GetProjection() * glm::inverse(m_SceneCamera->GetComponent<TransformComponent>().GetTransform());
+    }
+    glm::mat4 invViewProj = glm::inverse(viewProj);
+        
+    glm::vec4 worldPos = invViewProj * ndc;
+    
+    if (worldPos.w != 0.0f) {
+        worldPos /= worldPos.w;
+    }
+
+    return glm::vec3(worldPos);
+    
+}
+
 
 void Scene::OnResizeViewport(const unsigned int& width , const unsigned int& height){
     if(mainCamera){
@@ -186,6 +213,8 @@ void Scene::OnUpdate(TimeStep ts)
 //        }
 
     }
+    DealDeleteEntity();
+
 
     //deal not active entity
     //delete them
@@ -412,19 +441,38 @@ bool Scene::HasEntity(const UUID& uuid)
 }
 
 void Scene::DeleteEntity(Entity entity){
-    TSO_CORE_ASSERT(m_EntityMap.find(entity.GetUUID()) != m_EntityMap.end(), "cannot find entity , maybe an invalid scene");
-    if (entity.HasComponent<Rigidbody2DComponent>()) {
-        auto& rigidc = entity.GetComponent<Rigidbody2DComponent>();
-        b2Body* body = (b2Body*)rigidc.RuntimeBody;
-        body->SetEnabled(false);
-        m_PhysicWorld->DestroyBody(body);
-        
-    }
-//    TSO_CORE_INFO("entity {} has deleted" , uint32_t(entity));
-    m_EntityMap.erase(entity.GetUUID());
-    m_Registry.destroy(entity);
-    ScriptingEngine::OnDeleteEntity(entity);
+    m_DeleteEntityQueue.push_back(entity);
+//    TSO_CORE_ASSERT(m_EntityMap.find(entity.GetUUID()) != m_EntityMap.end(), "cannot find entity , maybe an invalid scene");
+//    if (entity.HasComponent<Rigidbody2DComponent>()) {
+//        auto& rigidc = entity.GetComponent<Rigidbody2DComponent>();
+//        b2Body* body = (b2Body*)rigidc.RuntimeBody;
+//        body->SetEnabled(false);
+//        m_PhysicWorld->DestroyBody(body);
+//        
+//    }
+////    TSO_CORE_INFO("entity {} has deleted" , uint32_t(entity));
+//    m_EntityMap.erase(entity.GetUUID());
+//    ScriptingEngine::OnDeleteEntity(entity);
+//    m_Registry.destroy(entity);
 
+}
+
+void Scene::DealDeleteEntity(){
+    for(auto& entity : m_DeleteEntityQueue){
+        TSO_CORE_ASSERT(m_EntityMap.find(entity.GetUUID()) != m_EntityMap.end(), "cannot find entity , maybe an invalid scene");
+        if (entity.HasComponent<Rigidbody2DComponent>()) {
+            auto& rigidc = entity.GetComponent<Rigidbody2DComponent>();
+            b2Body* body = (b2Body*)rigidc.RuntimeBody;
+            body->SetEnabled(false);
+            m_PhysicWorld->DestroyBody(body);
+            
+        }
+    //    TSO_CORE_INFO("entity {} has deleted" , uint32_t(entity));
+        m_EntityMap.erase(entity.GetUUID());
+        ScriptingEngine::OnDeleteEntity(entity);
+        m_Registry.destroy(entity);
+    }
+    m_DeleteEntityQueue.clear();
 }
 
 void Scene::OnScenePlay()
